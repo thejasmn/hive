@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.hive.conf;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,11 @@ public class HiveConf extends Configuration {
 
   private static final Map<String, ConfVars> vars = new HashMap<String, ConfVars>();
   private final List<String> restrictList = new ArrayList<String>();
+
+  //TODO: (re)move these variables from MetaStoreUtils
+  public static final String DATABASE_WAREHOUSE_SUFFIX = ".db";
+  public static final String DEFAULT_DATABASE_COMMENT = "Default Hive database";
+  public static final String DEFAULT_DATABASE_NAME = "default";
 
   static {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -781,6 +787,9 @@ public class HiveConf extends Configuration {
       "org.apache.hadoop.hive.ql.exec.PTFPersistence$PartitionedByteBasedList"),
     HIVE_PTF_PARTITION_PERSISTENT_SIZE("hive.ptf.partition.persistence.memsize",
       (int) Math.pow(2, (5 + 10 + 10)) ), // 32MB
+
+    HIVE_CURRENT_DATABASE("hive.current.db", DEFAULT_DATABASE_NAME),
+
     ;
 
     public final String varname;
