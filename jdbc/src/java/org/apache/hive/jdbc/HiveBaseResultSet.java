@@ -596,13 +596,17 @@ public abstract class HiveBaseResultSet implements ResultSet {
    */
   public String getString(int columnIndex) throws SQLException {
     Object value = getColumnValue(columnIndex);
-    if (wasNull) {
-      return null;
+    String result = null;
+    if (!wasNull) { // SQL null is always returned as Java null
+      if (value instanceof byte[]) { // byte arrays are interpreted as strings
+        result = new String((byte[])value);
+      } else if (value instanceof Timestamp) { // avoid trailing ".0" with TimestampWritable
+        result = new TimestampWritable((Timestamp)value).toString();
+      } else { // all other cases just use "toString"
+        result = value.toString();
+      }
     }
-    if (value instanceof byte[]){
-      return new String((byte[])value);
-    }
-    return value.toString();
+    return result;
   }
 
   public String getString(String columnName) throws SQLException {
