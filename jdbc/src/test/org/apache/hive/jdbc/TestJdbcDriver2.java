@@ -431,8 +431,8 @@ public class TestJdbcDriver2 extends TestCase {
     assertEquals("{}", res.getString(14));
     assertEquals("[null, null]", res.getString(15));
     assertEquals("[]", res.getString(16));
-    assertEquals(null, res.getString(17));
-    assertEquals(null, res.getTimestamp(17));
+    assertEquals("2012-04-22 09:00:00", res.getString(17));
+    assertEquals("2012-04-22 09:00:00", res.getTimestamp(17).toString());
     assertEquals(null, res.getBigDecimal(18));
     assertEquals(null, res.getString(19));
 
