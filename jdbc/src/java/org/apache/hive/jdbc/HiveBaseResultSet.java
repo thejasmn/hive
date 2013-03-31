@@ -42,6 +42,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hive.service.cli.TableSchema;
 import org.apache.hive.service.cli.Type;
 import org.apache.hive.service.cli.thrift.TBoolValue;
