@@ -45,7 +45,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hive.cli.CliSessionState;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.io.BytesWritable;
@@ -128,8 +127,9 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
                 rm.commitWriteTransaction(tsx);
             }
         } finally {
-            if (rm != null)
-                rm.close();
+            if (rm != null) {
+              rm.close();
+            }
         }
 
         return myPuts;
@@ -167,8 +167,9 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
                 }
             }
         } finally {
-            if (rm != null)
-                rm.close();
+            if (rm != null) {
+              rm.close();
+            }
         }
         HTable table = new HTable(getHbaseConf(), Bytes.toBytes(tName));
         table.put(myPuts);
@@ -281,7 +282,7 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
         job.setMapperClass(MapReadProjHTable.class);
         job.setInputFormatClass(HCatInputFormat.class);
         HCatInputFormat.setOutputSchema(job, getProjectionSchema());
-        HCatInputFormat.setInput(job, MetaStoreUtils.DEFAULT_DATABASE_NAME, tableName);
+        HCatInputFormat.setInput(job, HiveConf.DEFAULT_DATABASE_NAME, tableName);
         job.setOutputFormatClass(TextOutputFormat.class);
         TextOutputFormat.setOutputPath(job, outputDir);
         job.setMapOutputKeyClass(BytesWritable.class);
@@ -340,13 +341,14 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
         //Configure projection schema
         job.set(HCatConstants.HCAT_KEY_OUTPUT_SCHEMA, HCatUtil.serialize(getProjectionSchema()));
         Job newJob = new Job(job);
-        HCatInputFormat.setInput(newJob, MetaStoreUtils.DEFAULT_DATABASE_NAME, tableName);
+        HCatInputFormat.setInput(newJob, HiveConf.DEFAULT_DATABASE_NAME, tableName);
         String inputJobString = newJob.getConfiguration().get(HCatConstants.HCAT_KEY_JOB_INFO);
         InputJobInfo info = (InputJobInfo) HCatUtil.deserialize(inputJobString);
         job.set(HCatConstants.HCAT_KEY_JOB_INFO, inputJobString);
         for (PartInfo partinfo : info.getPartitions()) {
-            for (Entry<String, String> entry : partinfo.getJobProperties().entrySet())
-                job.set(entry.getKey(), entry.getValue());
+            for (Entry<String, String> entry : partinfo.getJobProperties().entrySet()) {
+              job.set(entry.getKey(), entry.getValue());
+            }
         }
         assertEquals("testFamily:testQualifier1", job.get(TableInputFormat.SCAN_COLUMNS));
 
@@ -406,7 +408,7 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
         job.setMapperClass(MapReadHTable.class);
         MapReadHTable.resetCounters();
         job.setInputFormatClass(HCatInputFormat.class);
-        HCatInputFormat.setInput(job, MetaStoreUtils.DEFAULT_DATABASE_NAME, tableName);
+        HCatInputFormat.setInput(job, HiveConf.DEFAULT_DATABASE_NAME, tableName);
         job.setOutputFormatClass(TextOutputFormat.class);
         TextOutputFormat.setOutputPath(job, outputDir);
         job.setMapOutputKeyClass(BytesWritable.class);
@@ -466,7 +468,7 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
         job.setJarByClass(this.getClass());
         job.setMapperClass(MapReadHTableRunningAbort.class);
         job.setInputFormatClass(HCatInputFormat.class);
-        HCatInputFormat.setInput(job, MetaStoreUtils.DEFAULT_DATABASE_NAME, tableName);
+        HCatInputFormat.setInput(job, HiveConf.DEFAULT_DATABASE_NAME, tableName);
         job.setOutputFormatClass(TextOutputFormat.class);
         TextOutputFormat.setOutputPath(job, outputDir);
         job.setMapOutputKeyClass(BytesWritable.class);
