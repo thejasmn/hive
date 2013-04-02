@@ -61,8 +61,6 @@ public class HiveConf extends Configuration {
 
   private static final Map<String, ConfVars> vars = new HashMap<String, ConfVars>();
   private final List<String> restrictList = new ArrayList<String>();
-
-  //TODO: (re)move these variables from MetaStoreUtils
   public static final String DATABASE_WAREHOUSE_SUFFIX = ".db";
   public static final String DEFAULT_DATABASE_COMMENT = "Default Hive database";
   public static final String DEFAULT_DATABASE_NAME = "default";
