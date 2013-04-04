@@ -74,6 +74,8 @@ public class TestJdbcDriver2 extends TestCase {
         .getProperty("test.service.standalone.server"));
   }
 
+
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
