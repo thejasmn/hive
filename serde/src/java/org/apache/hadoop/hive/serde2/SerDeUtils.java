@@ -62,7 +62,7 @@ public final class SerDeUtils {
   public static final String LBRACE = "{";
   public static final String RBRACE = "}";
 
-  // lower case null is usually used within json objects
+  // lower case null is used within json objects
   private static final String JSON_NULL = "null";
 
   private static ConcurrentHashMap<String, Class<?>> serdes =
