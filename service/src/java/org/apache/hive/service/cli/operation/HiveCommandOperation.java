@@ -24,8 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +55,10 @@ public abstract class HiveCommandOperation extends ExecuteStatementOperation {
    * first and the fetchOne/fetchN/fetchAll functions get the output from pipeIn.
    */
   private BufferedReader resultReader;
+  private InputStream oldIn;
+  private PrintStream oldOut;
+  private PrintStream oldErr;
+
 
 
   protected HiveCommandOperation(HiveSession parentSession, String statement, Map<String, String> confOverlay) {
@@ -63,6 +67,10 @@ public abstract class HiveCommandOperation extends ExecuteStatementOperation {
   }
 
   private void setupSessionIO(SessionState sessionState) {
+    oldIn = sessionState.in;
+    oldOut = sessionState.out;
+    oldErr = sessionState.err;
+
     try {
       LOG.info("Putting temp output to file " + sessionState.getTmpOutputFile().toString());
       sessionState.in = null; // hive server's session input stream is not used
@@ -73,15 +81,14 @@ public abstract class HiveCommandOperation extends ExecuteStatementOperation {
       sessionState.err = new PrintStream(System.err, true, "UTF-8");
     } catch (IOException e) {
       LOG.error("Error in creating temp output file ", e);
-      try {
-        sessionState.in = null;
-        sessionState.out = new PrintStream(System.out, true, "UTF-8");
-        sessionState.err = new PrintStream(System.err, true, "UTF-8");
-      } catch (UnsupportedEncodingException ee) {
-        ee.printStackTrace();
-        sessionState.out = null;
-        sessionState.err = null;
-      }
+    }
+    finally{
+        sessionState.in = oldIn;
+        sessionState.out = oldOut;
+        sessionState.err = oldErr;
+//        sessionState.in = null;
+//        sessionState.out = new PrintStream(System.out, true, "UTF-8");
+//        sessionState.err = new PrintStream(System.err, true, "UTF-8");
     }
   }
 
