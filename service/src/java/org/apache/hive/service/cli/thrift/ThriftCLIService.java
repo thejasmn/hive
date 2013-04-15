@@ -28,6 +28,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hive.service.AbstractService;
 import org.apache.hive.service.auth.HiveAuthFactory;
+import org.apache.hive.service.cli.CLIService;
 import org.apache.hive.service.cli.FetchOrientation;
 import org.apache.hive.service.cli.GetInfoType;
 import org.apache.hive.service.cli.GetInfoValue;
@@ -35,7 +36,6 @@ import org.apache.hive.service.cli.HiveSQLException;
 import org.apache.hive.service.cli.OperationHandle;
 import org.apache.hive.service.cli.OperationState;
 import org.apache.hive.service.cli.RowSet;
-import org.apache.hive.service.cli.CLIService;
 import org.apache.hive.service.cli.SessionHandle;
 import org.apache.hive.service.cli.TableSchema;
 import org.apache.thrift.TException;
@@ -119,7 +119,7 @@ public class ThriftCLIService extends AbstractService implements TCLIService.Ifa
       }
       SessionHandle sessionHandle = null;
       if (cliService.getHiveConf().
-          getBoolVar(HiveConf.ConfVars.HIVE_SERVER2_KERBEROS_IMPERSONATION)) {
+          getBoolVar(HiveConf.ConfVars.HIVE_SERVER2_ENABLE_DOAS)) {
         String delegationTokenStr = null;
         try {
           delegationTokenStr = cliService.getDelegationTokenFromMetaStore(userName);
