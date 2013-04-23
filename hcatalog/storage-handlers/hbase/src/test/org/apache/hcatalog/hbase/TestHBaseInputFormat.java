@@ -127,9 +127,8 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
                 rm.commitWriteTransaction(tsx);
             }
         } finally {
-            if (rm != null) {
-              rm.close();
-            }
+            if (rm != null)
+                rm.close();
         }
 
         return myPuts;
@@ -167,9 +166,8 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
                 }
             }
         } finally {
-            if (rm != null) {
-              rm.close();
-            }
+            if (rm != null)
+                rm.close();
         }
         HTable table = new HTable(getHbaseConf(), Bytes.toBytes(tName));
         table.put(myPuts);
@@ -346,9 +344,8 @@ public class TestHBaseInputFormat extends SkeletonHBaseTest {
         InputJobInfo info = (InputJobInfo) HCatUtil.deserialize(inputJobString);
         job.set(HCatConstants.HCAT_KEY_JOB_INFO, inputJobString);
         for (PartInfo partinfo : info.getPartitions()) {
-            for (Entry<String, String> entry : partinfo.getJobProperties().entrySet()) {
-              job.set(entry.getKey(), entry.getValue());
-            }
+            for (Entry<String, String> entry : partinfo.getJobProperties().entrySet())
+                job.set(entry.getKey(), entry.getValue());
         }
         assertEquals("testFamily:testQualifier1", job.get(TableInputFormat.SCAN_COLUMNS));
 
