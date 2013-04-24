@@ -1,0 +1,9 @@
+PREHOOK: query: -- user is not allowed to change default database using set command
+desc src
+PREHOOK: type: DESCTABLE
+POSTHOOK: query: -- user is not allowed to change default database using set command
+desc src
+POSTHOOK: type: DESCTABLE
+key                 	string              	default             
+value               	string              	default             
+Query returned non-zero code: 1, cause: Cann't modify hive.current.db at runtime

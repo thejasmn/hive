@@ -164,6 +164,15 @@ public class HiveConf extends Configuration {
   };
 
   /**
+   *List of config parameters that user is not allowed to change using
+   * set command
+   */
+  public static final HiveConf.ConfVars[] restrictedVars = {
+    HiveConf.ConfVars.HIVE_CURRENT_DATABASE,
+  };
+
+
+  /**
    * ConfVars.
    *
    * These are the default configuration properties for Hive. Each HiveConf
@@ -1130,6 +1139,10 @@ public class HiveConf extends Configuration {
     }
 
     // setup list of conf vars that are not allowed to change runtime
+    for(ConfVars confVar : restrictedVars){
+      restrictList.add(confVar.varname);
+    }
+
     String restrictListStr = this.get(ConfVars.HIVE_CONF_RESTRICTED_LIST.toString());
     if (restrictListStr != null) {
       for (String entry : restrictListStr.split(",")) {
