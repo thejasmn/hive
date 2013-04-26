@@ -219,6 +219,19 @@ public interface HadoopShims {
     IOException, InterruptedException;
 
   /**
+   * Get delegation token from filesystem and write the token along with
+   * metastore tokens into a file
+   * @param conf
+   * @param mStoreTokenStr  metastore token string
+   * @param mStoreService metastore service name
+   * @return Path of the file with token credential
+   * @throws IOException
+   */
+  public Path createDelegationTokenFile(final Configuration conf,
+      String mStoreTokenStr, String mStoreService) throws IOException;
+
+
+  /**
    * Used by metastore server to creates UGI object for a remote user.
    * @param userName remote User Name
    * @param groupNames group names associated with remote user name

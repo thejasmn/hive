@@ -594,6 +594,12 @@ public class Hadoop20Shims implements HadoopShims {
   }
 
   @Override
+  public Path createDelegationTokenFile(Configuration conf, String mStoreTokenStr,
+      String mStoreService) throws IOException {
+    throw new UnsupportedOperationException("Tokens are not supported in current hadoop version");
+  }
+
+  @Override
   public UserGroupInformation createRemoteUser(String userName, List<String> groupNames) {
     return new UnixUserGroupInformation(userName, groupNames.toArray(new String[0]));
   }
@@ -707,4 +713,5 @@ public class Hadoop20Shims implements HadoopShims {
   public short getDefaultReplication(FileSystem fs, Path path) {
     return fs.getDefaultReplication();
   }
+
 }
