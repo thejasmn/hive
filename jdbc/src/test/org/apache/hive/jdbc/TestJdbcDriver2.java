@@ -40,6 +40,7 @@ import junit.framework.TestCase;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hive.common.util.HiveVersionInfo;
 
 /**
  * TestJdbcDriver2
@@ -833,7 +834,7 @@ public class TestJdbcDriver2 extends TestCase {
     DatabaseMetaData meta = con.getMetaData();
 
     assertEquals("Hive", meta.getDatabaseProductName());
-    assertEquals("0.10.0", meta.getDatabaseProductVersion());
+    assertEquals(HiveVersionInfo.getVersion(), meta.getDatabaseProductVersion());
     assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
     assertFalse(meta.supportsCatalogsInTableDefinitions());
     assertFalse(meta.supportsSchemasInTableDefinitions());
