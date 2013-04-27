@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
 
@@ -835,6 +836,9 @@ public class TestJdbcDriver2 extends TestCase {
 
     assertEquals("Hive", meta.getDatabaseProductName());
     assertEquals(HiveVersionInfo.getVersion(), meta.getDatabaseProductVersion());
+    assertTrue("verifying hive version pattern. got " + meta.getDatabaseProductVersion(),
+        Pattern.matches("\\d+\\.\\d+\\.\\d+.*", meta.getDatabaseProductVersion()) );
+
     assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
     assertFalse(meta.supportsCatalogsInTableDefinitions());
     assertFalse(meta.supportsSchemasInTableDefinitions());
