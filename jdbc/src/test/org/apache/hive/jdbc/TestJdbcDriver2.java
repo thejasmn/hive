@@ -836,6 +836,7 @@ public class TestJdbcDriver2 extends TestCase {
 
     assertEquals("Hive", meta.getDatabaseProductName());
     assertEquals(HiveVersionInfo.getVersion(), meta.getDatabaseProductVersion());
+    assertEquals(System.getProperty("hive.version"), meta.getDatabaseProductVersion());
     assertTrue("verifying hive version pattern. got " + meta.getDatabaseProductVersion(),
         Pattern.matches("\\d+\\.\\d+\\.\\d+.*", meta.getDatabaseProductVersion()) );
 

@@ -26,7 +26,6 @@ to call at top-level: ant deploy-contrib compile-core-test
 
   <property name="src.dir"  location="${basedir}/src/java"/>
   <property name="src.gen.dir"  location="${basedir}/src/gen"/>
-  <property name="src.dirs"  value="${src.dir}:${src.gen.dir}"/>
   <import file="../build-common.xml"/>
 
   <target name="compile" depends="init, setup, ivy-retrieve">
@@ -38,7 +37,7 @@ to call at top-level: ant deploy-contrib compile-core-test
     </exec>
     <javac
      encoding="${build.encoding}"
-     srcdir="${src.dirs}"
+     srcdir="${src.dir}:${src.gen.dir}"
      includes="**/*.java"
      destdir="${build.classes}"
      debug="${javac.debug}"
