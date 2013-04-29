@@ -19,6 +19,7 @@ package org.apache.hadoop.hive.shims;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URI;
@@ -59,6 +60,7 @@ import org.apache.hadoop.mapred.TaskID;
 import org.apache.hadoop.mapred.lib.CombineFileInputFormat;
 import org.apache.hadoop.mapred.lib.CombineFileSplit;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
@@ -525,6 +527,29 @@ public abstract class HadoopShimsSecure implements HadoopShims {
   }
 
   @Override
+  public Path createDelegationTokenFile(Configuration conf, String mStoreTokenStr,
+      String mStoreService) throws IOException {
+    String uname = UserGroupInformation.getLoginUser().getShortUserName();
+    FileSystem fs = FileSystem.get(conf);
+    Token<?> fsToken = fs.getDelegationToken(uname);
+    Token<?> msToken = new Token();
+
+    msToken.decodeFromUrlString(mStoreTokenStr);
+    msToken.setService(new Text(mStoreService));
+
+    File t = File.createTempFile("hive_delegation_token", null);
+    Path tokenPath = new Path(t.toURI());
+
+    Credentials cred = new Credentials();
+    cred.addToken(fsToken.getService(), fsToken);
+    cred.addToken(msToken.getService(), msToken);
+    cred.writeTokenStorageFile(tokenPath, conf);
+
+    return tokenPath;
+  }
+
+
+  @Override
   public UserGroupInformation createProxyUser(String userName) throws IOException {
     return UserGroupInformation.createProxyUser(
         userName, UserGroupInformation.getLoginUser());
@@ -554,6 +579,12 @@ public abstract class HadoopShimsSecure implements HadoopShims {
     String hostPrincipal = SecurityUtil.getServerPrincipal(principal, "0.0.0.0");
     UserGroupInformation.loginUserFromKeytab(hostPrincipal, keytabFile);
   }
+
+  @Override
+  public String getTokenFileLocEnvName() {
+    return UserGroupInformation.HADOOP_TOKEN_FILE_LOCATION;
+  }
+
 
   @Override
   abstract public JobTrackerState getJobTrackerState(ClusterStatus clusterStatus) throws Exception;

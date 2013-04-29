@@ -714,4 +714,10 @@ public class Hadoop20Shims implements HadoopShims {
     return fs.getDefaultReplication();
   }
 
+  @Override
+  public String getTokenFileLocEnvName() {
+    throw new UnsupportedOperationException(
+        "Kerberos not supported in current hadoop version");
+  }
+
 }
