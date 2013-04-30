@@ -18,33 +18,37 @@ class SecureCmdDoAs {
 
   SecureCmdDoAs(HiveConf conf) throws HiveException, IOException{
     this.conf = conf;
-    String mStoreTokenStr = buildHcatDelegationToken();
+    //    String mStoreTokenStr = buildHcatDelegationToken();
 
     tokenPath = ShimLoader.getHadoopShims().createDelegationTokenFile(
-        conf,
-        mStoreTokenStr,
-        METASTORE_SERVICE
+								      conf,
+								      null,
+								      null
+	//        ,mStoreTokenStr,
+	//        METASTORE_SERVICE
         );
 
   }
 
   String addArg(String cmdline) throws HiveException {
-    HadoopShims shim = ShimLoader.getHadoopShims();
-    String endUserName;
-    try {
-      endUserName = shim.getShortUserName(shim.getUGIForConf(conf));
-    } catch (Exception e) {
-      throw new HiveException("Failure getting username", e);
-    }
+//     HadoopShims shim = ShimLoader.getHadoopShims();
+//     String endUserName;
+//     try {
+//       endUserName = shim.getShortUserName(shim.getUGIForConf(conf));
+//     } catch (Exception e) {
+//       throw new HiveException("Failure getting username", e);
+//     }
 
     StringBuilder sb = new StringBuilder();
     sb.append(cmdline);
-    sb.append("-D");
-    sb.append("hive.metastore.token.signature=");
-    sb.append(METASTORE_SERVICE);
-    sb.append("-D");
-    sb.append("proxy.user.name=");
-    sb.append(endUserName);
+    //    sb.append("-D");
+    //    sb.append("hive.metastore.token.signature=");
+    //    sb.append(METASTORE_SERVICE);
+    //    sb.append("-D");
+    // sb.append("proxy.user.name=");
+    // sb.append(endUserName);
+    
+    
     return sb.toString();
   }
 
