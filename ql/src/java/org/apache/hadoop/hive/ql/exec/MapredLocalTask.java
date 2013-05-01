@@ -117,7 +117,7 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
       Context ctx = driverContext.getCtx();
       String hiveJar = conf.getJar();
 
-      String hadoopExec = conf.getVar(HiveConf.ConfVars.HADOOPBIN);
+
       String libJarsOption;
 
       // write out the plan to a local file
@@ -129,18 +129,15 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
 
       String isSilent = "true".equalsIgnoreCase(System.getProperty("test.silent")) ? "-nolog" : "";
 
-      String jarCmd;
-
-      jarCmd = hiveJar + " " + ExecDriver.class.getName();
       String hiveConfArgs = ExecDriver.generateCmdLine(conf, ctx);
-      String cmdLine = hadoopExec + " jar " + jarCmd + " -localtask -plan " + planPath.toString()
+      String jarCmdArgs = " -localtask -plan " + planPath.toString()
           + " " + isSilent + " " + hiveConfArgs;
 
       String workDir = (new File(".")).getCanonicalPath();
       String files = Utilities.getResourceFiles(conf, SessionState.ResourceType.FILE);
 
       if (!files.isEmpty()) {
-        cmdLine = cmdLine + " -files " + files;
+        jarCmdArgs = jarCmdArgs + " -files " + files;
 
         workDir = (new Path(ctx.getLocalTmpFileURI())).toUri().getPath();
 
@@ -214,6 +211,7 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
       }
 
 
+      String secureCmdArg = "";
       if(ShimLoader.getHadoopShims().isSecurityEnabled() &&
           conf.getBoolVar(HiveConf.ConfVars.HIVE_SERVER2_ENABLE_DOAS) == true
           ){
@@ -221,7 +219,7 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
         // then additional params need to be set so that the command is run as
         // intended user
         SecureCmdDoAs secureDoAs = new SecureCmdDoAs(conf);
-        cmdLine = secureDoAs.addArg(cmdLine);
+        secureCmdArg = secureDoAs.addArg(secureCmdArg);
         secureDoAs.addEnv(variables);
       }
 
@@ -230,12 +228,16 @@ public class MapredLocalTask extends Task<MapredLocalWork> implements Serializab
       for (Map.Entry<String, String> entry : variables.entrySet()) {
         String name = entry.getKey();
         String value = entry.getValue();
-        env[pos++] = name + "=" + value;
-	LOG.info("Setting env: " + env[pos-1]);
+        env[pos] = name + "=" + value;
+        LOG.info("Setting env: " + env[pos]);
+        pos++;
       }
 
+      String jarCmd;
 
-
+      String hadoopExec = conf.getVar(HiveConf.ConfVars.HADOOPBIN);
+      jarCmd = hiveJar + " " + ExecDriver.class.getName();
+      String cmdLine = hadoopExec + secureCmdArg + " jar " + jarCmd ;
       LOG.info("Executing: " + cmdLine);
 
       // Run ExecDriver in another JVM
