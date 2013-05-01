@@ -66,7 +66,6 @@ import org.apache.hadoop.mapred.lib.CombineFileSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.security.SecurityUtil;
-import org.apache.hadoop.security.UnixUserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.tools.HadoopArchives;
 import org.apache.hadoop.util.Progressable;
@@ -594,8 +593,7 @@ public class Hadoop20Shims implements HadoopShims {
   }
 
   @Override
-  public Path createDelegationTokenFile(Configuration conf, String mStoreTokenStr,
-      String mStoreService) throws IOException {
+  public Path createDelegationTokenFile(Configuration conf) throws IOException {
     throw new UnsupportedOperationException("Tokens are not supported in current hadoop version");
   }
 

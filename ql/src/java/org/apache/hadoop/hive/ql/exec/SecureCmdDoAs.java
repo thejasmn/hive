@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hadoop.hive.ql.exec;
 
 import java.io.IOException;
@@ -5,72 +22,37 @@ import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
-import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.security.UserGroupInformation;
 
+/**
+ * SecureCmdDoAs - Helper class for setting parameters and env necessary for
+ * being able to run child jvm as intended user.
+ * Used only when kerberos security is used
+ *
+ */
 class SecureCmdDoAs {
   private final Path tokenPath;
-  private final HiveConf conf;
-  private final String METASTORE_SERVICE = "hivemetastore";
 
   SecureCmdDoAs(HiveConf conf) throws HiveException, IOException{
-    this.conf = conf;
-    //    String mStoreTokenStr = buildHcatDelegationToken();
-
     tokenPath = ShimLoader.getHadoopShims().createDelegationTokenFile(
-								      conf,
-								      null,
-								      null
-	//        ,mStoreTokenStr,
-	//        METASTORE_SERVICE
+								      conf
         );
 
   }
 
   String addArg(String cmdline) throws HiveException {
-//     HadoopShims shim = ShimLoader.getHadoopShims();
-//     String endUserName;
-//     try {
-//       endUserName = shim.getShortUserName(shim.getUGIForConf(conf));
-//     } catch (Exception e) {
-//       throw new HiveException("Failure getting username", e);
-//     }
-
     StringBuilder sb = new StringBuilder();
     sb.append(cmdline);
-    //    sb.append("-D");
-    //    sb.append("hive.metastore.token.signature=");
-    //    sb.append(METASTORE_SERVICE);
-    //    sb.append("-D");
-    // sb.append("proxy.user.name=");
-    // sb.append(endUserName);
     sb.append(" -hadooptoken ");
     sb.append(tokenPath.toUri().getPath());
     return sb.toString();
   }
 
   void addEnv(Map<String, String>env){
-
     env.put(UserGroupInformation.HADOOP_TOKEN_FILE_LOCATION,
         tokenPath.toUri().getPath());
   }
-
-  private String buildHcatDelegationToken() throws HiveException {
-    HiveMetaStoreClient client;
-    try {
-      client = new HiveMetaStoreClient(conf);
-      HadoopShims shim = ShimLoader.getHadoopShims();
-      String endUserName = shim.getShortUserName(shim.getUGIForConf(conf));
-      return client.getDelegationToken(endUserName);
-    } catch (Exception e) {
-      throw new HiveException("Failure building hcat delegation token", e);
-    }
-
-  }
-
-
 
 }
