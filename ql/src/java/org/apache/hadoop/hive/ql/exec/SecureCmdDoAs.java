@@ -47,7 +47,7 @@ class SecureCmdDoAs {
     //    sb.append("-D");
     // sb.append("proxy.user.name=");
     // sb.append(endUserName);
-    sb.append("-Dmapreduce.job.credentials.binary=");
+    sb.append("-hadooptoken ");
     sb.append(tokenPath.toUri().getPath());
     return sb.toString();
   }
