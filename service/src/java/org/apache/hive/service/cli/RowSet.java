@@ -121,4 +121,9 @@ public class RowSet {
 
     return tRowSet;
   }
+
+  @Override
+  public String toString(){
+    return rows.toString();
+  }
 }

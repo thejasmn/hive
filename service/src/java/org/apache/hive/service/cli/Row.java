@@ -75,4 +75,9 @@ public class Row {
     }
     return tRow;
   }
+
+  @Override
+  public String toString(){
+    return values.toString();
+  }
 }

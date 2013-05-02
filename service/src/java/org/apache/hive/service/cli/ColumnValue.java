@@ -165,4 +165,9 @@ public class ColumnValue {
     return new TColumnValue(tColumnValue);
   }
 
+  @Override
+  public String toString(){
+    return tColumnValue.getFieldValue().toString();
+  }
+
 }

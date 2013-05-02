@@ -290,6 +290,9 @@ public class CLIService extends CompositeService implements ICLIService {
     RowSet rowSet = sessionManager.getOperationManager().getOperation(opHandle).
         getParentSession().fetchResults(opHandle, orientation, maxRows);
     LOG.info(opHandle + ": fetchResults()");
+    if(LOG.isDebugEnabled()){
+      LOG.debug("Sending rowset " + rowSet);
+    }
     return rowSet;
   }
 
