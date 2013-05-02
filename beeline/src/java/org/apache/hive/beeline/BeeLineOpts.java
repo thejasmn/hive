@@ -72,6 +72,7 @@ class BeeLineOpts implements Completor {
   public static final String PROPERTY_PREFIX = "beeline.";
   public static final String PROPERTY_NAME_EXIT =
       PROPERTY_PREFIX + "system.exit";
+  public static final String DEFAULT_NULL_STRING = "NULL";
 
   private final BeeLine beeLine;
   private boolean autosave = false;
@@ -96,6 +97,7 @@ class BeeLineOpts implements Completor {
   private String isolation = DEFAULT_ISOLATION_LEVEL;
   private String outputFormat = "table";
   private boolean trimScripts = true;
+  private String nullString = DEFAULT_NULL_STRING;
 
   private final File rcFile = new File(saveDir(), "beeline.properties");
   private String historyFile = new File(saveDir(), "history").getAbsolutePath();
@@ -442,5 +444,13 @@ class BeeLineOpts implements Completor {
 
   public File getPropertiesFile() {
     return rcFile;
+  }
+
+  public String getNullString() {
+    return nullString;
+  }
+
+  public void setNullString(String nullString) {
+    this.nullString = nullString;
   }
 }
