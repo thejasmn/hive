@@ -54,7 +54,7 @@ import java.util.Iterator;
 
 /**
  * Abstract base class representing a set of rows to be displayed.
- * Stores column values as strings
+ * Holds column values as strings
  */
 abstract class Rows implements Iterator {
   private final BeeLine beeLine;
