@@ -60,11 +60,11 @@ abstract class Rows implements Iterator {
   final ResultSetMetaData rsMeta;
   final Boolean[] primaryKeys;
   final NumberFormat numberFormat;
-  final int nullStrLen;
+  private final String nullStr;
 
   Rows(BeeLine beeLine, ResultSet rs) throws SQLException {
     this.beeLine = beeLine;
-    this.nullStrLen = beeLine.getOpts().getNullString().length();
+    this.nullStr = beeLine.getOpts().getNullString();
     rsMeta = rs.getMetaData();
     int count = rsMeta.getColumnCount();
     primaryKeys = new Boolean[count];
@@ -177,16 +177,17 @@ abstract class Rows implements Iterator {
         if (numberFormat != null) {
           Object o = rs.getObject(i + 1);
           if (o == null) {
-            values[i] = null;
+            values[i] = nullStr;
           }  else if (o instanceof Number) {
             values[i] = numberFormat.format(o);
           } else {
             values[i] = o.toString();
           }
         } else {
-          values[i] = rs.getString(i + 1);
+          String strVal = rs.getString(i + 1);
+          values[i] = strVal == null ? nullStr : strVal;
         }
-        sizes[i] = values[i] == null ?  nullStrLen : values[i].length();
+        sizes[i] = values[i] == null ?  nullStr.length() : values[i].length();
       }
     }
   }
