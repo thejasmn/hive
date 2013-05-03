@@ -70,18 +70,15 @@ final class ColorBuffer implements Comparable<Object> {
   private int visibleLength = 0;
 
   private final boolean useColor;
-  private final String nullStr;
 
 
-  public ColorBuffer(boolean useColor, String nullStr) {
+  public ColorBuffer(boolean useColor) {
     this.useColor = useColor;
-    this.nullStr = nullStr;
     append("");
   }
 
-  public ColorBuffer(String str, boolean useColor, String nullStr) {
+  public ColorBuffer(String str, boolean useColor) {
     this.useColor = useColor;
-    this.nullStr = nullStr;
     append(str);
   }
 
@@ -115,9 +112,9 @@ final class ColorBuffer implements Comparable<Object> {
 
   ColorBuffer pad(String str, int len) {
     if (str == null) {
-      str = nullStr;
+      str = "";
     }
-    return pad(new ColorBuffer(str, false, nullStr), len);
+    return pad(new ColorBuffer(str, false), len);
   }
 
   public String getColor() {
@@ -149,7 +146,7 @@ final class ColorBuffer implements Comparable<Object> {
     if (len <= 0) {
       return this;
     }
-    ColorBuffer cbuff = new ColorBuffer(useColor, nullStr);
+    ColorBuffer cbuff = new ColorBuffer(useColor);
     ColorBuffer.ColorAttr lastAttr = null;
     for (Iterator<Object> i = parts.iterator(); cbuff.getVisibleLength() < len && i.hasNext();) {
       Object next = i.next();

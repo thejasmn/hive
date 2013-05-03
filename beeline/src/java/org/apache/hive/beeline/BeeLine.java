@@ -118,7 +118,7 @@ import jline.SimpleCompletor;
 public class BeeLine {
   private static final ResourceBundle resourceBundle =
       ResourceBundle.getBundle(BeeLine.class.getName());
-  private final BeeLineSignalHandler signalHandler = null;
+  private BeeLineSignalHandler signalHandler = null;
   private static final String separator = System.getProperty("line.separator");
   private boolean exit = false;
   private final DatabaseConnections connections = new DatabaseConnections();
@@ -502,7 +502,7 @@ public class BeeLine {
    * enabled or disabled depending on the value of {@link BeeLineOpts#getColor}.
    */
   ColorBuffer getColorBuffer() {
-    return new ColorBuffer(getOpts().getColor(), getOpts().getNullString());
+    return new ColorBuffer(getOpts().getColor());
   }
 
 
@@ -511,7 +511,7 @@ public class BeeLine {
    * enabled or disabled depending on the value of {@link BeeLineOpts#getColor}.
    */
   ColorBuffer getColorBuffer(String msg) {
-    return new ColorBuffer(msg, getOpts().getColor(), getOpts().getNullString());
+    return new ColorBuffer(msg, getOpts().getColor());
   }
 
 
