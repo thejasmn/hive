@@ -18,23 +18,27 @@
 
 package org.apache.hive.beeline.src.test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
-import junit.framework.TestCase;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hive.beeline.BeeLine;
+import org.apache.hive.jdbc.TestJdbcDriver2;
+import org.apache.hive.service.server.HiveServer2;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Assert;
-
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.parse.SemanticException;
-import org.apache.hive.beeline.BeeLine;
-import org.apache.hive.service.server.HiveServer2;
-import org.apache.hive.service.cli.HiveSQLException;
 
 /**
  * TestBeeLineWithArgs - executes tests of the command-line arguments to BeeLine
@@ -45,7 +49,8 @@ public class TestBeeLineWithArgs {
 
   // Default location of HiveServer2
   final static String JDBC_URL = BeeLine.BEELINE_DEFAULT_JDBC_URL + "localhost:10000";
-
+  private static final String tableName = "TestBeelineTable1";
+  private static final String tableComment = "Test table comment";
   private static HiveServer2 hiveServer2;
 
   /**
@@ -62,6 +67,45 @@ public class TestBeeLineWithArgs {
     System.err.println("Starting HiveServer2...");
     hiveServer2.start();
     Thread.sleep(1000);
+    createTable();
+
+  }
+
+  /**
+   * Create table for use by tests
+   * @throws ClassNotFoundException
+   * @throws SQLException
+   */
+  private static void createTable() throws ClassNotFoundException, SQLException {
+    Class.forName(BeeLine.BEELINE_DEFAULT_JDBC_DRIVER);
+    Connection con = DriverManager.getConnection(JDBC_URL,"", "");
+
+    assertNotNull("Connection is null", con);
+    assertFalse("Connection should not be closed", con.isClosed());
+    Statement stmt = con.createStatement();
+    assertNotNull("Statement is null", stmt);
+
+    stmt.execute("set hive.support.concurrency = false");
+
+    HiveConf conf = new HiveConf(TestJdbcDriver2.class);
+    String dataFileDir = conf.get("test.data.files").replace('\\', '/')
+        .replace("c:", "");
+    Path dataFilePath = new Path(dataFileDir, "kv1.txt");
+    // drop table. ignore error.
+    try {
+      stmt.execute("drop table " + tableName);
+    } catch (Exception ex) {
+      fail(ex.toString());
+    }
+
+    // create table
+    stmt.execute("create table " + tableName
+        + " (under_col int comment 'the under column', value string) comment '"
+        + tableComment + "'");
+
+    // load data
+    stmt.execute("load data local inpath '"
+        + dataFilePath.toString() + "' into table " + tableName);
   }
 
   /**
@@ -130,7 +174,7 @@ public class TestBeeLineWithArgs {
         } else {
           System.err.println("Output: " + output);
           System.err.println(">>> FAILED " + testName + " (ERROR) " + time);
-          Assert.fail(testName);
+          fail(testName);
         }
       } catch (Throwable e) {
         e.printStackTrace();
@@ -144,7 +188,7 @@ public class TestBeeLineWithArgs {
         if (output.contains(expectedPattern)) {
           System.err.println("Output: " + output);
           System.err.println(">>> FAILED " + testName + " (ERROR) " + time);
-          Assert.fail(testName);
+          fail(testName);
         } else {
           System.out.println(">>> PASSED " + testName + " " + time);
         }
@@ -184,6 +228,33 @@ public class TestBeeLineWithArgs {
     testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, false);
   }
 
+
+  /**
+   * Select null from table , check how null is printed
+   * Print PASSED or FAILED
+   */
+  @Test
+  public void testNullDefault() throws Throwable {
+    final String TEST_NAME = "testNullDefault";
+    final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
+    		"select under_col+null from " + tableName + " limit 1 ;\n";
+    final String EXPECTED_PATTERN = "NULL";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true);
+  }
+
+  /**
+   * Select null from table , check if default null is printed differently
+   * Print PASSED or FAILED
+   */
+  @Test
+  public void testNullNonDefault() throws Throwable {
+    final String TEST_NAME = "testNullNonDefault";
+    final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
+    		"!set nullstring nolls;\n select under_col+null from " + tableName + " limit 1 ;\n";
+    final String EXPECTED_PATTERN = "nolls";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true);
+  }
+
   /**
    * Attempt to execute a missing script file with the -f option to BeeLine
    * Print PASSED or FAILED
@@ -207,7 +278,7 @@ public class TestBeeLineWithArgs {
       if (output.contains(EXPECTED_PATTERN)) {
         System.err.println("Output: " + output);
         System.err.println(">>> FAILED " + TEST_NAME + " (ERROR) " + time);
-        Assert.fail(TEST_NAME);
+        fail(TEST_NAME);
       } else {
         System.out.println(">>> PASSED " + TEST_NAME + " " + time);
       }
