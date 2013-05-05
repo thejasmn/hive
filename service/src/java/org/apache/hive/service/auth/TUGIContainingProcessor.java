@@ -5,7 +5,6 @@ import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -18,12 +17,9 @@ public class TUGIContainingProcessor implements TProcessor{
 
   private final TProcessor wrapped;
   private final HadoopShims shim;
-  private final boolean isFsCacheDisabled;
 
   public TUGIContainingProcessor(TProcessor wrapped, Configuration conf) {
     this.wrapped = wrapped;
-    this.isFsCacheDisabled = conf.getBoolean(String.format("fs.%s.impl.disable.cache",
-      FileSystem.getDefaultUri(conf).getScheme()), false);
     this.shim = ShimLoader.getHadoopShims();
   }
 
@@ -55,9 +51,9 @@ public class TUGIContainingProcessor implements TProcessor{
       throw new RuntimeException(ioe); // unexpected!
     }
     finally {
-      // cleanup the filesystem handles at the end if they are cached
+      // cleanup the filesystem handles at the end
       // clientUgi will be null if createRemoteUser() fails
-      if (clientUgi != null && !isFsCacheDisabled) {
+      if (clientUgi != null) {
         shim.closeAllForUGI(clientUgi);
       }
     }
