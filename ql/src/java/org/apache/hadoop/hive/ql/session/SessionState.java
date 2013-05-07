@@ -250,7 +250,8 @@ public class SessionState {
           .setVar(HiveConf.ConfVars.HIVESESSIONID, makeSessionId());
     }
 
-    if (startSs.hiveHist == null) {
+    if (startSs.getConf().getBoolVar(HiveConf.ConfVars.HIVE_SESSION_HISTORY_ENABLED)
+                && startSs.hiveHist == null) {
       startSs.hiveHist = new HiveHistory(startSs);
     }
 
