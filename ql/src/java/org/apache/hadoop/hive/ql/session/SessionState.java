@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.MapRedStats;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.history.HiveHistory;
+import org.apache.hadoop.hive.ql.history.HiveHistoryProxyHandler;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
@@ -248,8 +249,13 @@ public class SessionState {
           .setVar(HiveConf.ConfVars.HIVESESSIONID, makeSessionId());
     }
 
-    if (startSs.hiveHist == null) {
-      startSs.hiveHist = new HiveHistory(startSs);
+    if(startSs.hiveHist == null){
+      if (startSs.getConf().getBoolVar(HiveConf.ConfVars.HIVE_SESSION_HISTORY_ENABLED)) {
+        startSs.hiveHist = new HiveHistory(startSs);
+      }else {
+        //Hive history is disabled, create a no-op proxy
+        startSs.hiveHist = HiveHistoryProxyHandler.getNoOpHiveHistoryProxy();
+      }
     }
 
     if (startSs.getTmpOutputFile() == null) {

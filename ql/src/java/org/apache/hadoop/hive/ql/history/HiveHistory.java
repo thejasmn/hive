@@ -45,8 +45,9 @@ import org.apache.hadoop.mapred.Counters.Counter;
 import org.apache.hadoop.mapred.Counters.Group;
 
 /**
- * HiveHistory.
- *
+ * HiveHistory. Logs information such as query, query plan, runtime statistics
+ * for into a file.
+ * Each session uses a new object, which creates a new file.
  */
 public class HiveHistory {
 
