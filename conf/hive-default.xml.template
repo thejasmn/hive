@@ -442,7 +442,7 @@
 
 <property>
   <name>hive.session.history.enabled</name>
-  <value>true</value>
+  <value>false</value>
   <description>Whether to log hive query, query plan, runtime statistics etc </description>
 </property>
 
