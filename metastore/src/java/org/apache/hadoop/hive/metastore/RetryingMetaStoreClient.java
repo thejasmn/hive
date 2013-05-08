@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.hive.metastore;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,11 +29,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.transport.TTransportException;
 
+/**
+ * RetryingMetaStoreClient. Creates a proxy for a 'real' IMetaStoreClient
+ * subclass and retries calls to it on failure.
+ * If the login user is authenticated using keytab, it relogins user before
+ * each call.
+ *
+ */
 public class RetryingMetaStoreClient implements InvocationHandler {
 
   private static final Log LOG = LogFactory.getLog(RetryingMetaStoreClient.class.getName());
@@ -42,12 +51,17 @@ public class RetryingMetaStoreClient implements InvocationHandler {
   private final int retryLimit;
   private final int retryDelaySeconds;
 
+
+
   protected RetryingMetaStoreClient(HiveConf hiveConf, HiveMetaHookLoader hookLoader,
       Class<? extends IMetaStoreClient> msClientClass) throws MetaException {
     this.hiveConf = hiveConf;
     this.retryLimit = hiveConf.getIntVar(HiveConf.ConfVars.METASTORETHRIFTFAILURERETRIES);
     this.retryDelaySeconds =
         hiveConf.getIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY);
+
+    reloginKeytabUser();
+
     this.base = (IMetaStoreClient) MetaStoreUtils.newInstance(msClientClass, new Class[] {
         HiveConf.class, HiveMetaHookLoader.class}, new Object[] {hiveConf, hookLoader});
   }
@@ -99,4 +113,25 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     }
     return ret;
   }
+
+  /**
+   * Relogin if login user is logged in using keytab
+   * Relogin is actually done by ugi code only if sufficient time has passed
+   * @throws MetaException
+   */
+  private void reloginKeytabUser() throws MetaException {
+    UserGroupInformation ugi = null;
+    try {
+      ugi = UserGroupInformation.getLoginUser();
+      if(ugi.isFromKeytab()){
+        ugi.reloginFromKeytab();
+      }
+    } catch (IOException e) {
+      String msg = "Error doing relogin using keytab for user "
+          + ugi.getUserName() + " : " + e.getMessage();
+      LOG.error(msg, e);
+      throw new MetaException(msg);
+    }
+  }
+
 }
