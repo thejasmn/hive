@@ -34,8 +34,6 @@ import org.apache.hadoop.mapred.Counters;
  */
 public interface HiveHistory {
 
-
-
   /**
    * RecordTypes.
    *
@@ -120,14 +118,6 @@ public interface HiveHistory {
    */
   public String getHistFileName();
 
-//  /**
-//   * Write the a history record to history file.
-//   *
-//   * @param rt
-//   * @param keyValMap
-//   */
-//  void log(RecordTypes rt, Map<String, String> keyValMap);
-
   /**
    * Called at the start of job Driver.execute().
    */
@@ -200,13 +190,6 @@ public interface HiveHistory {
    * @param map
    */
   public void setIdToTableMap(Map<String, String> map);
-//  /**
-//   * Returns table name for the counter name.
-//   *
-//   * @param name
-//   * @return tableName
-//   */
-//  String getRowCountTableName(String name);
 
   public void closeStream();
 
