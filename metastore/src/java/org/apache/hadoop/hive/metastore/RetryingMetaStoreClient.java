@@ -125,7 +125,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     try {
       ugi = UserGroupInformation.getLoginUser();
       if(ugi.isFromKeytab()){
-        ugi.reloginFromKeytab();
+        ugi.checkTGTAndReloginFromKeytab();
       }
     } catch (IOException e) {
       String msg = "Error doing relogin using keytab for user "
