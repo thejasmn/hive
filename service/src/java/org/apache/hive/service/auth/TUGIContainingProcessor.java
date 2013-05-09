@@ -39,12 +39,13 @@ public class TUGIContainingProcessor implements TProcessor{
 
   private void disableCache(Configuration conf, String... schemes) {
     for(String scheme : schemes){
-      String cacheVar = String.format("fs.%s.impl.disable.cache", scheme);
-      boolean isCacheDisabled = conf.getBoolean(cacheVar, false);
+      String disableCacheProp =
+          String.format("fs.%s.impl.disable.cache", scheme);
+      boolean isCacheDisabled = conf.getBoolean(disableCacheProp, false);
       if(!isCacheDisabled){
         LOG.info("Disabling FileSystem cache for scheme: " + scheme
             + " as non-kerberos mode is being used with doAs enabled");
-        conf.setBoolean(cacheVar, false);
+        conf.setBoolean(disableCacheProp, true);
       }
     }
   }
