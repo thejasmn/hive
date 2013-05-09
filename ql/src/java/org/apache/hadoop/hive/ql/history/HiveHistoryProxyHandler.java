@@ -19,8 +19,8 @@
 package org.apache.hadoop.hive.ql.history;
 
 /**
- * Proxy handler for HiveHistory to do nothing if
- * HiveHistory is disabled.
+ * Proxy handler for HiveHistory to do nothing
+ * Used when HiveHistory is disabled.
  */
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -36,7 +36,8 @@ public class HiveHistoryProxyHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object arg0, final Method method, final Object[] args){
-      return null;
+    //do nothing
+    return null;
   }
 
 }
