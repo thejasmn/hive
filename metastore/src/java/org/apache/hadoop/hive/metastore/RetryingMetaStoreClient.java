@@ -61,7 +61,6 @@ public class RetryingMetaStoreClient implements InvocationHandler {
         hiveConf.getIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY);
 
     reloginKeytabUser();
-
     this.base = (IMetaStoreClient) MetaStoreUtils.newInstance(msClientClass, new Class[] {
         HiveConf.class, HiveMetaHookLoader.class}, new Object[] {hiveConf, hookLoader});
   }
@@ -85,6 +84,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     TException caughtException = null;
     while (true) {
       try {
+        reloginKeytabUser();
         ret = method.invoke(base, args);
         break;
       } catch (UndeclaredThrowableException e) {
@@ -109,6 +109,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
       LOG.warn("MetaStoreClient lost connection. Attempting to reconnect.",
           caughtException);
       Thread.sleep(retryDelaySeconds * 1000);
+      reloginKeytabUser();
       base.reconnect();
     }
     return ret;
