@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.shims.HadoopShims;
@@ -18,13 +20,33 @@ public class TUGIContainingProcessor implements TProcessor{
 
   private final TProcessor wrapped;
   private final HadoopShims shim;
-  private final boolean isFsCacheDisabled;
+  private static final Log LOG = LogFactory.getLog(TUGIContainingProcessor.class);
 
   public TUGIContainingProcessor(TProcessor wrapped, Configuration conf) {
     this.wrapped = wrapped;
-    this.isFsCacheDisabled = conf.getBoolean(String.format("fs.%s.impl.disable.cache",
-      FileSystem.getDefaultUri(conf).getScheme()), false);
     this.shim = ShimLoader.getHadoopShims();
+
+    //This class is used in unsecure mode with impersonation turned on.
+    //Each request will result in a new UGI being created, it will fill
+    // up hadoop FileSystem.CACHE . Need to change the model of impersonation
+    // in unsecure mode to be on lines of the secure mode - ie call
+    // closeAllForUGI when the session is closed
+    String defaultScheme = FileSystem.getDefaultUri(conf).getScheme();
+    String localFSScheme = "file";
+    disableCache(conf, localFSScheme, defaultScheme);
+
+  }
+
+  private void disableCache(Configuration conf, String... schemes) {
+    for(String scheme : schemes){
+      String cacheVar = String.format("fs.%s.impl.disable.cache", scheme);
+      boolean isCacheDisabled = conf.getBoolean(cacheVar, false);
+      if(!isCacheDisabled){
+        LOG.info("Disabling FileSystem cache for scheme: " + scheme
+            + " as non-kerberos mode is being used with doAs enabled");
+        conf.setBoolean(cacheVar, false);
+      }
+    }
   }
 
   @Override
