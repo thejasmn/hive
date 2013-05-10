@@ -36,8 +36,8 @@ import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.transport.TTransportException;
 
 /**
- * RetryingMetaStoreClient. Creates a proxy for a 'real' IMetaStoreClient
- * subclass and retries calls to it on failure.
+ * RetryingMetaStoreClient. Creates a proxy for a IMetaStoreClient
+ * implementation and retries calls to it on failure.
  * If the login user is authenticated using keytab, it relogins user before
  * each call.
  *

@@ -601,13 +601,13 @@ public class Hadoop20Shims implements HadoopShims {
   @Override
   public void loginUserFromKeytab(String principal, String keytabFile) throws IOException {
     throw new UnsupportedOperationException("Kerberos login is not supported" +
-    		" in current hadoop version");
+        " in current hadoop version");
   }
 
   @Override
   public void reLoginUserFromKeytab() throws IOException{
     throw new UnsupportedOperationException("Kerberos login is not supported" +
-    		" in current hadoop version");
+        " in current hadoop version");
   }
 
   @Override
