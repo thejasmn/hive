@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
@@ -124,9 +125,7 @@ public class RetryingMetaStoreClient implements InvocationHandler {
     UserGroupInformation ugi = null;
     try {
       ugi = UserGroupInformation.getLoginUser();
-      if(ugi.isFromKeytab()){
-        ugi.checkTGTAndReloginFromKeytab();
-      }
+      ShimLoader.getHadoopShims().reLoginUserFromKeytab(ugi);
     } catch (IOException e) {
       String msg = "Error doing relogin using keytab for user "
           + ugi.getUserName() + " : " + e.getMessage();

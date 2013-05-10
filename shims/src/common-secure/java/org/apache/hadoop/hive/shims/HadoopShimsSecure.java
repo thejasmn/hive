@@ -556,6 +556,15 @@ public abstract class HadoopShimsSecure implements HadoopShims {
   }
 
   @Override
+  public void reLoginUserFromKeytab(UserGroupInformation ugi) throws IOException{
+    //checkTGT calls ugi.relogin only after checking if it is close to tgt expiry
+    //hadoop relogin is actually done only every x minutes (x=10 in hadoop 1.x)
+    if(ugi.isFromKeytab()){
+      ugi.checkTGTAndReloginFromKeytab();
+    }
+  }
+
+  @Override
   abstract public JobTrackerState getJobTrackerState(ClusterStatus clusterStatus) throws Exception;
 
   @Override
