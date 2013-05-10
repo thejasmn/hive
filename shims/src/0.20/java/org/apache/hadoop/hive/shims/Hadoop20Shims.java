@@ -66,7 +66,6 @@ import org.apache.hadoop.mapred.lib.CombineFileSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.security.SecurityUtil;
-import org.apache.hadoop.security.UnixUserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.tools.HadoopArchives;
 import org.apache.hadoop.util.Progressable;
@@ -605,7 +604,7 @@ public class Hadoop20Shims implements HadoopShims {
   }
 
   @Override
-  public void reLoginUserFromKeytab(UserGroupInformation ugi) throws IOException{
+  public void reLoginUserFromKeytab() throws IOException{
     throw new UnsupportedOperationException("Kerberos login is not supported" +
     		" in current hadoop version");
   }

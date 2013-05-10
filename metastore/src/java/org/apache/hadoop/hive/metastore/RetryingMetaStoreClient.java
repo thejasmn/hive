@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.shims.ShimLoader;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocolException;
@@ -48,7 +47,6 @@ public class RetryingMetaStoreClient implements InvocationHandler {
   private static final Log LOG = LogFactory.getLog(RetryingMetaStoreClient.class.getName());
 
   private final IMetaStoreClient base;
-  private final HiveConf hiveConf;
   private final int retryLimit;
   private final int retryDelaySeconds;
 
@@ -56,7 +54,6 @@ public class RetryingMetaStoreClient implements InvocationHandler {
 
   protected RetryingMetaStoreClient(HiveConf hiveConf, HiveMetaHookLoader hookLoader,
       Class<? extends IMetaStoreClient> msClientClass) throws MetaException {
-    this.hiveConf = hiveConf;
     this.retryLimit = hiveConf.getIntVar(HiveConf.ConfVars.METASTORETHRIFTFAILURERETRIES);
     this.retryDelaySeconds =
         hiveConf.getIntVar(HiveConf.ConfVars.METASTORE_CLIENT_CONNECT_RETRY_DELAY);
@@ -122,13 +119,10 @@ public class RetryingMetaStoreClient implements InvocationHandler {
    * @throws MetaException
    */
   private void reloginKeytabUser() throws MetaException {
-    UserGroupInformation ugi = null;
     try {
-      ugi = UserGroupInformation.getLoginUser();
-      ShimLoader.getHadoopShims().reLoginUserFromKeytab(ugi);
+      ShimLoader.getHadoopShims().reLoginUserFromKeytab();
     } catch (IOException e) {
-      String msg = "Error doing relogin using keytab for user "
-          + ugi.getUserName() + " : " + e.getMessage();
+      String msg = "Error doing relogin using keytab " + e.getMessage();
       LOG.error(msg, e);
       throw new MetaException(msg);
     }

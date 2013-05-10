@@ -329,10 +329,9 @@ public interface HadoopShims {
 
   /**
    * Perform kerberos re-login using the given principal and keytab, to renew the credentials
-   * @param ugi
    * @throws IOException
    */
-  public void reLoginUserFromKeytab(UserGroupInformation ugi) throws IOException;
+  public void reLoginUserFromKeytab() throws IOException;
 
   /**
    * Move the directory/file to trash. In case of the symlinks or mount points, the file is
