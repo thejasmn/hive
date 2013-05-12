@@ -96,7 +96,7 @@ public final class MetaDataFormatUtils {
       if(humanFriendly){
         formatWithIndentation(col.getName(), col.getType(), getComment(col), tableInfo);
       }else {
-        formatWithoutIndentation(col.getName(), col.getType(), getComment(col), tableInfo);
+        formatWithoutIndentation(col.getName(), col.getType(), col.getComment(), tableInfo);
       }
     }
   }
