@@ -40,10 +40,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -113,8 +113,9 @@ import org.apache.hadoop.hive.ql.plan.AlterDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.AlterIndexDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableAlterPartDesc;
 import org.apache.hadoop.hive.ql.plan.AlterTableDesc;
-import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
+import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableExchangePartition;
+import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.CreateTableDesc;
@@ -152,7 +153,6 @@ import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.TruncateTableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
-import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.serde.serdeConstants;
@@ -2332,8 +2332,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
       List<FieldSchema> cols = table.getCols();
       cols.addAll(table.getPartCols());
+      boolean humanFriendly =
+          db.getConf().getBoolVar(ConfVars.HIVE_HUMAN_FRIENDLY_FORMAT);
+
       outStream.writeBytes(
-          MetaDataFormatUtils.getAllColumnsInformation(cols, false));
+          MetaDataFormatUtils.getAllColumnsInformation(cols, false, humanFriendly));
+
       ((FSDataOutputStream) outStream).close();
       outStream = null;
     } catch (IOException e) {
@@ -2911,9 +2915,13 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       } else {
         cols = Hive.getFieldsFromDeserializer(colPath, tbl.getDeserializer());
       }
-
+      boolean humanFriendly = db.getConf().getBoolVar(ConfVars.HIVE_HUMAN_FRIENDLY_FORMAT);
       formatter.describeTable(outStream, colPath, tableName, tbl, part, cols,
-                              descTbl.isFormatted(), descTbl.isExt(), descTbl.isPretty());
+                              descTbl.isFormatted(),
+                              descTbl.isExt(),
+                              descTbl.isPretty(),
+                              humanFriendly
+          );
 
       LOG.info("DDLTask: written data for " + tbl.getTableName());
       ((FSDataOutputStream) outStream).close();
