@@ -94,7 +94,7 @@ public class HiveSessionImpl implements HiveSession {
   }
 
   /**
-   * Set configuration recommended for hive-server2
+   * Set configurations recommended for hive-server2
    */
   private void setHiveServer2Configs() {
     //as the results are meant to be consumed by java code, turn off
