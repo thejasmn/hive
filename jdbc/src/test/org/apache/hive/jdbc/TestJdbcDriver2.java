@@ -836,6 +836,23 @@ public class TestJdbcDriver2 extends TestCase {
     assertFalse("More results found than expected", res.next());
   }
 
+  public void testShowColumns() throws SQLException {
+    Statement stmt = con.createStatement();
+    assertNotNull("Statement is null", stmt);
+
+    ResultSet res = stmt.executeQuery("show columns in " + tableName);
+    res.next();
+    assertEquals("Column name 'under_col' not found",
+        "under_col", res.getString(1));
+
+    res.next();
+    assertEquals("Column name 'value' not found",
+        "value", res.getString(1).trim());
+
+    assertFalse("More results found than expected", res.next());
+  }
+
+
   public void testDatabaseMetaData() throws SQLException {
     DatabaseMetaData meta = con.getMetaData();
 
