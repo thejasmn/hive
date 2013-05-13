@@ -116,6 +116,7 @@ public class HiveHistoryImpl implements HiveHistory{
   /**
    * @return historyFileName
    */
+  @Override
   public String getHistFileName() {
     return histFileName;
   }
@@ -156,6 +157,7 @@ public class HiveHistoryImpl implements HiveHistory{
   /**
    * Called at the start of job Driver.execute().
    */
+  @Override
   public void startQuery(String cmd, String id) {
     SessionState ss = SessionState.get();
     if (ss == null) {
@@ -213,6 +215,7 @@ public class HiveHistoryImpl implements HiveHistory{
    * @param taskId
    * @param ctrs
    */
+  @Override
   public void setTaskCounters(String queryId, String taskId, Counters ctrs) {
     String id = queryId + ":" + taskId;
     QueryInfo ji = queryInfoMap.get(queryId);
@@ -264,6 +267,7 @@ public class HiveHistoryImpl implements HiveHistory{
     }
   }
 
+  @Override
   public void printRowCount(String queryId) {
     QueryInfo ji = queryInfoMap.get(queryId);
     if (ji == null) {
@@ -279,6 +283,7 @@ public class HiveHistoryImpl implements HiveHistory{
    *
    * @param queryId
    */
+  @Override
   public void endQuery(String queryId) {
     QueryInfo ji = queryInfoMap.get(queryId);
     if (ji == null) {
@@ -294,6 +299,7 @@ public class HiveHistoryImpl implements HiveHistory{
    *
    * @param task
    */
+  @Override
   public void startTask(String queryId, Task<? extends Serializable> task,
       String taskName) {
     SessionState ss = SessionState.get();
@@ -318,6 +324,7 @@ public class HiveHistoryImpl implements HiveHistory{
    *
    * @param task
    */
+  @Override
   public void endTask(String queryId, Task<? extends Serializable> task) {
     String id = queryId + ":" + task.getId();
     TaskInfo ti = taskInfoMap.get(id);
@@ -334,6 +341,7 @@ public class HiveHistoryImpl implements HiveHistory{
    *
    * @param task
    */
+  @Override
   public void progressTask(String queryId, Task<? extends Serializable> task) {
     String id = queryId + ":" + task.getId();
     TaskInfo ti = taskInfoMap.get(id);
@@ -349,12 +357,13 @@ public class HiveHistoryImpl implements HiveHistory{
    */
   static ThreadLocal<Map<String,String>> ctrMapFactory =
       new ThreadLocal<Map<String, String>>() {
-        @Override
-        protected Map<String,String> initialValue() {
-          return new HashMap<String,String>();
-        }
-      };
+    @Override
+    protected Map<String,String> initialValue() {
+      return new HashMap<String,String>();
+    }
+  };
 
+  @Override
   public void logPlanProgress(QueryPlan plan) throws IOException {
     Map<String,String> ctrmap = ctrMapFactory.get();
     ctrmap.put("plan", plan.toString());
@@ -366,6 +375,7 @@ public class HiveHistoryImpl implements HiveHistory{
    *
    * @param map
    */
+  @Override
   public void setIdToTableMap(Map<String, String> map) {
     idToTableMap = map;
   }
@@ -390,6 +400,7 @@ public class HiveHistoryImpl implements HiveHistory{
 
   }
 
+  @Override
   public void closeStream() {
     IOUtils.cleanup(LOG, histStream);
   }
@@ -399,7 +410,5 @@ public class HiveHistoryImpl implements HiveHistory{
     closeStream();
     super.finalize();
   }
-
-
 
 }

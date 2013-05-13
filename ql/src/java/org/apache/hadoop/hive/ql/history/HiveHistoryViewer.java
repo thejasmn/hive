@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.hive.ql.exec.MapredLocalTask;
 import org.apache.hadoop.hive.ql.history.HiveHistory.Keys;
 import org.apache.hadoop.hive.ql.history.HiveHistory.Listener;
 import org.apache.hadoop.hive.ql.history.HiveHistory.QueryInfo;
@@ -35,8 +38,8 @@ import org.apache.hadoop.hive.ql.history.HiveHistory.TaskInfo;
 public class HiveHistoryViewer implements Listener {
 
   String historyFile;
-
   String sessionId;
+  private static final Log LOG = LogFactory.getLog(MapredLocalTask.class);
 
   // Job Hash Map
   private final HashMap<String, QueryInfo> jobInfoMap = new HashMap<String, QueryInfo>();
@@ -65,14 +68,13 @@ public class HiveHistoryViewer implements Listener {
    * Parse history files.
    */
   void init() {
-
     try {
       HiveHistoryUtil.parseHiveHistory(historyFile, this);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
+      // TODO pass on this exception
       e.printStackTrace();
+      LOG.error("Error parsing hive history log file", e);
     }
-
   }
 
   /**
