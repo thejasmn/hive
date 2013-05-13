@@ -174,13 +174,7 @@ public class HiveHistoryImpl implements HiveHistory{
 
   }
 
-  /**
-   * Used to set job status and other attributes of a job.
-   *
-   * @param queryId
-   * @param propName
-   * @param propValue
-   */
+
   @Override
   public void setQueryProperty(String queryId, Keys propName, String propValue) {
     QueryInfo ji = queryInfoMap.get(queryId);
@@ -190,13 +184,6 @@ public class HiveHistoryImpl implements HiveHistory{
     ji.hm.put(propName.name(), propValue);
   }
 
-  /**
-   * Used to set task properties.
-   *
-   * @param taskId
-   * @param propName
-   * @param propValue
-   */
   @Override
   public void setTaskProperty(String queryId, String taskId, Keys propName,
       String propValue) {
@@ -208,13 +195,6 @@ public class HiveHistoryImpl implements HiveHistory{
     ti.hm.put(propName.name(), propValue);
   }
 
-  /**
-   * Serialize the task counters and set as a task property.
-   *
-   * @param queryId
-   * @param taskId
-   * @param ctrs
-   */
   @Override
   public void setTaskCounters(String queryId, String taskId, Counters ctrs) {
     String id = queryId + ":" + taskId;
@@ -278,11 +258,6 @@ public class HiveHistoryImpl implements HiveHistory{
     }
   }
 
-  /**
-   * Called at the end of Job. A Job is sql query.
-   *
-   * @param queryId
-   */
   @Override
   public void endQuery(String queryId) {
     QueryInfo ji = queryInfoMap.get(queryId);
@@ -293,12 +268,6 @@ public class HiveHistoryImpl implements HiveHistory{
     queryInfoMap.remove(queryId);
   }
 
-  /**
-   * Called at the start of a task. Called by Driver.run() A Job can have
-   * multiple tasks. Tasks will have multiple operator.
-   *
-   * @param task
-   */
   @Override
   public void startTask(String queryId, Task<? extends Serializable> task,
       String taskName) {
@@ -319,11 +288,6 @@ public class HiveHistoryImpl implements HiveHistory{
 
   }
 
-  /**
-   * Called at the end of a task.
-   *
-   * @param task
-   */
   @Override
   public void endTask(String queryId, Task<? extends Serializable> task) {
     String id = queryId + ":" + task.getId();
@@ -336,11 +300,6 @@ public class HiveHistoryImpl implements HiveHistory{
     taskInfoMap.remove(id);
   }
 
-  /**
-   * Called at the end of a task.
-   *
-   * @param task
-   */
   @Override
   public void progressTask(String queryId, Task<? extends Serializable> task) {
     String id = queryId + ":" + task.getId();
@@ -370,11 +329,6 @@ public class HiveHistoryImpl implements HiveHistory{
     log(RecordTypes.Counters, ctrmap);
   }
 
-  /**
-   * Set the table to id map.
-   *
-   * @param map
-   */
   @Override
   public void setIdToTableMap(Map<String, String> map) {
     idToTableMap = map;
