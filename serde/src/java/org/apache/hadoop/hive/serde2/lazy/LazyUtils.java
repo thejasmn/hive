@@ -369,7 +369,7 @@ public final class LazyUtils {
 
   /**
    * Utility function to get separator for current level used in serialization.
-   * Useful to get a better log message when out of bound lookup happens
+   * Used to get a better log message when out of bound lookup happens
    * @param separators - array of separators byte, byte at index x indicates
    *  separator used at that level
    * @param level - nesting level
