@@ -215,15 +215,11 @@ public class LazySimpleSerDe extends AbstractSerDe {
     SerDeParameters serdeParams = new SerDeParameters();
     // Read the separators: We use 8 levels of separators by default,
     // and 24 if SERIALIZATION_EXTEND_NESTING_LEVELS is set to true
-    // the levels possible are the set of control chars that we can use as
-    // special delimiters,ie they should absent in
-    // the strings. To increase this level further, we need to stop relying
+    // The levels possible are the set of control chars that we can use as
+    // special delimiters, ie they should absent in the data or escaped.
+    // To increase this level further, we need to stop relying
     // on single control chars delimiters
 
-
-    // Read the separators: We use 8 levels of separators by default, but we
-    // should change this when we allow users to specify more than 10 levels
-    // of separators through DDL.
     serdeParams.separators = new byte[8];
     serdeParams.separators[0] = getByte(tbl.getProperty(serdeConstants.FIELD_DELIM,
         tbl.getProperty(serdeConstants.SERIALIZATION_FORMAT)), DefaultSeparators[0]);
@@ -231,90 +227,89 @@ public class LazySimpleSerDe extends AbstractSerDe {
         .getProperty(serdeConstants.COLLECTION_DELIM), DefaultSeparators[1]);
     serdeParams.separators[2] = getByte(
         tbl.getProperty(serdeConstants.MAPKEY_DELIM), DefaultSeparators[2]);
+    String extendedNesting =
+        tbl.getProperty(SERIALIZATION_EXTEND_NESTING_LEVELS);
+    if(extendedNesting == null || !extendedNesting.equalsIgnoreCase("true")){
+      //use the default smaller set of separators for backward compatibility
+      for (int i = 3; i < serdeParams.separators.length; i++) {
+        serdeParams.separators[i] = (byte) (i + 1);
+      }
+    }
+    else{
+      //If extended nesting is enabled, set the extended set of separator chars
 
-     String extendedNesting =
-         tbl.getProperty(SERIALIZATION_EXTEND_NESTING_LEVELS);
-     if(extendedNesting == null || !extendedNesting.equalsIgnoreCase("true")){
-       //use the default smaller set of separators for backward compatibility
-       for (int i = 3; i < serdeParams.separators.length; i++) {
-         serdeParams.separators[i] = (byte) (i + 1);
-       }
-     }
-     else{
-       //If extended nesting is enabled, set the extended set of separator chars
+      final int MAX_CTRL_CHARS = 29;
+      byte[] extendedSeparators = new byte[MAX_CTRL_CHARS];
+      int extendedSeparatorsIdx = 0;
 
-       final int MAX_CTRL_CHARS = 29;
-       byte[] extendedSeparators = new byte[MAX_CTRL_CHARS];
-       int extendedSeparatorsIdx = 0;
+      //get the first 3 separators that have already been set (defaults to 1,2,3)
+      for(int i = 0; i < 3; i++){
+        extendedSeparators[extendedSeparatorsIdx++] = serdeParams.separators[i];
+      }
 
-       //get the first 3 separators that have already been set (defaults to 1,2,3)
-       for(int i = 0; i < 3; i++){
-         extendedSeparators[extendedSeparatorsIdx++] = serdeParams.separators[i];
-       }
+      for (byte asciival = 4; asciival <= MAX_CTRL_CHARS; asciival++) {
 
-       for (byte asciival = 4; asciival <= MAX_CTRL_CHARS; asciival++) {
+        //use only control chars that are very unlikely to be part of the string
+        // the following might/likely to be used in text files for strings
+        // 9 (horizontal tab, HT, \t, ^I)
+        // 10 (line feed, LF, \n, ^J),
+        // 12 (form feed, FF, \f, ^L),
+        // 13 (carriage return, CR, \r, ^M),
+        // 27 (escape, ESC, \e [GCC only], ^[).
 
-         //use only control chars that are very unlikely to be part of the string
-         // the following might/likely to be used in text files for strings
-         // 9 (horizontal tab, HT, \t, ^I)
-         // 10 (line feed, LF, \n, ^J),
-         // 12 (form feed, FF, \f, ^L),
-         // 13 (carriage return, CR, \r, ^M),
-         // 27 (escape, ESC, \e [GCC only], ^[).
+        //reserving the following values for future dynamic level impl
+        // 30
+        // 31
 
-         //reserving the following values for future dynamic level impl
-         // 30
-         // 31
+        switch(asciival){
+        case 9:
+        case 10:
+        case 12:
+        case 13:
+        case 27:
+          continue;
+        }
+        extendedSeparators[extendedSeparatorsIdx++] = asciival;
+      }
 
-         switch(asciival){
-         case 9:
-         case 10:
-         case 12:
-         case 13:
-         case 27:
-           continue;
-         }
-         extendedSeparators[extendedSeparatorsIdx++] = asciival;
-       }
+      serdeParams.separators =
+          Arrays.copyOfRange(extendedSeparators, 0, extendedSeparatorsIdx);
+    }
 
-       serdeParams.separators =
-           Arrays.copyOfRange(extendedSeparators, 0, extendedSeparatorsIdx);
-     }
-     serdeParams.nullString = tbl.getProperty(
-         serdeConstants.SERIALIZATION_NULL_FORMAT, "\\N");
-     serdeParams.nullSequence = new Text(serdeParams.nullString);
+    serdeParams.nullString = tbl.getProperty(
+        serdeConstants.SERIALIZATION_NULL_FORMAT, "\\N");
+    serdeParams.nullSequence = new Text(serdeParams.nullString);
 
-     String lastColumnTakesRestString = tbl
-         .getProperty(serdeConstants.SERIALIZATION_LAST_COLUMN_TAKES_REST);
-     serdeParams.lastColumnTakesRest = (lastColumnTakesRestString != null && lastColumnTakesRestString
-         .equalsIgnoreCase("true"));
+    String lastColumnTakesRestString = tbl
+        .getProperty(serdeConstants.SERIALIZATION_LAST_COLUMN_TAKES_REST);
+    serdeParams.lastColumnTakesRest = (lastColumnTakesRestString != null && lastColumnTakesRestString
+        .equalsIgnoreCase("true"));
 
-     LazyUtils.extractColumnInfo(tbl, serdeParams, serdeName);
+    LazyUtils.extractColumnInfo(tbl, serdeParams, serdeName);
 
-     // Create the LazyObject for storing the rows
-     serdeParams.rowTypeInfo = TypeInfoFactory.getStructTypeInfo(
-         serdeParams.columnNames, serdeParams.columnTypes);
+    // Create the LazyObject for storing the rows
+    serdeParams.rowTypeInfo = TypeInfoFactory.getStructTypeInfo(
+        serdeParams.columnNames, serdeParams.columnTypes);
 
-     // Get the escape information
-     String escapeProperty = tbl.getProperty(serdeConstants.ESCAPE_CHAR);
-     serdeParams.escaped = (escapeProperty != null);
-     if (serdeParams.escaped) {
-       serdeParams.escapeChar = getByte(escapeProperty, (byte) '\\');
-     }
-     if (serdeParams.escaped) {
-       serdeParams.needsEscape = new boolean[128];
-       for (int i = 0; i < 128; i++) {
-         serdeParams.needsEscape[i] = false;
-       }
-       serdeParams.needsEscape[serdeParams.escapeChar] = true;
-       for (int i = 0; i < serdeParams.separators.length; i++) {
-         serdeParams.needsEscape[serdeParams.separators[i]] = true;
-       }
-     }
+    // Get the escape information
+    String escapeProperty = tbl.getProperty(serdeConstants.ESCAPE_CHAR);
+    serdeParams.escaped = (escapeProperty != null);
+    if (serdeParams.escaped) {
+      serdeParams.escapeChar = getByte(escapeProperty, (byte) '\\');
+    }
+    if (serdeParams.escaped) {
+      serdeParams.needsEscape = new boolean[128];
+      for (int i = 0; i < 128; i++) {
+        serdeParams.needsEscape[i] = false;
+      }
+      serdeParams.needsEscape[serdeParams.escapeChar] = true;
+      for (int i = 0; i < serdeParams.separators.length; i++) {
+        serdeParams.needsEscape[serdeParams.separators[i]] = true;
+      }
+    }
 
-     return serdeParams;
+    return serdeParams;
   }
-
 
   // The object for storing row data
   LazyStruct cachedLazyStruct;
