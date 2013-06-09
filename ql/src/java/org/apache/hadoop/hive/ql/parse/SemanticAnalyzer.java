@@ -5000,7 +5000,6 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       // this table_desc does not contain the partitioning columns
       table_desc = Utilities.getTableDesc(dest_tab);
-
       // Add sorting/bucketing if needed
       input = genBucketingSortingDest(dest, input, qb, table_desc, dest_tab, rsCtx);
 
@@ -5244,7 +5243,6 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     default:
       throw new SemanticException("Unknown destination type: " + dest_type);
     }
-
     input = genConversionSelectOperator(dest, qb, input, table_desc, dpCtx);
     inputRR = opParseCtx.get(input).getRowResolver();
 
