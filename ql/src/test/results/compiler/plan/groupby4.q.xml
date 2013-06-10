@@ -991,6 +991,10 @@
                      <string>_col0</string> 
                     </void> 
                     <void method="put"> 
+                     <string>serialization.extend.nesting.levels</string> 
+                     <string>true</string> 
+                    </void> 
+                    <void method="put"> 
                      <string>serialization.format</string> 
                      <string>1</string> 
                     </void> 
