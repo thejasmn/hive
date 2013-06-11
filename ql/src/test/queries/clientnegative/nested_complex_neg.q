@@ -9,7 +9,7 @@ simple_string string)
 ;
 
 
--- This should fail in as extended nesting levels are not enabled using the serdeproperty serialization.extend.nesting.levels 
+-- This should fail in as extended nesting levels are not enabled using the serdeproperty hive.serialization.extend.nesting.levels
 load data local inpath '../data/files/nested_complex.txt' overwrite into table nestedcomplex;
 
 select * from nestedcomplex sort by simple_int;

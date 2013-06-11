@@ -8,7 +8,7 @@ simple_string string)
 ROW FORMAT SERDE
    'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
 WITH SERDEPROPERTIES (
-   'serialization.extend.nesting.levels'='true',
+   'hive.serialization.extend.nesting.levels'='true',
    'line.delim'='\n'
 )
 ;

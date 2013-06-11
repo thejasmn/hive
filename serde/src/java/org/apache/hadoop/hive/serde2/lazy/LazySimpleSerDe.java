@@ -66,7 +66,7 @@ public class LazySimpleSerDe extends AbstractSerDe {
       .getName());
 
   public static final String SERIALIZATION_EXTEND_NESTING_LEVELS
-    = "serialization.extend.nesting.levels";
+    = "hive.serialization.extend.nesting.levels";
 
   public static final byte[] DefaultSeparators = {(byte) 1, (byte) 2, (byte) 3};
 
