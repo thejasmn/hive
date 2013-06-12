@@ -202,7 +202,7 @@ STAGE PLANS:
                     columns _col0
                     columns.types struct<columntype:string,min:bigint,max:bigint,countnulls:bigint,numdistinctvalues:bigint>
                     escape.delim \
-                    serialization.extend.nesting.levels true
+                    hive.serialization.extend.nesting.levels true
                     serialization.format 1
               TotalFiles: 1
               GatherStats: false
@@ -409,7 +409,7 @@ STAGE PLANS:
                     columns _col0
                     columns.types struct<columntype:string,min:bigint,max:bigint,countnulls:bigint,numdistinctvalues:bigint>
                     escape.delim \
-                    serialization.extend.nesting.levels true
+                    hive.serialization.extend.nesting.levels true
                     serialization.format 1
               TotalFiles: 1
               GatherStats: false
