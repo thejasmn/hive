@@ -43,6 +43,7 @@ import junit.framework.TestCase;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hive.common.util.HiveVersionInfo;
+import org.apache.hive.jdbc.Utils.JdbcConnectionParams;
 
 
 /**
@@ -1080,10 +1081,18 @@ public class TestJdbcDriver2 extends TestCase {
 
   // [url] [host] [port] [db]
   private static final String[][] URL_PROPERTIES = new String[][] {
+      // tcp mode
       {"jdbc:hive2://", "", "", "default"},
       {"jdbc:hive2://localhost:10001/default", "localhost", "10001", "default"},
       {"jdbc:hive2://localhost/notdefault", "localhost", "10000", "notdefault"},
-      {"jdbc:hive2://foo:1243", "foo", "1243", "default"}};
+      {"jdbc:hive2://foo:1243", "foo", "1243", "default"},
+
+      // http mode
+      {"jdbc:hive2://server:10002/db;user=foo;password=bar?" +
+      		"hive.server2.servermode=http;" +
+      		"hive.server2.http.path=hs2",
+      		"server", "10002", "db"},
+  };
 
   public void testDriverProperties() throws SQLException {
     HiveDriver driver = new HiveDriver();
@@ -1095,7 +1104,30 @@ public class TestJdbcDriver2 extends TestCase {
       assertDpi(dpi[1], "PORT", testValues[2]);
       assertDpi(dpi[2], "DBNAME", testValues[3]);
     }
+  }
 
+  private static final String[][] HTTP_URL_PROPERTIES = new String[][] {
+    {"jdbc:hive2://server:10002/db;" +
+    		"user=foo;password=bar?" +
+    		"hive.server2.servermode=http;" +
+    		"hive.server2.http.path=hs2", "server", "10002", "db", "http", "hs2"},
+    {"jdbc:hive2://server:10000/testdb;" +
+    		"user=foo;password=bar?" +
+    		"hive.server2.servermode=thrift;" +
+    		"hive.server2.http.path=", "server", "10000", "testdb", "thrift", ""},
+  };
+
+  public void testParseUrlHttpMode() throws SQLException {
+    HiveDriver driver = new HiveDriver();
+
+    for (String[] testValues : HTTP_URL_PROPERTIES) {
+      JdbcConnectionParams params = Utils.parseURL(testValues[0]);
+      assertEquals(params.getHost(), testValues[1]);
+      assertEquals(params.getPort(), Integer.parseInt(testValues[2]));
+      assertEquals(params.getDbName(), testValues[3]);
+      assertEquals(params.getHiveConfs().get("hive.server2.servermode"), testValues[4]);
+      assertEquals(params.getHiveConfs().get("hive.server2.http.path"), testValues[5]);
+    }
   }
 
   private static void assertDpi(DriverPropertyInfo dpi, String name,

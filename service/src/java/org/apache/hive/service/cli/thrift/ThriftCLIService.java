@@ -29,8 +29,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.service.HiveServer.HiveServerHandler;
+import org.apache.hadoop.util.Shell;
 import org.apache.hive.service.AbstractService;
 import org.apache.hive.service.auth.HiveAuthFactory;
+import org.apache.hive.service.auth.HiveAuthFactory.AuthTypes;
 import org.apache.hive.service.cli.CLIService;
 import org.apache.hive.service.cli.FetchOrientation;
 import org.apache.hive.service.cli.GetInfoType;
@@ -44,12 +47,16 @@ import org.apache.hive.service.cli.TableSchema;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TServlet;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
-
-
+import org.mortbay.jetty.nio.SelectChannelConnector;
+import org.mortbay.jetty.servlet.Context;
+import org.mortbay.jetty.servlet.ServletHolder;
+import org.mortbay.thread.QueuedThreadPool;
 /**
  * CLIService.
  *
@@ -396,48 +403,160 @@ public class ThriftCLIService extends AbstractService implements TCLIService.Ifa
   @Override
   public void run() {
     try {
-      hiveAuthFactory = new HiveAuthFactory();
-      TTransportFactory  transportFactory = hiveAuthFactory.getAuthTransFactory();
-      TProcessorFactory processorFactory = hiveAuthFactory.getAuthProcFactory(this);
 
-      String portString = System.getenv("HIVE_SERVER2_THRIFT_PORT");
-      if (portString != null) {
-        portNum = Integer.valueOf(portString);
-      } else {
-        portNum = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_PORT);
+      String serverMode = System.getenv("HIVE_SERVER2_SERVERMODE");
+      if(serverMode == null){
+        serverMode = hiveConf.getVar(HiveConf.ConfVars.HIVE_SERVER2_SERVERMODE);
       }
+      if(serverMode.equals("thrift")){
 
-      String hiveHost = System.getenv("HIVE_SERVER2_THRIFT_BIND_HOST");
-      if (hiveHost == null) {
-        hiveHost = hiveConf.getVar(ConfVars.HIVE_SERVER2_THRIFT_BIND_HOST);
+        hiveAuthFactory = new HiveAuthFactory();
+        TTransportFactory  transportFactory = hiveAuthFactory.getAuthTransFactory();
+        TProcessorFactory processorFactory = hiveAuthFactory.getAuthProcFactory(this);
+
+        String portString = System.getenv("HIVE_SERVER2_THRIFT_PORT");
+        if (portString != null) {
+          portNum = Integer.valueOf(portString);
+        } else {
+          portNum = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_PORT);
+        }
+
+        String hiveHost = System.getenv("HIVE_SERVER2_THRIFT_BIND_HOST");
+        if (hiveHost == null) {
+          hiveHost = hiveConf.getVar(ConfVars.HIVE_SERVER2_THRIFT_BIND_HOST);
+        }
+
+        if (hiveHost != null && !hiveHost.isEmpty()) {
+          serverAddress = new InetSocketAddress(hiveHost, portNum);
+        } else {
+          serverAddress = new  InetSocketAddress(portNum);
+        }
+
+
+        minWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_MIN_WORKER_THREADS);
+        maxWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_MAX_WORKER_THREADS);
+
+
+        TThreadPoolServer.Args sargs = new TThreadPoolServer.Args(new TServerSocket(serverAddress))
+        .processorFactory(processorFactory)
+        .transportFactory(transportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory())
+        .minWorkerThreads(minWorkerThreads)
+        .maxWorkerThreads(maxWorkerThreads);
+
+        server = new TThreadPoolServer(sargs);
+
+        LOG.info("ThriftCLIService listening on " + serverAddress);
+
+        server.serve();
       }
+      else if(serverMode.equals("http")){
+        // Configure Jetty to serve http requests
+        // Example of a client connection URI: http://localhost:10000/servlets/thrifths2/
+        // a gateway may cause actual target URI to differ, eg http://gateway:port/hive2/servlets/thrifths2/
 
-      if (hiveHost != null && !hiveHost.isEmpty()) {
-        serverAddress = new InetSocketAddress(hiveHost, portNum);
-      } else {
-        serverAddress = new  InetSocketAddress(portNum);
+        verifyHttpConfiguration(hiveConf);
+
+        String portString = System.getenv("HIVE_SERVER2_HTTP_PORT");
+        if (portString != null) {
+          portNum = Integer.valueOf(portString);
+        } else {
+          portNum = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_HTTP_PORT);
+        }
+
+        minWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_HTTP_MIN_WORKER_THREADS);
+        maxWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_HTTP_MAX_WORKER_THREADS);
+
+        String httpPath =  hiveConf.getVar(HiveConf.ConfVars.HIVE_SERVER2_HTTP_PATH);
+        //The config parameter can be like "path", "/path", "/path/", "path/*", "/path1/path2/*" and so on.
+        //httpPath should end up as "/*", "/path/*" or "/path1/../pathN/*"
+        if(httpPath == null || httpPath.equals("")){
+            httpPath = "/*";
+        }
+        else {
+          if(!httpPath.startsWith("/")){
+            httpPath = "/" + httpPath;
+          }
+          if(httpPath.endsWith("/")){
+            httpPath = httpPath + "*";
+          }
+          if(!httpPath.endsWith("/*")){
+            httpPath = httpPath + "/*";
+          }
+        }
+
+        org.mortbay.jetty.Server httpServer = new org.mortbay.jetty.Server();
+
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMinThreads(minWorkerThreads);
+        threadPool.setMaxThreads(maxWorkerThreads);
+        httpServer.setThreadPool(threadPool);
+        SelectChannelConnector connector = new SelectChannelConnector();
+        connector.setPort(portNum);
+
+        connector.setReuseAddress(!Shell.WINDOWS); // Linux:yes, Windows:no
+        httpServer.addConnector(connector);
+
+        new org.apache.hive.service.cli.thrift.TCLIService.Processor<ThriftCLIService>(new EmbeddedThriftCLIService());
+        org.apache.hive.service.cli.thrift.TCLIService.Processor<ThriftCLIService> processor
+          = new org.apache.hive.service.cli.thrift.TCLIService.Processor<ThriftCLIService>(new EmbeddedThriftCLIService());
+
+        TProtocolFactory protocolFactory = new TBinaryProtocol.Factory();
+        TServlet thriftServlet = new HttpServlet(processor,protocolFactory);
+        final Context context = new Context(httpServer, "/", Context.SESSIONS);
+        context.addServlet(new ServletHolder(thriftServlet), httpPath);
+
+        //TODO: check defaults: maxTimeout,keepalive,maxBodySize,bodyRecieveDuration, etc.
+        httpServer.start();
+        String msg = "Starting HiveServer2 in Http mode on port " + portNum +
+             " path=" + httpPath +
+             " with " + minWorkerThreads + ".." + maxWorkerThreads + " worker threads";
+        HiveServerHandler.LOG.info(msg);
+        httpServer.join();
       }
-
-
-      minWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_MIN_WORKER_THREADS);
-      maxWorkerThreads = hiveConf.getIntVar(ConfVars.HIVE_SERVER2_THRIFT_MAX_WORKER_THREADS);
-
-
-      TThreadPoolServer.Args sargs = new TThreadPoolServer.Args(new TServerSocket(serverAddress))
-      .processorFactory(processorFactory)
-      .transportFactory(transportFactory)
-      .protocolFactory(new TBinaryProtocol.Factory())
-      .minWorkerThreads(minWorkerThreads)
-      .maxWorkerThreads(maxWorkerThreads);
-
-      server = new TThreadPoolServer(sargs);
-
-      LOG.info("ThriftCLIService listening on " + serverAddress);
-
-      server.serve();
+      else {
+        throw new Exception("unknown serverMode: " + serverMode);
+      }
     } catch (Throwable t) {
       t.printStackTrace();
     }
+  }
+
+  /**
+   * Verify that this configuration is supported by servermode of HTTP
+   * @param hiveConf
+   */
+  private static void verifyHttpConfiguration(HiveConf hiveConf) {
+    String authType = hiveConf.getVar(ConfVars.HIVE_SERVER2_AUTHENTICATION);
+
+    //error out if KERBEROS or LDAP mode is being used, it is not supported
+    if(authType.equalsIgnoreCase(AuthTypes.KERBEROS.toString()) ||
+        authType.equalsIgnoreCase(AuthTypes.LDAP.toString()) ||
+        authType.equalsIgnoreCase(AuthTypes.CUSTOM.toString())
+        ){
+      String msg = ConfVars.HIVE_SERVER2_AUTHENTICATION + " setting of " +
+          authType + " is currently not supported with " +
+          ConfVars.HIVE_SERVER2_SERVERMODE + " setting of http";
+      LOG.fatal(msg);
+      throw new RuntimeException(msg);
+    }
+
+    if(authType.equalsIgnoreCase(AuthTypes.NONE.toString())){
+      //NONE in case of thrift mode uses SASL
+      LOG.warn(ConfVars.HIVE_SERVER2_AUTHENTICATION + " setting to " +
+      authType + ". SASL is not supported with http servermode," +
+          " so using equivalent of " + AuthTypes.NOSASL);
+    }
+
+    //doAs is currently not supported with http
+    if(hiveConf.getBoolVar(ConfVars.HIVE_SERVER2_ENABLE_DOAS)){
+      String msg = ConfVars.HIVE_SERVER2_ENABLE_DOAS + " setting of " +
+          "true is currently not supported with " +
+          ConfVars.HIVE_SERVER2_SERVERMODE + " setting of http";
+      LOG.fatal(msg);
+      throw new RuntimeException(msg);
+    }
+
   }
 
 }

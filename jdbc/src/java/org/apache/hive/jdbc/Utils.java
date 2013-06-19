@@ -173,6 +173,9 @@ public class Utils {
    *  jdbc:hive://?hive.cli.conf.printheader=true;hive.exec.mode.local.auto.inputbytes.max=9999#stab=salesTable;icol=customerID
    *  jdbc:hive://ubuntu:11000/db2;user=foo;password=bar
    *
+   *  Connect to http://server:10001/hs2, with specified basicAuth credentials and initial database:
+   *     jdbc:hive://server:10001/db;user=foo;password=bar?hive.server2.servermode=http;hive.server2.http.path=hs2
+   *
    * Note that currently the session properties are not used.
    *
    * @param uri
@@ -181,7 +184,7 @@ public class Utils {
   public static JdbcConnectionParams parseURL(String uri) throws IllegalArgumentException {
     JdbcConnectionParams connParams = new JdbcConnectionParams();
 
-    if (!uri.startsWith(URL_PREFIX)) {
+    if (! uri.startsWith(URL_PREFIX)) {
       throw new IllegalArgumentException("Bad URL format");
     }
 
@@ -190,9 +193,10 @@ public class Utils {
       connParams.setEmbeddedMode(true);
       return connParams;
     }
-    URI jdbcURI = URI.create(uri.substring(URI_JDBC_PREFIX.length()));
 
+    URI jdbcURI = URI.create(uri.substring(URI_JDBC_PREFIX.length()));
     connParams.setHost(jdbcURI.getHost());
+
     if (connParams.getHost() == null) {
       connParams.setEmbeddedMode(true);
     } else {

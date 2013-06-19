@@ -714,6 +714,12 @@ public class HiveConf extends Configuration {
     HIVE_DDL_OUTPUT_FORMAT("hive.ddl.output.format", null),
     HIVE_ENTITY_SEPARATOR("hive.entity.separator", "@"),
 
+    HIVE_SERVER2_SERVERMODE("hive.server2.servermode", "thrift"), //thrift or http
+    HIVE_SERVER2_HTTP_PORT("hive.server2.http.port", 10000),
+    HIVE_SERVER2_HTTP_PATH("hive.server2.http.path", ""),
+    HIVE_SERVER2_HTTP_MIN_WORKER_THREADS("hive.server2.http.min.worker.threads", 5),
+    HIVE_SERVER2_HTTP_MAX_WORKER_THREADS("hive.server2.http.max.worker.threads", 100),
+    
     HIVE_SERVER2_THRIFT_MIN_WORKER_THREADS("hive.server2.thrift.min.worker.threads", 5),
     HIVE_SERVER2_THRIFT_MAX_WORKER_THREADS("hive.server2.thrift.max.worker.threads", 100),
 
