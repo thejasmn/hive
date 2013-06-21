@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.ql.io.orc;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
 import org.apache.hadoop.io.BooleanWritable;
@@ -611,6 +613,50 @@ class RecordReaderImpl implements RecordReader {
     }
   }
 
+  private static class DateTreeReader extends TreeReader{
+    private RunLengthIntegerReader reader = null;
+
+    DateTreeReader(int columnId) {
+      super(columnId);
+    }
+
+    @Override
+    void startStripe(Map<StreamName, InStream> streams,
+                     List<OrcProto.ColumnEncoding> encodings
+                    ) throws IOException {
+      super.startStripe(streams, encodings);
+      StreamName name = new StreamName(columnId,
+          OrcProto.Stream.Kind.DATA);
+      reader = new RunLengthIntegerReader(streams.get(name), true);
+    }
+
+    @Override
+    void seek(PositionProvider[] index) throws IOException {
+      super.seek(index);
+      reader.seek(index[columnId]);
+    }
+
+    @Override
+    Object next(Object previous) throws IOException {
+      super.next(previous);
+      Date result = null;
+      if (valuePresent) {
+        if (previous == null) {
+          result = new Date(0);
+        } else {
+          result = (Date) previous;
+        }
+        result.setTime(DateWritable.daysToMillis((int) reader.next()));
+      }
+      return result;
+    }
+
+    @Override
+    void skipRows(long items) throws IOException {
+      reader.skip(countNonNulls(items));
+    }
+  }
+
   private static class DecimalTreeReader extends TreeReader{
     private InStream valueStream;
     private RunLengthIntegerReader scaleStream;
@@ -1079,6 +1125,8 @@ class RecordReaderImpl implements RecordReader {
         return new BinaryTreeReader(columnId);
       case TIMESTAMP:
         return new TimestampTreeReader(columnId);
+      case DATE:
+        return new DateTreeReader(columnId);
       case DECIMAL:
         return new DecimalTreeReader(columnId);
       case STRUCT:

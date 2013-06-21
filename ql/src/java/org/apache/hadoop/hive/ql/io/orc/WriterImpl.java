@@ -33,6 +33,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.MapObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
@@ -40,12 +41,13 @@ import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.UnionObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.HiveDecimalObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BooleanObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.ByteObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.DateObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.DoubleObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.FloatObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.HiveDecimalObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.IntObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.LongObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.ShortObjectInspector;
@@ -810,6 +812,7 @@ class WriterImpl implements Writer, MemoryManager.Callback {
      * and augments them with the final information as the stripe is written.
      * @throws IOException
      */
+    @Override
     void createRowIndexEntry() throws IOException {
       getFileStatistics().merge(indexStatistics);
       OrcProto.RowIndexEntry.Builder rowIndexEntry = getRowIndexEntry();
@@ -933,6 +936,46 @@ class WriterImpl implements Writer, MemoryManager.Callback {
       super.recordPosition(recorder);
       seconds.getPosition(recorder);
       nanos.getPosition(recorder);
+    }
+  }
+
+  private static class DateTreeWriter extends TreeWriter {
+    private final RunLengthIntegerWriter writer;
+
+    DateTreeWriter(int columnId,
+                   ObjectInspector inspector,
+                   StreamFactory writer,
+                   boolean nullable) throws IOException {
+      super(columnId, inspector, writer, nullable);
+      PositionedOutputStream out = writer.createStream(id,
+          OrcProto.Stream.Kind.DATA);
+      this.writer = new RunLengthIntegerWriter(out, true);
+      recordPosition(rowIndexPosition);
+    }
+
+    @Override
+    void write(Object obj) throws IOException {
+      super.write(obj);
+      if (obj != null) {
+        // Using the Writable here as it's used directly for writing as well as for stats.
+        DateWritable val = ((DateObjectInspector) inspector).getPrimitiveWritableObject(obj);
+        indexStatistics.updateDate(val);
+        writer.write(val.getDays());
+      }
+    }
+
+    @Override
+    void writeStripe(OrcProto.StripeFooter.Builder builder,
+                     int requiredIndexEntries) throws IOException {
+      super.writeStripe(builder, requiredIndexEntries);
+      writer.flush();
+      recordPosition(rowIndexPosition);
+    }
+
+    @Override
+    void recordPosition(PositionRecorder recorder) throws IOException {
+      super.recordPosition(recorder);
+      writer.getPosition(recorder);
     }
   }
 
@@ -1210,6 +1253,9 @@ class WriterImpl implements Writer, MemoryManager.Callback {
           case TIMESTAMP:
             return new TimestampTreeWriter(streamFactory.getNextColumnId(),
                 inspector, streamFactory, nullable);
+          case DATE:
+            return new DateTreeWriter(streamFactory.getNextColumnId(),
+                inspector, streamFactory, nullable);
           case DECIMAL:
             return new DecimalTreeWriter(streamFactory.getNextColumnId(),
                 inspector, streamFactory,  nullable);
@@ -1271,6 +1317,9 @@ class WriterImpl implements Writer, MemoryManager.Callback {
             break;
           case TIMESTAMP:
             type.setKind(OrcProto.Type.Kind.TIMESTAMP);
+            break;
+          case DATE:
+            type.setKind(OrcProto.Type.Kind.DATE);
             break;
           case DECIMAL:
             type.setKind(OrcProto.Type.Kind.DECIMAL);

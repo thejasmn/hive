@@ -254,6 +254,7 @@ expression
 atomExpression
     :
     KW_NULL -> TOK_NULL
+    | KW_DATE StringLiteral -> ^(TOK_FUNCTION TOK_DATE StringLiteral)
     | constant
     | function
     | castExpression

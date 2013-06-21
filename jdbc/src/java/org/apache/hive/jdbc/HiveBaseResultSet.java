@@ -220,13 +220,18 @@ public abstract class HiveBaseResultSet implements ResultSet {
   }
 
   public Date getDate(int columnIndex) throws SQLException {
-    Object obj = getObject(columnIndex);
-    if (obj == null) {
-      return null;
-    }
-
     try {
-      return Date.valueOf((String) obj);
+      Object obj = getObject(columnIndex);
+      if (obj == null) {
+        return null;
+      }
+      if (obj instanceof Date) {
+        return (Date) obj;
+      }
+      if (obj instanceof String) {
+        return Date.valueOf((String)obj);
+      }
+      throw new Exception("Illegal conversion");
     } catch (Exception e) {
       throw new SQLException("Cannot convert column " + columnIndex
               + " to date: " + e.toString(), e);
@@ -434,6 +439,15 @@ public abstract class HiveBaseResultSet implements ResultSet {
     return null;
   }
 
+  private Date getDateValue(TStringValue tStringValue) {
+    if (tStringValue.isSetValue()) {
+      wasNull = false;
+      return Date.valueOf(tStringValue.getValue());
+    }
+    wasNull = true;
+    return null;
+  }
+
   private Timestamp getTimestampValue(TStringValue tStringValue) {
     if (tStringValue.isSetValue()) {
       wasNull = false;
@@ -495,6 +509,8 @@ public abstract class HiveBaseResultSet implements ResultSet {
       return getStringValue(tColumnValue.getStringVal());
     case BINARY_TYPE:
       return getBinaryValue(tColumnValue.getStringVal());
+    case DATE_TYPE:
+      return getDateValue(tColumnValue.getStringVal());
     case TIMESTAMP_TYPE:
       return getTimestampValue(tColumnValue.getStringVal());
     case DECIMAL_TYPE:

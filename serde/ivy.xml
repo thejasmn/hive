@@ -40,6 +40,8 @@
                 transitive="false"/>
     <dependency org="org.apache.avro" name="avro-mapred" rev="${avro.version}"
                 transitive="false"/>
+    <dependency org="joda-time" name="joda-time" rev="${joda.version}"
+                transitive="false"/>
 
     <!-- Test Dependencies -->
     <dependency org="junit" name="junit" rev="${junit.version}" conf="test->default" />

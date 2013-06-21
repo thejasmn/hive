@@ -519,6 +519,8 @@ public final class TypeCheckProcFactory {
           serdeConstants.STRING_TYPE_NAME);
       conversionFunctionTextHashMap.put(HiveParser.TOK_BINARY,
           serdeConstants.BINARY_TYPE_NAME);
+      conversionFunctionTextHashMap.put(HiveParser.TOK_DATE,
+          serdeConstants.DATE_TYPE_NAME);
       conversionFunctionTextHashMap.put(HiveParser.TOK_TIMESTAMP,
           serdeConstants.TIMESTAMP_TYPE_NAME);
       conversionFunctionTextHashMap.put(HiveParser.TOK_DECIMAL,
