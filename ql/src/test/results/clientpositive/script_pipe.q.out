@@ -1,7 +1,9 @@
-PREHOOK: query: -- Tests exception in ScriptOperator.close() by passing to the operator a small amount of data
+PREHOOK: query: -- EXCLUDE_OS_WINDOWS
+-- Tests exception in ScriptOperator.close() by passing to the operator a small amount of data
 EXPLAIN SELECT TRANSFORM(*) USING 'true' AS a, b, c FROM (SELECT * FROM src LIMIT 1) tmp
 PREHOOK: type: QUERY
-POSTHOOK: query: -- Tests exception in ScriptOperator.close() by passing to the operator a small amount of data
+POSTHOOK: query: -- EXCLUDE_OS_WINDOWS
+-- Tests exception in ScriptOperator.close() by passing to the operator a small amount of data
 EXPLAIN SELECT TRANSFORM(*) USING 'true' AS a, b, c FROM (SELECT * FROM src LIMIT 1) tmp
 POSTHOOK: type: QUERY
 ABSTRACT SYNTAX TREE:
