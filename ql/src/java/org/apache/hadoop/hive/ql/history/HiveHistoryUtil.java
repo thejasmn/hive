@@ -39,6 +39,9 @@ public class HiveHistoryUtil {
   * @throws IOException
   */
  public static void parseHiveHistory(String path, Listener l) throws IOException {
+   if(path == null){
+     return;
+   }
    FileInputStream fi = new FileInputStream(path);
    BufferedReader reader = new BufferedReader(new InputStreamReader(fi));
    try {
