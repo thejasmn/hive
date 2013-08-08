@@ -77,7 +77,7 @@ public class HiveHistoryViewer implements Listener {
   }
 
   /**
-   * Implementation Listner interface function.
+   * Implementation Listener interface function.
    *
    * @see org.apache.hadoop.hive.ql.history.HiveHistory.Listener#handle(org.apache.hadoop.hive.ql.history.HiveHistory.RecordTypes,
    *      java.util.Map)

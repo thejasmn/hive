@@ -125,8 +125,9 @@ public class TestHiveHistory extends TestCase {
         LogUtils.initHiveLog4j();
       } catch (LogInitializationException e) {
       }
-
-      CliSessionState ss = new CliSessionState(new HiveConf(SessionState.class));
+      HiveConf hconf = new HiveConf(SessionState.class);
+      hconf.setBoolVar(ConfVars.HIVE_SESSION_HISTORY_ENABLED, true);
+      CliSessionState ss = new CliSessionState(hconf);
       ss.in = System.in;
       try {
         ss.out = new PrintStream(System.out, true, "UTF-8");

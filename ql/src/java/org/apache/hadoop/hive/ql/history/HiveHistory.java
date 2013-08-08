@@ -72,7 +72,7 @@ public interface HiveHistory {
   };
 
   /**
-   * Listner interface Parser will call handle function for each record type.
+   * Listener interface Parser will call handle function for each record type.
    */
   public static interface Listener {
 
