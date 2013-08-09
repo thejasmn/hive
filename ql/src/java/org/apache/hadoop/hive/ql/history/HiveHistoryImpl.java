@@ -42,7 +42,7 @@ import org.apache.hadoop.mapred.Counters.Group;
 
 /**
  * HiveHistory. Logs information such as query, query plan, runtime statistics
- * for into a file.
+ * into a file.
  * Each session uses a new object, which creates a new file.
  */
 public class HiveHistoryImpl implements HiveHistory{
@@ -72,7 +72,7 @@ public class HiveHistoryImpl implements HiveHistory{
   private static final Pattern rowCountPattern = Pattern.compile(ROW_COUNT_PATTERN);
 
   /**
-   * Construct HiveHistory object an open history log file.
+   * Construct HiveHistoryImpl object and open history log file.
    *
    * @param ss
    */
@@ -114,9 +114,6 @@ public class HiveHistoryImpl implements HiveHistory{
 
   }
 
-  /**
-   * @return historyFileName
-   */
   @Override
   public String getHistFileName() {
     return histFileName;
@@ -155,10 +152,6 @@ public class HiveHistoryImpl implements HiveHistory{
 
   }
 
-
-  /**
-   * Called at the start of job Driver.execute().
-   */
   @Override
   public void startQuery(String cmd, String id) {
     SessionState ss = SessionState.get();

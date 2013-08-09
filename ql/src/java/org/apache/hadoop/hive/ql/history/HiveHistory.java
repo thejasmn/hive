@@ -72,7 +72,10 @@ public interface HiveHistory {
   };
 
   /**
-   * Listener interface Parser will call handle function for each record type.
+   * Listener interface.
+   * Parser will call handle function for each history record row, specifying
+   * the record type and its values
+   *
    */
   public static interface Listener {
 
@@ -120,12 +123,12 @@ public interface HiveHistory {
   public String getHistFileName();
 
   /**
-   * Called at the start of job Driver.execute().
+   * Called at the start of query execution in Driver.execute().
    */
   public void startQuery(String cmd, String id);
 
   /**
-   * Used to set job status and other attributes of a job.
+   * Used to set query status and other attributes of a query
    *
    * @param queryId
    * @param propName
@@ -155,14 +158,14 @@ public interface HiveHistory {
   public void printRowCount(String queryId);
 
   /**
-   * Called at the end of Job. A Job is sql query.
+   * Called at the end of a query
    *
    * @param queryId
    */
   public void endQuery(String queryId);
 
   /**
-   * Called at the start of a task. Called by Driver.run() A Job can have
+   * Called at the start of a task. Called by Driver.run() A query can have
    * multiple tasks. Tasks will have multiple operator.
    *
    * @param task
@@ -178,13 +181,22 @@ public interface HiveHistory {
   public void endTask(String queryId, Task<? extends Serializable> task);
 
   /**
-   * Called at the end of a task.
+   * Logs progress of a task if ConfVars.HIVE_LOG_INCREMENTAL_PLAN_PROGRESS is
+   * set to true
    *
    * @param task
    */
   public void progressTask(String queryId, Task<? extends Serializable> task);
 
+
+  /**
+   * Logs the current plan state
+   * @param plan
+   * @throws IOException
+   */
   public void logPlanProgress(QueryPlan plan) throws IOException;
+
+
   /**
    * Set the table to id map.
    *
@@ -192,6 +204,9 @@ public interface HiveHistory {
    */
   public void setIdToTableMap(Map<String, String> map);
 
+  /**
+   * Close the log file stream
+   */
   public void closeStream();
 
 
