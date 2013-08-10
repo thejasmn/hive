@@ -198,7 +198,7 @@ public interface HiveHistory {
 
 
   /**
-   * Set the table to id map.
+   * Set the id to table name map
    *
    * @param map
    */
