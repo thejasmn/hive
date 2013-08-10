@@ -299,13 +299,18 @@ public class SessionState {
     String sessionID = conf.getVar(HiveConf.ConfVars.HIVESESSIONID);
     if (!tmpDir.exists()) {
       if (!tmpDir.mkdirs()) {
-        throw new RuntimeException("Unable to create log directory "
-            + hHistDir);
+        //Do another exists to check to handle possible race condition
+        // Another thread might have created the dir, if that is why
+        // mkdirs returned false, that is fine
+        if(!tmpDir.exists()){
+          throw new RuntimeException("Unable to create log directory "
+              + hHistDir);
         }
       }
-      File tmpFile = File.createTempFile(sessionID, ".pipeout", tmpDir);
-      tmpFile.deleteOnExit();
-      return tmpFile;
+    }
+    File tmpFile = File.createTempFile(sessionID, ".pipeout", tmpDir);
+    tmpFile.deleteOnExit();
+    return tmpFile;
   }
 
   /**
