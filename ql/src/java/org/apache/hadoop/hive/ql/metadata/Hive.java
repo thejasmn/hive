@@ -97,6 +97,9 @@ import com.google.common.collect.Sets;
  * of Hive represents a set of data in a file system (usually HDFS) organized
  * for easy query processing
  *
+ * This class has functions that implement meta data/DDL operations.
+ * It has a metastore client instance it uses to communicate with the metastore
+ *
  */
 
 public class Hive {
