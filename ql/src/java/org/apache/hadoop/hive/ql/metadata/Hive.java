@@ -93,13 +93,12 @@ import org.apache.thrift.TException;
 import com.google.common.collect.Sets;
 
 /**
- * The Hive class contains information about this instance of Hive. An instance
- * of Hive represents a set of data in a file system (usually HDFS) organized
- * for easy query processing
+ * This class has functions that implement meta data/DDL operations using calls
+ * to the metastore.
+ * It has a metastore client instance it uses to communicate with the metastore.
  *
- * This class has functions that implement meta data/DDL operations.
- * It has a metastore client instance it uses to communicate with the metastore
- *
+ * It is a thread local variable, and the instances is accessed using static
+ * get methods in this class.
  */
 
 public class Hive {
