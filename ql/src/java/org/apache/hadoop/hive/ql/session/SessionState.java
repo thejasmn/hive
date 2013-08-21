@@ -133,6 +133,8 @@ public class SessionState {
 
   private Map<String, List<String>> localMapRedErrors;
 
+  private String currentDatabase;
+
   /**
    * Lineage state.
    */
