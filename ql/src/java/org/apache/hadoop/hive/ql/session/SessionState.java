@@ -769,6 +769,14 @@ public class SessionState {
     this.localMapRedErrors = localMapRedErrors;
   }
 
+  public String getCurrentDatabase() {
+    return currentDatabase;
+  }
+
+  public void setCurrentDatabase(String currentDatabase) {
+    this.currentDatabase = currentDatabase;
+  }
+
   public void close() throws IOException {
     File resourceDir =
       new File(getConf().getVar(HiveConf.ConfVars.DOWNLOADED_RESOURCES_DIR));
