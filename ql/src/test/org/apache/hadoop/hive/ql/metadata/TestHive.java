@@ -487,13 +487,23 @@ public class TestHive extends TestCase {
     }
   }
 
-  public void testHiveRefreshDatabase() throws Throwable{
-    String testDatabaseName = "test_database";
-    Database testDatabase = new Database();
-    testDatabase.setName(testDatabaseName);
-    hm.createDatabase(testDatabase, true);
-    hm.setCurrentDatabase(testDatabaseName);
-    hm = Hive.get(hiveConf, true); //refresh Hive instance
-    assertEquals(testDatabaseName, hm.getCurrentDatabase());
+  public void testHiveRefreshOnConfChange() throws Throwable{
+    Hive hive1 = Hive.get();
+
+    HiveConf newHconf = new HiveConf(hiveConf);
+    Hive hive2 = Hive.get(newHconf);
+
+    //if HiveConf has not changed, same object should be returned
+    assertTrue(hive1 == hive2);
+
+    //if needs refresh param is passed, it should return new object
+    hive2 = Hive.get(newHconf, true);
+    assertTrue(hive1 != hive2);
+
+    //if HiveConf has changed, same object should be returned
+    hive1 = Hive.get(); // update current thread local object
+    newHconf.set("dummykey", "dummyvalue");
+    hive2 = Hive.get(newHconf);
+    assertTrue(hive1 != hive2);
   }
 }
