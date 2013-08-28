@@ -313,7 +313,6 @@ public class ImportSemanticAnalyzer extends BaseSemanticAnalyzer {
           tgtPath = new Path(table.getDataLocation().toString(),
               Warehouse.makePartPath(addPartitionDesc.getPartSpec()));
         } else {
-          String currentDb = SessionState.get().getCurrentDatabase();
           tgtPath = new Path(wh.getTablePath(
               db.getDatabaseCurrent(), tblDesc.getTableName()),
               Warehouse.makePartPath(addPartitionDesc.getPartSpec()));
