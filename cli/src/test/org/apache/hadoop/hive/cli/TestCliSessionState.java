@@ -85,6 +85,7 @@ public class TestCliSessionState {
    */
   @Test
   public void testgetDbName() throws Exception {
+    SessionState.start(new HiveConf());
     assertEquals(MetaStoreUtils.DEFAULT_DATABASE_NAME,
         SessionState.get().getCurrentDatabase());
   }
