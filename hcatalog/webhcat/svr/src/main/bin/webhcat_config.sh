@@ -19,9 +19,8 @@
 
 
 # Print an error message and exit
-function die() {
-        echo "${this}: $@" 1>&2
-        exit 1
+function warn() {
+        echo "${this}: WARN $@" 1>&2
 }
 
 #====================================
@@ -77,27 +76,29 @@ else
 fi
 WEBHCAT_CONF_DIR="${WEBHCAT_CONF_DIR:-$DEFAULT_CONF_DIR}"
 
-#set defaults for HCAT_PREFIX, HIVE_HOME, TEMPLETON_HOME that work for default directory structure
-DEFAULT_HCAT_PREFIX="${WEBHCAT_PREFIX}"
-export HCAT_PREFIX="${HCAT_PREFIX:-$DEFAULT_HCAT_PREFIX}"
-if [ ! -f ${HCAT_PREFIX}/bin/hcat ]; then
-    die "HCAT_PREFIX=${HCAT_PREFIX} is invalid";
-fi
-DEFAULT_HIVE_HOME="${WEBHCAT_PREFIX}/.."
-export HIVE_HOME="${HIVE_HOME:-$DEFAULT_HIVE_HOME}"
-if [ ! -f ${HIVE_HOME}/bin/hive ]; then
-    die "HIVE_HOME=${HIVE_HOME} is invalid";
-fi
-DEFAULT_TEMPLETON_HOME="${WEBHCAT_PREFIX}"
-export TEMPLETON_HOME="${TEMPLETON_HOME:-$DEFAULT_TEMPLETON_HOME}"
-if [ ! -d ${TEMPLETON_HOME}/share/webhcat ]; then
-    die "TEMPLETON_HOME=${TEMPLETON_HOME} is invalid";
-fi
-
 #users can add various env vars to webhcat-env.sh in the conf
 #rather than having to export them before running the command
 if [ -f "${WEBHCAT_CONF_DIR}/webhcat-env.sh" ]; then
   source "${WEBHCAT_CONF_DIR}/webhcat-env.sh"
+fi
+
+#set defaults for HCAT_PREFIX, HIVE_HOME, TEMPLETON_HOME that work for default directory structure
+DEFAULT_HCAT_PREFIX="${WEBHCAT_PREFIX}"
+export HCAT_PREFIX="${HCAT_PREFIX:-$DEFAULT_HCAT_PREFIX}"
+if [ ! -f ${HCAT_PREFIX}/bin/hcat ]; then
+    warn "HCAT_PREFIX=${HCAT_PREFIX} is invalid";
+fi
+
+DEFAULT_HIVE_HOME="${WEBHCAT_PREFIX}/.."
+export HIVE_HOME="${HIVE_HOME:-$DEFAULT_HIVE_HOME}"
+if [ ! -f ${HIVE_HOME}/bin/hive ]; then
+    warn "HIVE_HOME=${HIVE_HOME} is invalid";
+fi
+
+DEFAULT_TEMPLETON_HOME="${WEBHCAT_PREFIX}"
+export TEMPLETON_HOME="${TEMPLETON_HOME:-$DEFAULT_TEMPLETON_HOME}"
+if [ ! -d ${TEMPLETON_HOME}/share/webhcat ]; then
+    warn "TEMPLETON_HOME=${TEMPLETON_HOME} is invalid";
 fi
 
 #====================================
