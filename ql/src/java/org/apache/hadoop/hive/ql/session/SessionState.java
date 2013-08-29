@@ -17,6 +17,7 @@
  */
 
 package org.apache.hadoop.hive.ql.session;
+import static org.apache.hadoop.hive.metastore.MetaStoreUtils.DEFAULT_DATABASE_NAME;
 
 import java.io.File;
 import java.io.IOException;
@@ -770,6 +771,9 @@ public class SessionState {
   }
 
   public String getCurrentDatabase() {
+    if (currentDatabase == null) {
+      currentDatabase = DEFAULT_DATABASE_NAME;
+    }
     return currentDatabase;
   }
 
