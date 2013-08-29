@@ -56,134 +56,148 @@ public class HCatCli {
 
     @SuppressWarnings("static-access")
     public static void main(String[] args) {
-
-        try {
-            LogUtils.initHiveLog4j();
-        } catch (LogInitializationException e) {
-
-        }
-
-        CliSessionState ss = new CliSessionState(new HiveConf(SessionState.class));
-        ss.in = System.in;
-        try {
-            ss.out = new PrintStream(System.out, true, "UTF-8");
-            ss.err = new PrintStream(System.err, true, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            System.exit(1);
-        }
-
-        HiveConf conf = ss.getConf();
-
-        HiveConf.setVar(conf, ConfVars.SEMANTIC_ANALYZER_HOOK, HCatSemanticAnalyzer.class.getName());
-
-        SessionState.start(ss);
-
-        Options options = new Options();
-
-        // -e 'quoted-query-string'
-        options.addOption(OptionBuilder
-                .hasArg()
-                .withArgName("exec")
-                .withDescription("hcat command given from command line")
-                .create('e'));
-
-        // -f <query-file>
-        options.addOption(OptionBuilder
-                .hasArg()
-                .withArgName("file")
-                .withDescription("hcat commands in file")
-                .create('f'));
-
-        // -g
-        options.addOption(OptionBuilder
-                .hasArg().
-                withArgName("group").
-                withDescription("group for the db/table specified in CREATE statement").
-                create('g'));
-
-        // -p
-        options.addOption(OptionBuilder
-                .hasArg()
-                .withArgName("perms")
-                .withDescription("permissions for the db/table specified in CREATE statement")
-                .create('p'));
-
-        // -D
-        options.addOption(OptionBuilder
-                .hasArgs(2)
-                .withArgName("property=value")
-                .withValueSeparator()
-                .withDescription("use hadoop value for given property")
-                .create('D'));
-
-        // [-h|--help]
-        options.addOption(new Option("h", "help", false, "Print help information"));
-
-        Parser parser = new GnuParser();
-        CommandLine cmdLine = null;
-
-        try {
-            cmdLine = parser.parse(options, args);
-
-        } catch (ParseException e) {
-            printUsage(options, ss.err);
-            System.exit(1);
-        }
-        // -e
-        String execString = (String) cmdLine.getOptionValue('e');
-        // -f
-        String fileName = (String) cmdLine.getOptionValue('f');
-        // -h
-        if (cmdLine.hasOption('h')) {
-            printUsage(options, ss.out);
-            System.exit(0);
-        }
-
-        if (execString != null && fileName != null) {
-            ss.err.println("The '-e' and '-f' options cannot be specified simultaneously");
-            printUsage(options, ss.err);
-            System.exit(1);
-        }
-
-        // -p
-        String perms = (String) cmdLine.getOptionValue('p');
-        if (perms != null) {
-            validatePermissions(ss, conf, perms);
-        }
-
-        // -g
-        String grp = (String) cmdLine.getOptionValue('g');
-        if (grp != null) {
-            conf.set(HCatConstants.HCAT_GROUP, grp);
-        }
-
-        // -D
-        setConfProperties(conf, cmdLine.getOptionProperties("D"));
-
-        if (execString != null) {
-            System.exit(processLine(execString));
-        }
-
-        try {
-            if (fileName != null) {
-                System.exit(processFile(fileName));
-            }
-        } catch (FileNotFoundException e) {
-            ss.err.println("Input file not found. (" + e.getMessage() + ")");
-            System.exit(1);
-        } catch (IOException e) {
-            ss.err.println("Could not open input file for reading. (" + e.getMessage() + ")");
-            System.exit(1);
-        }
-
-        // -h
-        printUsage(options, ss.err);
+      PrintStream out = null;
+      PrintStream err = null;
+      try {
+        out = new PrintStream(System.out, true, "UTF-8");
+        err = new PrintStream(System.err, true, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
         System.exit(1);
+      }
+      int rc = run(out, err, args);
+      System.exit(rc);
+    }
+
+
+    public static int run(PrintStream out, PrintStream err, String[] args) {
+      try {
+        LogUtils.initHiveLog4j();
+      } catch (LogInitializationException e) {
+
+      }
+
+      CliSessionState ss = new CliSessionState(new HiveConf(SessionState.class));
+      ss.in = System.in;
+
+      ss.out = out;
+      ss.err = err;
+
+      HiveConf conf = ss.getConf();
+
+      HiveConf.setVar(conf, ConfVars.SEMANTIC_ANALYZER_HOOK, HCatSemanticAnalyzer.class.getName());
+
+      SessionState.start(ss);
+
+      Options options = new Options();
+
+      // -e 'quoted-query-string'
+      options.addOption(OptionBuilder
+          .hasArg()
+          .withArgName("exec")
+          .withDescription("hcat command given from command line")
+          .create('e'));
+
+      // -f <query-file>
+      options.addOption(OptionBuilder
+          .hasArg()
+          .withArgName("file")
+          .withDescription("hcat commands in file")
+          .create('f'));
+
+      // -g
+      options.addOption(OptionBuilder
+          .hasArg().
+          withArgName("group").
+          withDescription("group for the db/table specified in CREATE statement").
+          create('g'));
+
+      // -p
+      options.addOption(OptionBuilder
+          .hasArg()
+          .withArgName("perms")
+          .withDescription("permissions for the db/table specified in CREATE statement")
+          .create('p'));
+
+      // -D
+      options.addOption(OptionBuilder
+          .hasArgs(2)
+          .withArgName("property=value")
+          .withValueSeparator()
+          .withDescription("use hadoop value for given property")
+          .create('D'));
+
+      // [-h|--help]
+      options.addOption(new Option("h", "help", false, "Print help information"));
+
+      Parser parser = new GnuParser();
+      CommandLine cmdLine = null;
+
+      try {
+        cmdLine = parser.parse(options, args);
+
+      } catch (ParseException e) {
+        printUsage(options, ss.err);
+        return 1;
+      }
+      // -e
+      String execString = (String) cmdLine.getOptionValue('e');
+      // -f
+      String fileName = (String) cmdLine.getOptionValue('f');
+      // -h
+      if (cmdLine.hasOption('h')) {
+        printUsage(options, ss.out);
+        return 0;
+      }
+
+      if (execString != null && fileName != null) {
+        ss.err.println("The '-e' and '-f' options cannot be specified simultaneously");
+        printUsage(options, ss.err);
+        return 1;
+      }
+
+      // -p
+      String perms = (String) cmdLine.getOptionValue('p');
+      if (perms != null) {
+        int vrc = validatePermissions(ss, conf, perms);
+        if(vrc !=0){
+          return vrc;
+        }
+      }
+
+      // -g
+      String grp = (String) cmdLine.getOptionValue('g');
+      if (grp != null) {
+        conf.set(HCatConstants.HCAT_GROUP, grp);
+      }
+
+      // -D
+      setConfProperties(conf, cmdLine.getOptionProperties("D"));
+
+      if (execString != null) {
+        return processLine(execString);
+      }
+
+      try {
+        if (fileName != null) {
+          return processFile(fileName);
+        }
+      } catch (FileNotFoundException e) {
+        ss.err.println("Input file not found. (" + e.getMessage() + ")");
+        return 1;
+      } catch (IOException e) {
+        ss.err.println("Could not open input file for reading. (" + e.getMessage() + ")");
+        return 1;
+      }
+
+      // -h
+      printUsage(options, ss.err);
+      return 1;
     }
 
     private static void setConfProperties(HiveConf conf, Properties props) {
-        for (java.util.Map.Entry<Object, Object> e : props.entrySet())
-            conf.set((String) e.getKey(), (String) e.getValue());
+        for (java.util.Map.Entry<Object, Object> e : props.entrySet()) {
+          conf.set((String) e.getKey(), (String) e.getValue());
+        }
     }
 
     private static int processLine(String line) {
@@ -252,7 +266,7 @@ public class HCatCli {
 
         if (ret != 0) {
             driver.close();
-            System.exit(ret);
+            return ret;
         }
 
         ArrayList<String> res = new ArrayList<String>();
@@ -295,7 +309,7 @@ public class HCatCli {
         pw.flush();
     }
 
-    private static void validatePermissions(CliSessionState ss, HiveConf conf, String perms) {
+    private static int validatePermissions(CliSessionState ss, HiveConf conf, String perms) {
         perms = perms.trim();
         FsPermission fp = null;
 
@@ -305,26 +319,26 @@ public class HCatCli {
             fp = new FsPermission(Short.decode("0" + perms));
         } else {
             ss.err.println("Invalid permission specification: " + perms);
-            System.exit(1);
+            return 1;
         }
 
         if (!HCatUtil.validateMorePermissive(fp.getUserAction(), fp.getGroupAction())) {
             ss.err.println("Invalid permission specification: " + perms + " : user permissions must be more permissive than group permission ");
-            System.exit(1);
+            return 1;
         }
         if (!HCatUtil.validateMorePermissive(fp.getGroupAction(), fp.getOtherAction())) {
             ss.err.println("Invalid permission specification: " + perms + " : group permissions must be more permissive than other permission ");
-            System.exit(1);
+            return 1;
         }
         if ((!HCatUtil.validateExecuteBitPresentIfReadOrWrite(fp.getUserAction())) ||
             (!HCatUtil.validateExecuteBitPresentIfReadOrWrite(fp.getGroupAction())) ||
             (!HCatUtil.validateExecuteBitPresentIfReadOrWrite(fp.getOtherAction()))) {
             ss.err.println("Invalid permission specification: " + perms + " : permissions must have execute permissions if read or write permissions are specified ");
-            System.exit(1);
+            return 1;
         }
 
         conf.set(HCatConstants.HCAT_PERMS, "d" + fp.toString());
-
+        return 0;
     }
 
 

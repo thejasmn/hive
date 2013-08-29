@@ -18,25 +18,33 @@
  */
 package org.apache.hcatalog.templeton;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
- 
+
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.ErrorMsg;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hcatalog.cli.HCatCli;
 import org.apache.hcatalog.templeton.tool.TempletonUtils;
 import org.eclipse.jetty.http.HttpStatus;
-
 
 /**
  * Run hcat on the local server using the ExecService.  This is
@@ -44,7 +52,7 @@ import org.eclipse.jetty.http.HttpStatus;
  */
 public class HcatDelegator extends LauncherDelegator {
     private static final Log LOG = LogFactory.getLog(HcatDelegator.class);
-    private ExecService execService;
+    private final ExecService execService;
 
     public HcatDelegator(AppConfig appConf, ExecService execService) {
         super(appConf);
@@ -59,20 +67,45 @@ public class HcatDelegator extends LauncherDelegator {
         throws NotAuthorizedException, BusyException, ExecuteException, IOException {
         SecureProxySupport proxy = new SecureProxySupport();
         try {
-            List<String> args = makeArgs(exec, format, group, permissions);
+            final List<String> args = makeArgs(exec, format, group, permissions);
             proxy.open(user, appConf);
 
             // Setup the hadoop vars to specify the user.
             String cp = makeOverrideClasspath(appConf);
-            Map<String, String> env = TempletonUtils.hadoopUserEnv(user, cp);
-            proxy.addEnv(env);
             proxy.addArgs(args);
-            return execService.run(appConf.clusterHcat(), args, env);
+            UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
+
+            if (UserGroupInformation.isSecurityEnabled()) {
+              Path tokenpath = proxy.getTokenPath();
+              // load the token storage file and put all of the tokens into the
+              // user.
+              Credentials cred = Credentials.readTokenStorageFile(
+                  tokenpath, new Configuration());
+              for (Token<?> token: cred.getAllTokens()) {
+                ugi.addToken(token);
+              }
+            }
+            LOG.warn("args to HcatCli  " + args);
+            return (ExecBean) ugi.doAs(new PrivilegedExceptionAction<Object>() {
+              public Object run() throws IOException {
+                ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+                ByteArrayOutputStream errstream = new ByteArrayOutputStream();
+                PrintStream outPs = new PrintStream(outstream);
+                PrintStream errPs = new PrintStream(errstream);
+                int rc = HCatCli.run(outPs, errPs, args.toArray(new String[0]));
+                outPs.flush();
+                errPs.flush();
+                return new ExecBean(outstream.toString("UTF-8"),
+                    errstream.toString("UTF-8"), rc);
+              }
+            });
+
         } catch (InterruptedException e) {
             throw new IOException(e);
         } finally {
-            if (proxy != null)
-                proxy.close();
+            if (proxy != null) {
+              proxy.close();
+            }
         }
     }
 
@@ -116,8 +149,9 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = "desc database " + db + "; ";
-        if (extended)
-            exec = "desc database extended " + db + "; ";
+        if (extended) {
+          exec = "desc database extended " + db + "; ";
+        }
 
         try {
             String res = jsonRun(user, exec);
@@ -153,16 +187,20 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = "create database";
-        if (desc.ifNotExists)
-            exec += " if not exists";
+        if (desc.ifNotExists) {
+          exec += " if not exists";
+        }
         exec += " " + desc.database;
-        if (TempletonUtils.isset(desc.comment))
-            exec += String.format(" comment '%s'", desc.comment);
-        if (TempletonUtils.isset(desc.location))
-            exec += String.format(" location '%s'", desc.location);
-        if (TempletonUtils.isset(desc.properties))
-            exec += String.format(" with dbproperties (%s)",
-                makePropertiesStatement(desc.properties));
+        if (TempletonUtils.isset(desc.comment)) {
+          exec += String.format(" comment '%s'", desc.comment);
+        }
+        if (TempletonUtils.isset(desc.location)) {
+          exec += String.format(" location '%s'", desc.location);
+        }
+        if (TempletonUtils.isset(desc.properties)) {
+          exec += String.format(" with dbproperties (%s)",
+              makePropertiesStatement(desc.properties));
+        }
         exec += ";";
 
         String res = jsonRun(user, exec, desc.group, desc.permissions);
@@ -180,11 +218,13 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = "drop database";
-        if (ifExists)
-            exec += " if exists";
+        if (ifExists) {
+          exec += " if exists";
+        }
         exec += " " + db;
-        if (TempletonUtils.isset(option))
-            exec += " " + option;
+        if (TempletonUtils.isset(option)) {
+          exec += " " + option;
+        }
         exec += ";";
 
         String res = jsonRun(user, exec, group, permissions);
@@ -222,11 +262,13 @@ public class HcatDelegator extends LauncherDelegator {
         ExecuteException, IOException {
         String exec = String.format("use %s; create", db);
 
-        if (desc.external)
-            exec += " external";
+        if (desc.external) {
+          exec += " external";
+        }
         exec += String.format(" table %s like %s", desc.newTable, desc.existingTable);
-        if (TempletonUtils.isset(desc.location))
-            exec += String.format(" location '%s'", desc.location);
+        if (TempletonUtils.isset(desc.location)) {
+          exec += String.format(" location '%s'", desc.location);
+        }
         exec += ";";
 
         try {
@@ -249,10 +291,11 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = "use " + db + "; ";
-        if (extended)
-            exec += "desc extended " + table + "; ";
-        else
-            exec += "desc " + table + "; ";
+        if (extended) {
+          exec += "desc extended " + table + "; ";
+        } else {
+          exec += "desc " + table + "; ";
+        }
         try {
             String res = jsonRun(user, exec);
             return JsonBuilder.create(res)
@@ -322,16 +365,18 @@ public class HcatDelegator extends LauncherDelegator {
     // Format a list of Columns for a create statement
     private String makeCols(List<ColumnDesc> cols) {
         ArrayList<String> res = new ArrayList<String>();
-        for (ColumnDesc col : cols)
-            res.add(makeOneCol(col));
+        for (ColumnDesc col : cols) {
+          res.add(makeOneCol(col));
+        }
         return StringUtils.join(res, ", ");
     }
 
     // Format a Column for a create statement
     private String makeOneCol(ColumnDesc col) {
         String res = String.format("%s %s", col.name, col.type);
-        if (TempletonUtils.isset(col.comment))
-            res += String.format(" comment '%s'", col.comment);
+        if (TempletonUtils.isset(col.comment)) {
+          res += String.format(" comment '%s'", col.comment);
+        }
         return res;
     }
 
@@ -339,28 +384,37 @@ public class HcatDelegator extends LauncherDelegator {
     private String makeCreateTable(String db, TableDesc desc) {
         String exec = String.format("use %s; create", db);
 
-        if (desc.external)
-            exec += " external";
+        if (desc.external) {
+          exec += " external";
+        }
         exec += " table";
-        if (desc.ifNotExists)
-            exec += " if not exists";
+        if (desc.ifNotExists) {
+          exec += " if not exists";
+        }
         exec += " " + desc.table;
 
-        if (TempletonUtils.isset(desc.columns))
-            exec += String.format("(%s)", makeCols(desc.columns));
-        if (TempletonUtils.isset(desc.comment))
-            exec += String.format(" comment '%s'", desc.comment);
-        if (TempletonUtils.isset(desc.partitionedBy))
-            exec += String.format(" partitioned by (%s)", makeCols(desc.partitionedBy));
-        if (desc.clusteredBy != null)
-            exec += String.format(" clustered by %s", makeClusteredBy(desc.clusteredBy));
-        if (desc.format != null)
-            exec += " " + makeStorageFormat(desc.format);
-        if (TempletonUtils.isset(desc.location))
-            exec += String.format(" location '%s'", desc.location);
-        if (TempletonUtils.isset(desc.tableProperties))
-            exec += String.format(" tblproperties (%s)",
-                makePropertiesStatement(desc.tableProperties));
+        if (TempletonUtils.isset(desc.columns)) {
+          exec += String.format("(%s)", makeCols(desc.columns));
+        }
+        if (TempletonUtils.isset(desc.comment)) {
+          exec += String.format(" comment '%s'", desc.comment);
+        }
+        if (TempletonUtils.isset(desc.partitionedBy)) {
+          exec += String.format(" partitioned by (%s)", makeCols(desc.partitionedBy));
+        }
+        if (desc.clusteredBy != null) {
+          exec += String.format(" clustered by %s", makeClusteredBy(desc.clusteredBy));
+        }
+        if (desc.format != null) {
+          exec += " " + makeStorageFormat(desc.format);
+        }
+        if (TempletonUtils.isset(desc.location)) {
+          exec += String.format(" location '%s'", desc.location);
+        }
+        if (TempletonUtils.isset(desc.tableProperties)) {
+          exec += String.format(" tblproperties (%s)",
+              makePropertiesStatement(desc.tableProperties));
+        }
         exec += ";";
 
         return exec;
@@ -369,8 +423,9 @@ public class HcatDelegator extends LauncherDelegator {
     // Format a clustered by statement
     private String makeClusteredBy(TableDesc.ClusteredByDesc desc) {
         String res = String.format("(%s)", StringUtils.join(desc.columnNames, ", "));
-        if (TempletonUtils.isset(desc.sortedBy))
-            res += String.format(" sorted by (%s)", makeClusterSortList(desc.sortedBy));
+        if (TempletonUtils.isset(desc.sortedBy)) {
+          res += String.format(" sorted by (%s)", makeClusterSortList(desc.sortedBy));
+        }
         res += String.format(" into %s buckets", desc.numberOfBuckets);
 
         return res;
@@ -379,8 +434,9 @@ public class HcatDelegator extends LauncherDelegator {
     // Format a sorted by statement
     private String makeClusterSortList(List<TableDesc.ClusterSortOrderDesc> descs) {
         ArrayList<String> res = new ArrayList<String>();
-        for (TableDesc.ClusterSortOrderDesc desc : descs)
-            res.add(makeOneClusterSort(desc));
+        for (TableDesc.ClusterSortOrderDesc desc : descs) {
+          res.add(makeOneClusterSort(desc));
+        }
         return StringUtils.join(res, ", ");
     }
 
@@ -393,12 +449,15 @@ public class HcatDelegator extends LauncherDelegator {
     private String makeStorageFormat(TableDesc.StorageFormatDesc desc) {
         String res = "";
 
-        if (desc.rowFormat != null)
-            res += makeRowFormat(desc.rowFormat);
-        if (TempletonUtils.isset(desc.storedAs))
-            res += String.format(" stored as %s", desc.storedAs);
-        if (desc.storedBy != null)
-            res += " " + makeStoredBy(desc.storedBy);
+        if (desc.rowFormat != null) {
+          res += makeRowFormat(desc.rowFormat);
+        }
+        if (TempletonUtils.isset(desc.storedAs)) {
+          res += String.format(" stored as %s", desc.storedAs);
+        }
+        if (desc.storedBy != null) {
+          res += " " + makeStoredBy(desc.storedBy);
+        }
 
         return res;
     }
@@ -411,46 +470,51 @@ public class HcatDelegator extends LauncherDelegator {
                 + makeTermBy(desc.mapKeysTerminatedBy, "map keys")
                 + makeTermBy(desc.linesTerminatedBy, "lines");
 
-        if (TempletonUtils.isset(res))
-            return "row format delimited" + res;
-        else if (desc.serde != null)
-            return makeSerdeFormat(desc.serde);
-        else
-            return "";
+        if (TempletonUtils.isset(res)) {
+          return "row format delimited" + res;
+        } else if (desc.serde != null) {
+          return makeSerdeFormat(desc.serde);
+        } else {
+          return "";
+        }
     }
 
     // A row format terminated by clause
     private String makeTermBy(String sep, String fieldName) {
 
-        if (TempletonUtils.isset(sep))
-            return String.format(" %s terminated by '%s'", fieldName, sep);
-        else
-            return "";
+        if (TempletonUtils.isset(sep)) {
+          return String.format(" %s terminated by '%s'", fieldName, sep);
+        } else {
+          return "";
+        }
     }
 
     // Format the serde statement
     private String makeSerdeFormat(TableDesc.SerdeDesc desc) {
         String res = "row format serde " + desc.name;
-        if (TempletonUtils.isset(desc.properties))
-            res += String.format(" with serdeproperties (%s)",
-                makePropertiesStatement(desc.properties));
+        if (TempletonUtils.isset(desc.properties)) {
+          res += String.format(" with serdeproperties (%s)",
+              makePropertiesStatement(desc.properties));
+        }
         return res;
     }
 
     // Format the properties statement
     private String makePropertiesStatement(Map<String, String> properties) {
         ArrayList<String> res = new ArrayList<String>();
-        for (Map.Entry<String, String> e : properties.entrySet())
-            res.add(String.format("'%s'='%s'", e.getKey(), e.getValue()));
+        for (Map.Entry<String, String> e : properties.entrySet()) {
+          res.add(String.format("'%s'='%s'", e.getKey(), e.getValue()));
+        }
         return StringUtils.join(res, ", ");
     }
 
     // Format the stored by statement
     private String makeStoredBy(TableDesc.StoredByDesc desc) {
         String res = String.format("stored by '%s'", desc.className);
-        if (TempletonUtils.isset(desc.properties))
-            res += String.format(" with serdeproperties (%s)",
-                makePropertiesStatement(desc.properties));
+        if (TempletonUtils.isset(desc.properties)) {
+          res += String.format(" with serdeproperties (%s)",
+              makePropertiesStatement(desc.properties));
+        }
         return res;
     }
 
@@ -458,13 +522,14 @@ public class HcatDelegator extends LauncherDelegator {
     private String singleTable(String json, String table)
         throws IOException {
         Map obj = JsonBuilder.jsonToMap(json);
-        if (JsonBuilder.isError(obj))
-            return json;
+        if (JsonBuilder.isError(obj)) {
+          return json;
+        }
 
         List tables = (List) obj.get("tables");
-        if (TempletonUtils.isset(tables))
-            return JsonBuilder.mapToJson(tables.get(0));
-        else {
+        if (TempletonUtils.isset(tables)) {
+          return JsonBuilder.mapToJson(tables.get(0));
+        } else {
             return JsonBuilder
                 .createError(ErrorMsg.INVALID_TABLE.format(table),
                         ErrorMsg.INVALID_TABLE.getErrorCode()).
@@ -481,8 +546,9 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = String.format("use %s; drop table", db);
-        if (ifExists)
-            exec += " if exists";
+        if (ifExists) {
+          exec += " if exists";
+        }
         exec += String.format(" %s;", table);
 
         try {
@@ -526,8 +592,9 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         Response res = descTable(user, db, table, true);
-        if (res.getStatus() != HttpStatus.OK_200)
-            return res;
+        if (res.getStatus() != HttpStatus.OK_200) {
+          return res;
+        }
         Map props = tableProperties(res.getEntity());
         Map found = null;
         if (props != null) {
@@ -552,8 +619,9 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         Response res = descTable(user, db, table, true);
-        if (res.getStatus() != HttpStatus.OK_200)
-            return res;
+        if (res.getStatus() != HttpStatus.OK_200) {
+          return res;
+        }
         Map props = tableProperties(res.getEntity());
         return JsonBuilder.create()
             .put("database", db)
@@ -586,12 +654,14 @@ public class HcatDelegator extends LauncherDelegator {
     }
 
     private Map tableProperties(Object extendedTable) {
-        if (!(extendedTable instanceof Map))
-            return null;
+        if (!(extendedTable instanceof Map)) {
+          return null;
+        }
         Map m = (Map) extendedTable;
         Map tableInfo = (Map) m.get("tableInfo");
-        if (tableInfo == null)
-            return null;
+        if (tableInfo == null) {
+          return null;
+        }
 
         return (Map) tableInfo.get("parameters");
     }
@@ -637,7 +707,7 @@ public class HcatDelegator extends LauncherDelegator {
         } catch (HcatException e) {
             if (e.execBean.stderr.contains("SemanticException") &&
                 e.execBean.stderr.contains("Partition not found")) {
-                String emsg = "Partition " + partition + " for table " 
+                String emsg = "Partition " + partition + " for table "
                     + table + " does not exist" + db + "." + table + " does not exist";
                 return JsonBuilder.create()
                     .put("error", emsg)
@@ -664,11 +734,13 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = String.format("use %s; alter table %s add", db, table);
-        if (desc.ifNotExists)
-            exec += " if not exists";
+        if (desc.ifNotExists) {
+          exec += " if not exists";
+        }
         exec += String.format(" partition (%s)", desc.partition);
-        if (TempletonUtils.isset(desc.location))
-            exec += String.format(" location '%s'", desc.location);
+        if (TempletonUtils.isset(desc.location)) {
+          exec += String.format(" location '%s'", desc.location);
+        }
         exec += ";";
         try {
             String res = jsonRun(user, exec, desc.group, desc.permissions, true);
@@ -701,8 +773,9 @@ public class HcatDelegator extends LauncherDelegator {
         throws HcatException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         String exec = String.format("use %s; alter table %s drop", db, table);
-        if (ifExists)
-            exec += " if exists";
+        if (ifExists) {
+          exec += " if exists";
+        }
         exec += String.format(" partition (%s);", partition);
 
         try {
@@ -740,14 +813,16 @@ public class HcatDelegator extends LauncherDelegator {
         throws SimpleWebException, NotAuthorizedException, BusyException,
         ExecuteException, IOException {
         Response res = listColumns(user, db, table);
-        if (res.getStatus() != HttpStatus.OK_200)
-            return res;
+        if (res.getStatus() != HttpStatus.OK_200) {
+          return res;
+        }
 
         Object o = res.getEntity();
         final Map fields = (o != null && (o instanceof Map)) ? (Map) o : null;
-        if (fields == null)
-            throw new SimpleWebException(HttpStatus.INTERNAL_SERVER_ERROR_500, "Internal error, unable to find column "
-                + column);
+        if (fields == null) {
+          throw new SimpleWebException(HttpStatus.INTERNAL_SERVER_ERROR_500, "Internal error, unable to find column "
+              + column);
+        }
 
 
         List<Map> cols = (List) fields.get("columns");
@@ -760,13 +835,14 @@ public class HcatDelegator extends LauncherDelegator {
                 }
             }
         }
-        if (found == null)
-            throw new SimpleWebException(HttpStatus.INTERNAL_SERVER_ERROR_500, "unable to find column " + column,
-                new HashMap<String, Object>() {
-                    {
-                        put("description", fields);
-                    }
-                });
+        if (found == null) {
+          throw new SimpleWebException(HttpStatus.INTERNAL_SERVER_ERROR_500, "unable to find column " + column,
+              new HashMap<String, Object>() {
+                  {
+                      put("description", fields);
+                  }
+              });
+        }
         fields.remove("columns");
         fields.put("column", found);
         return Response.fromResponse(res).entity(fields).build();
@@ -781,8 +857,9 @@ public class HcatDelegator extends LauncherDelegator {
         ExecuteException, IOException {
         String exec = String.format("use %s; alter table %s add columns (%s %s",
             db, table, desc.name, desc.type);
-        if (TempletonUtils.isset(desc.comment))
-            exec += String.format(" comment '%s'", desc.comment);
+        if (TempletonUtils.isset(desc.comment)) {
+          exec += String.format(" comment '%s'", desc.comment);
+        }
         exec += ");";
         try {
             String res = jsonRun(user, exec, desc.group, desc.permissions, true);
@@ -800,23 +877,28 @@ public class HcatDelegator extends LauncherDelegator {
     // Check that the hcat result is valid and or has a valid json
     // error
     private boolean isValid(ExecBean eb, boolean requireEmptyOutput) {
-        if (eb == null)
-            return false;
+        if (eb == null) {
+          return false;
+        }
 
         try {
             Map m = JsonBuilder.jsonToMap(eb.stdout);
-            if (m.containsKey("error")) // This is a valid error message.
-                return true;
+            if (m.containsKey("error")) {
+              return true;
+            }
         } catch (IOException e) {
             return false;
         }
 
-        if (eb.exitcode != 0)
-            return false;
+        if (eb.exitcode != 0) {
+          return false;
+        }
 
-        if (requireEmptyOutput)
-            if (TempletonUtils.isset(eb.stdout))
-                return false;
+        if (requireEmptyOutput) {
+          if (TempletonUtils.isset(eb.stdout)) {
+            return false;
+          }
+        }
 
         return true;
     }
@@ -829,8 +911,9 @@ public class HcatDelegator extends LauncherDelegator {
         ExecuteException, IOException {
         ExecBean res = run(user, exec, true, group, permissions);
 
-        if (!isValid(res, requireEmptyOutput))
-            throw new HcatException("Failure calling hcat: " + exec, res, exec);
+        if (!isValid(res, requireEmptyOutput)) {
+          throw new HcatException("Failure calling hcat: " + exec, res, exec);
+        }
 
         return res.stdout;
     }
