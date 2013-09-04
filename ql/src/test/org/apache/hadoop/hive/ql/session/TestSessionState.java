@@ -45,12 +45,12 @@ public class TestSessionState {
         SessionState.get().getCurrentDatabase());
     final String newdb = "DB_2";
 
-    //set new db
+    //set new db and verify get
     SessionState.get().setCurrentDatabase(newdb);
     assertEquals(newdb,
         SessionState.get().getCurrentDatabase());
 
-    //verify that new sessionstate has default db
+    //verify that a new sessionstate has default db
     SessionState.start(new HiveConf());
     assertEquals(MetaStoreUtils.DEFAULT_DATABASE_NAME,
         SessionState.get().getCurrentDatabase());

@@ -490,22 +490,22 @@ public class TestHive extends TestCase {
   }
 
   public void testHiveRefreshOnConfChange() throws Throwable{
-    Hive hive1 = Hive.get();
-
-    HiveConf newHconf = new HiveConf(hiveConf);
-    Hive hive2 = Hive.get(newHconf);
+    Hive prevHiveObj = Hive.get();
+    Hive newHiveObj;
 
     //if HiveConf has not changed, same object should be returned
-    assertTrue(hive1 == hive2);
+    HiveConf newHconf = new HiveConf(hiveConf);
+    newHiveObj = Hive.get(newHconf);
+    assertTrue(prevHiveObj == newHiveObj);
 
     //if needs refresh param is passed, it should return new object
-    hive2 = Hive.get(newHconf, true);
-    assertTrue(hive1 != hive2);
+    newHiveObj = Hive.get(newHconf, true);
+    assertTrue(prevHiveObj != newHiveObj);
 
-    //if HiveConf has changed, same object should be returned
-    hive1 = Hive.get(); // update current thread local object
+    //if HiveConf has changed, new object should be returned
+    prevHiveObj = Hive.get(); // get current thread local object
     newHconf.set("dummykey", "dummyvalue");
-    hive2 = Hive.get(newHconf);
-    assertTrue(hive1 != hive2);
+    newHiveObj = Hive.get(newHconf);
+    assertTrue(prevHiveObj != newHiveObj);
   }
 }
