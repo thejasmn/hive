@@ -316,7 +316,7 @@ public class HCatSemanticAnalyzer extends HCatSemanticAnalyzerBase {
         //this is actually a ALTER TABLE DROP PARITITION statement
         for (PartitionSpec partSpec : dropTable.getPartSpecs()) {
           // partitions are not added as write entries in drop partitions in Hive
-          Table table = hive.getTable(hive.getCurrentDatabase(), dropTable.getTableName());
+          Table table = hive.getTable(SessionState.get().getCurrentDatabase(), dropTable.getTableName());
           List<Partition> partitions = null;
           try {
             partitions = hive.getPartitionsByFilter(table, partSpec.toString());
