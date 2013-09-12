@@ -30,6 +30,7 @@ import junit.framework.TestCase;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -98,6 +99,7 @@ public class TestHive extends TestCase {
         e1.printStackTrace();
         assertTrue("Unable to drop table", false);
       }
+
       Table tbl = new Table(MetaStoreUtils.DEFAULT_DATABASE_NAME, tableName);
       List<FieldSchema> fields = tbl.getCols();
 
@@ -144,6 +146,7 @@ public class TestHive extends TestCase {
       tbl.setStoredAsSubDirectories(false);
 
       // create table
+      setNullCreateTableGrants();
       try {
         hm.createTable(tbl);
       } catch (HiveException e) {
@@ -170,6 +173,14 @@ public class TestHive extends TestCase {
     }
   }
 
+  private void setNullCreateTableGrants() {
+    //having a non null create table grants privileges causes problems in
+    // the tests that compares underlying thrift Table object of created
+    // table with a table object that was fetched from metastore.
+    // This is because the fetch does not populate the privileges field in Table
+    SessionState.get().setCreateTableGrants(null);
+  }
+
   /**
    * Tests create and fetch of a thrift based table.
    *
@@ -192,6 +203,8 @@ public class TestHive extends TestCase {
       tbl.setSerdeParam(serdeConstants.SERIALIZATION_FORMAT, TBinaryProtocol.class
           .getName());
       tbl.setStoredAsSubDirectories(false);
+
+      setNullCreateTableGrants();
       try {
         hm.createTable(tbl);
       } catch (HiveException e) {
@@ -503,8 +516,11 @@ public class TestHive extends TestCase {
     assertTrue(prevHiveObj != newHiveObj);
 
     //if HiveConf has changed, new object should be returned
-    prevHiveObj = Hive.get(); // get current thread local object
-    newHconf.set("dummykey", "dummyvalue");
+    prevHiveObj = Hive.get();
+    //change value of a metavar config param in new hive conf
+    newHconf = new HiveConf(hiveConf);
+    newHconf.setIntVar(ConfVars.METASTORETHRIFTCONNECTIONRETRIES,
+        newHconf.getIntVar(ConfVars.METASTORETHRIFTCONNECTIONRETRIES) + 1);
     newHiveObj = Hive.get(newHconf);
     assertTrue(prevHiveObj != newHiveObj);
   }
