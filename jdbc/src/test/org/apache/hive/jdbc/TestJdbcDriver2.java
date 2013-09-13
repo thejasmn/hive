@@ -789,7 +789,7 @@ public class TestJdbcDriver2 extends TestCase {
   }
 
   public void testMetaDataGetTables() throws SQLException {
-    getTablesTest(TableType.MANAGED_TABLE.toString(), TableType.VIRTUAL_VIEW.toString());
+    getTablesTest(ClassicTableTypes.TABLE.toString(), ClassicTableTypes.VIEW.toString());
   }
 
   public  void testMetaDataGetTablesHive() throws SQLException {
@@ -888,7 +888,7 @@ public class TestJdbcDriver2 extends TestCase {
   }
 
   public void testMetaDataGetTableTypes() throws SQLException {
-    metaDataGetTableTypeTest(new HiveTableTypeMapping().getTableTypeNames());
+    metaDataGetTableTypeTest(new ClassicTableTypeMapping().getTableTypeNames());
   }
 
   public void testMetaDataGetHiveTableTypes() throws SQLException {
