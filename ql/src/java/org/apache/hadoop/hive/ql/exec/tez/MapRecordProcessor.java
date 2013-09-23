@@ -141,15 +141,7 @@ public class MapRecordProcessor  extends RecordProcessor{
     Object value = in.createValue();
 
     while (in.next(key, value)) {
-
-      // map pair to output
-//      mapper.map(key, value, output, reporter);
-//      if(incrProcCount) {
-//        reporter.incrCounter(SkipBadRecords.COUNTER_GROUP,
-//            SkipBadRecords.COUNTER_MAP_PROCESSED_RECORDS, 1);
-//      }
       processRow(value);
-
     }
 
 
