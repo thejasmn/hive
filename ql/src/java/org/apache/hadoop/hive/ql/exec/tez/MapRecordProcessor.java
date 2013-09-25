@@ -140,21 +140,27 @@ public class MapRecordProcessor  extends RecordProcessor{
     Object key = in.createKey();
     Object value = in.createValue();
 
+    //process records until done
     while (in.next(key, value)) {
-      processRow(value);
+      boolean needMore = processRow(value);
+      if(!needMore){
+        break;
+      }
     }
-
-
   }
 
 
-  private void processRow(Object value) {
+  /**
+   * @param value  value to process
+   * @return true if it is not done and can take more inputs
+   */
+  private boolean processRow(Object value) {
     // reset the execContext for each new row
     execContext.resetRow();
 
     try {
       if (mo.getDone()) {
-        setDone(true);
+        return false; //done
       } else {
         // Since there is no concept of a group, we don't invoke
         // startGroup/endGroup for a mapper
@@ -174,19 +180,8 @@ public class MapRecordProcessor  extends RecordProcessor{
       }
 
     }
-  }
+    return true; //give me more
 
-  public static boolean getDone() {
-    return ExecMapper.getDone();
-
-  }
-
-  public static void setDone(boolean done) {
-    //ExecMapper.getDone is checked by HiveRecordReader
-    // and CombineHiveRecordReader, to see if they can stop
-    //processing records
-
-    ExecMapper.setDone(true);
   }
 
   @Override
