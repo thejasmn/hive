@@ -45,16 +45,16 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
 
   //TODO: make isMap in MRTask protected
   boolean isMap;
+  RecordProcessor rproc = null;
 
-  public TezProcessor(boolean isMap) {
-    super(isMap);
-    this.isMap = isMap;
+  public TezProcessor() {
+    super(true);
+    this.isMap = true;
   }
 
   @Override
   public void close() throws IOException {
-    // TODO Auto-generated method stub
-
+    rproc.close();
   }
 
   @Override
