@@ -43,8 +43,8 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.tez.engine.newapi.LogicalInput;
-import org.apache.tez.mapreduce.newprocessor.MRTaskReporter;
+import org.apache.tez.mapreduce.processor.MRTaskReporter;
+import org.apache.tez.runtime.api.LogicalInput;
 
 /**
  * Process input from tez LogicalInput and write output - for a map plan

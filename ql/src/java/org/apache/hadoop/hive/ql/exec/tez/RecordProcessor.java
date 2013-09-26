@@ -28,9 +28,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
-import org.apache.tez.engine.newapi.LogicalInput;
-import org.apache.tez.mapreduce.newinput.SimpleInputLegacy;
-import org.apache.tez.mapreduce.newprocessor.MRTaskReporter;
+import org.apache.tez.mapreduce.input.MRInputLegacy;
+import org.apache.tez.mapreduce.processor.MRTaskReporter;
+import org.apache.tez.runtime.api.LogicalInput;
 
 /**
  * Process input from tez LogicalInput and write output
@@ -111,14 +111,15 @@ public abstract class RecordProcessor  {
   }
 
   static class LogicalInputRecordReader implements RecordReader {
-    private final SimpleInputLegacy simpleInput;
+    private final MRInputLegacy input;
 
     LogicalInputRecordReader(LogicalInput in) throws IOException {
       // Sanity check
-      if (!(in instanceof SimpleInputLegacy)) {
-        throw new IOException("Only Simple Input supported. Input: " + in.getClass() );
+      if (!(in instanceof MRInputLegacy)) {
+        throw new IOException(
+            "Only Simple Input supported. Input: " + in.getClass());
       }
-      this.simpleInput = (SimpleInputLegacy)in;
+      input = (MRInputLegacy)in;
     }
 
     @Override
@@ -131,22 +132,22 @@ public abstract class RecordProcessor  {
 //      } catch (InterruptedException ie) {
 //        throw new IOException(ie);
 //      }
-      return simpleInput.getOldRecordReader().next(key, value);
+      return input.getOldRecordReader().next(key, value);
     }
 
     @Override
     public Object createKey() {
-      return simpleInput.getOldRecordReader().createKey();
+      return input.getOldRecordReader().createKey();
     }
 
     @Override
     public Object createValue() {
-      return simpleInput.getOldRecordReader().createValue();
+      return input.getOldRecordReader().createValue();
     }
 
     @Override
     public long getPos() throws IOException {
-      return simpleInput.getOldRecordReader().getPos();
+      return input.getOldRecordReader().getPos();
     }
 
     @Override
@@ -156,7 +157,7 @@ public abstract class RecordProcessor  {
     @Override
     public float getProgress() throws IOException {
       try {
-        return simpleInput.getProgress();
+        return input.getProgress();
       } catch (InterruptedException ie) {
         throw new IOException(ie);
       }

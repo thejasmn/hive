@@ -25,16 +25,16 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.tez.common.counters.TezCounter;
 import org.apache.tez.dag.api.TezException;
-import org.apache.tez.engine.lib.output.OnFileSortedOutput;
-import org.apache.tez.engine.newapi.Event;
-import org.apache.tez.engine.newapi.KVWriter;
-import org.apache.tez.engine.newapi.LogicalIOProcessor;
-import org.apache.tez.engine.newapi.LogicalInput;
-import org.apache.tez.engine.newapi.LogicalOutput;
-import org.apache.tez.engine.newapi.TezProcessorContext;
-import org.apache.tez.mapreduce.newinput.SimpleInputLegacy;
-import org.apache.tez.mapreduce.newoutput.SimpleOutput;
-import org.apache.tez.mapreduce.newprocessor.MRTask;
+import org.apache.tez.mapreduce.input.MRInputLegacy;
+import org.apache.tez.mapreduce.output.MROutput;
+import org.apache.tez.mapreduce.processor.MRTask;
+import org.apache.tez.runtime.api.Event;
+import org.apache.tez.runtime.api.LogicalIOProcessor;
+import org.apache.tez.runtime.api.LogicalInput;
+import org.apache.tez.runtime.api.LogicalOutput;
+import org.apache.tez.runtime.api.TezProcessorContext;
+import org.apache.tez.runtime.library.api.KVWriter;
+import org.apache.tez.runtime.library.output.OnFileSortedOutput;
 
 /**
  * Hive processor for Tez that forms the vertices in Tez and processes the data.
@@ -96,15 +96,15 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
     LogicalOutput out = outputs.values().iterator().next();
 
     // Sanity check
-    if (!(in instanceof SimpleInputLegacy)) {
+    if (!(in instanceof MRInputLegacy)) {
       throw new IOException(new TezException(
           "Only Simple Input supported. Input: " + in.getClass()));
     }
-    SimpleInputLegacy input = (SimpleInputLegacy)in;
+    MRInputLegacy input = (MRInputLegacy)in;
 
     KVWriter kvWriter = null;
     if (!(out instanceof OnFileSortedOutput)) {
-      kvWriter = ((SimpleOutput)out).getWriter();
+      kvWriter = ((MROutput)out).getWriter();
     } else {
       kvWriter = ((OnFileSortedOutput)out).getWriter();
     }
