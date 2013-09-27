@@ -89,7 +89,6 @@ public class TezProcessor implements LogicalIOProcessor {
       throws IOException, InterruptedException {
     // in case of broadcast-join read the broadcast edge inputs
     // (possibly asynchronously)
-    //call RecordProcessor.run
 
     LOG.info("Running map: " + processorContext.getUniqueIdentifier());
 
@@ -110,6 +109,7 @@ public class TezProcessor implements LogicalIOProcessor {
     }
     MRInput input = (MRInputLegacy)in;
 
+    //update config
     Configuration updatedConf = input.getConfigUpdates();
     if (updatedConf != null) {
       for (Entry<String, String> entry : updatedConf) {
@@ -117,7 +117,9 @@ public class TezProcessor implements LogicalIOProcessor {
       }
     }
 
+
     KVWriter kvWriter = null;
+    //TODO: this instanceof probably can be cleaned up
     if (!(out instanceof OnFileSortedOutput)) {
       kvWriter = ((MROutput)out).getWriter();
     } else {
@@ -133,7 +135,7 @@ public class TezProcessor implements LogicalIOProcessor {
       //TODO: implement reduce side
       throw new UnsupportedOperationException("Reduce is yet to be implemented");
     }
-    printJobConf(jobConf);
+    //printJobConf(jobConf);
     MRTaskReporter mrReporter = new MRTaskReporter(processorContext);
     rproc.init(jobConf, mrReporter, inputs.values(), collector);
     rproc.run();
@@ -175,7 +177,6 @@ public class TezProcessor implements LogicalIOProcessor {
 
     // task can Commit now
     try {
-     // LOG.info("Task " + taskAttemptId + " is allowed to commit now");
       output.commit();
       return;
     } catch (IOException iee) {

@@ -51,6 +51,13 @@ public abstract class RecordProcessor  {
   private long nextCntr = 1;
 
 
+  /**
+   * Common initialization code for RecordProcessors
+   * @param jconf
+   * @param mrReporter
+   * @param inputs
+   * @param out
+   */
   void init(JobConf jconf, MRTaskReporter mrReporter, Collection<LogicalInput> inputs,
       OutputCollector out){
     this.jconf = jconf;
@@ -60,10 +67,13 @@ public abstract class RecordProcessor  {
 
     // Allocate the bean at the beginning -
     memoryMXBean = ManagementFactory.getMemoryMXBean();
+
+
     l4j.info("maximum memory = " + memoryMXBean.getHeapMemoryUsage().getMax());
 
     isLogInfoEnabled = l4j.isInfoEnabled();
 
+    //log classpaths
     try {
       l4j.info("conf classpath = "
           + Arrays.asList(((URLClassLoader) jconf.getClassLoader()).getURLs()));
@@ -76,10 +86,14 @@ public abstract class RecordProcessor  {
 
   }
 
+  /**
+   * start processing the inputs and writing output
+   * @throws IOException
+   */
+  abstract void run() throws IOException;
+
 
   abstract void close();
-
-  abstract void run() throws IOException;
 
   protected void logCloseInfo() {
     long used_memory = memoryMXBean.getHeapMemoryUsage().getUsed();
