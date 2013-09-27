@@ -27,8 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.tez.mapreduce.input.MRInputLegacy;
 import org.apache.tez.mapreduce.processor.MRTaskReporter;
 import org.apache.tez.runtime.api.LogicalInput;
 
@@ -108,60 +106,6 @@ public abstract class RecordProcessor  {
     }
 
     return 10 * cntr;
-  }
-
-  static class LogicalInputRecordReader implements RecordReader {
-    private final MRInputLegacy input;
-
-    LogicalInputRecordReader(LogicalInput in) throws IOException {
-      // Sanity check
-      if (!(in instanceof MRInputLegacy)) {
-        throw new IOException(
-            "Only Simple Input supported. Input: " + in.getClass());
-      }
-      input = (MRInputLegacy)in;
-    }
-
-    @Override
-    public boolean next(Object key, Object value) throws IOException {
-      // TODO broken
-//      simpleInput.setKey(key);
-//      simpleInput.setValue(value);
-//      try {
-//        return simpleInput.hasNext();
-//      } catch (InterruptedException ie) {
-//        throw new IOException(ie);
-//      }
-      return input.getOldRecordReader().next(key, value);
-    }
-
-    @Override
-    public Object createKey() {
-      return input.getOldRecordReader().createKey();
-    }
-
-    @Override
-    public Object createValue() {
-      return input.getOldRecordReader().createValue();
-    }
-
-    @Override
-    public long getPos() throws IOException {
-      return input.getOldRecordReader().getPos();
-    }
-
-    @Override
-    public void close() throws IOException {
-    }
-
-    @Override
-    public float getProgress() throws IOException {
-      try {
-        return input.getProgress();
-      } catch (InterruptedException ie) {
-        throw new IOException(ie);
-      }
-    }
   }
 
 }
