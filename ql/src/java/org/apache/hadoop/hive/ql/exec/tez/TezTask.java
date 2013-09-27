@@ -46,7 +46,6 @@ import org.apache.tez.dag.api.Edge;
 import org.apache.tez.dag.api.TezException;
 import org.apache.tez.dag.api.Vertex;
 import org.apache.tez.dag.api.client.DAGClient;
-//import org.apache.tez.mapreduce.hadoop.MRHelpers;
 
 /**
  *
@@ -164,10 +163,6 @@ public class TezTask extends Task<TezWork> {
 
       // translate work to vertex
       JobConf wxConf = DagUtils.initializeVertexConf(conf, w);
-
-      // need to setup some additional stuff
-      // MRHelpers.doJobClientMagic(wxConf);
-
       Vertex wx = DagUtils.createVertex(wxConf, w, tezDir,
           i--, appJarLr, additionalLr, fs, ctx, !isFinal);
       dag.addVertex(wx);

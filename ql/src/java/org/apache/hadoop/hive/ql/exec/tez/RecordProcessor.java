@@ -48,7 +48,7 @@ public abstract class RecordProcessor  {
   protected MRTaskReporter reporter;
 
   private long numRows = 0;
-  private long nextCntr = 1;
+  private long nextUpdateCntr = 1;
 
 
   /**
@@ -95,23 +95,29 @@ public abstract class RecordProcessor  {
 
   abstract void close();
 
+  /**
+   * Log information to be logged at the end
+   */
   protected void logCloseInfo() {
     long used_memory = memoryMXBean.getHeapMemoryUsage().getUsed();
     l4j.info("ExecMapper: processed " + numRows + " rows: used memory = "
         + used_memory);
   }
 
+  /**
+   * Log number of records processed and memory used after processing many records
+   */
   protected void logProgress() {
     numRows++;
-    if (numRows == nextCntr) {
+    if (numRows == nextUpdateCntr) {
       long used_memory = memoryMXBean.getHeapMemoryUsage().getUsed();
       l4j.info("ExecMapper: processing " + numRows
           + " rows: used memory = " + used_memory);
-      nextCntr = getNextCntr(numRows);
+      nextUpdateCntr = getNextUpdateRecordCounter(numRows);
     }
   }
 
-  private long getNextCntr(long cntr) {
+  private long getNextUpdateRecordCounter(long cntr) {
     // A very simple counter to keep track of number of rows processed by the
     // reducer. It dumps
     // every 1 million times, and quickly before that
