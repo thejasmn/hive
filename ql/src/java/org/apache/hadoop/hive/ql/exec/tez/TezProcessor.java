@@ -17,11 +17,15 @@
  */
 package org.apache.hadoop.hive.ql.exec.tez;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.tez.common.counters.TezCounter;
 import org.apache.tez.dag.api.TezException;
@@ -54,7 +58,9 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
 
   @Override
   public void close() throws IOException {
-    rproc.close();
+    if(rproc != null){
+      rproc.close();
+    }
   }
 
   @Override
@@ -102,6 +108,13 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
     }
     MRInputLegacy input = (MRInputLegacy)in;
 
+    Configuration updatedConf = input.getConfigUpdates();
+    if (updatedConf != null) {
+      for (Entry<String, String> entry : updatedConf) {
+        this.jobConf.set(entry.getKey(), entry.getValue());
+      }
+    }
+
     KVWriter kvWriter = null;
     if (!(out instanceof OnFileSortedOutput)) {
       kvWriter = ((MROutput)out).getWriter();
@@ -111,7 +124,6 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
 
     OutputCollector collector = new KVOutputCollector(kvWriter);
 
-    RecordProcessor rproc = null;
     if(isMap){
       rproc = new MapRecordProcessor();
     }
@@ -119,10 +131,19 @@ public class TezProcessor extends MRTask implements LogicalIOProcessor {
       //TODO: implement reduce side
       throw new UnsupportedOperationException("Reduce is yet to be implemented");
     }
+    printJobConf(jobConf);
     rproc.init(jobConf, mrReporter, inputs.values(), collector);
     rproc.run();
 
     done(out);
+  }
+
+  private void printJobConf(JobConf jobConf) {
+    Iterator<Entry<String, String>> it = jobConf.iterator();
+    while(it.hasNext()){
+      Entry<String, String> entry = it.next();
+      System.err.println("JobConf entry " + entry.getKey() + " = " + entry.getValue());
+    }
   }
 
   /**

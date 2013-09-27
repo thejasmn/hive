@@ -89,6 +89,8 @@ public class MapRecordProcessor  extends RecordProcessor{
 
       mo.setOutputCollector(out);
       mo.setReporter(rp);
+
+      MapredContext.init(true, new JobConf(jconf));
       MapredContext.get().setReporter(reporter);
 
 
@@ -97,7 +99,6 @@ public class MapRecordProcessor  extends RecordProcessor{
       localWork = mrwork.getMapLocalWork();
       execContext.setLocalWork(localWork);
 
-      MapredContext.init(true, new JobConf(jconf));
 
       mo.setExecContext(execContext);
       mo.initializeLocalWork(jconf);
