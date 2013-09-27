@@ -93,8 +93,6 @@ public class TezProcessor implements LogicalIOProcessor {
 
     LOG.info("Running map: " + processorContext.getUniqueIdentifier());
 
-//    initTask();
-
     //TODO - change this to support shuffle joins, broadcast joins .
     if (inputs.size() != 1
         || outputs.size() != 1) {
@@ -188,8 +186,8 @@ public class TezProcessor implements LogicalIOProcessor {
       throw iee;
     }
   }
-  private
-  void discardOutput(MROutput output) {
+
+  private void discardOutput(MROutput output) {
     try {
       output.abort();
     } catch (IOException ioe)  {
@@ -197,6 +195,7 @@ public class TezProcessor implements LogicalIOProcessor {
                StringUtils.stringifyException(ioe));
     }
   }
+
   private void printJobConf(JobConf jobConf) {
     Iterator<Entry<String, String>> it = jobConf.iterator();
     while(it.hasNext()){
