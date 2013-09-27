@@ -37,8 +37,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.tez.mapreduce.input.MRInput;
 import org.apache.tez.mapreduce.processor.MRTaskReporter;
 import org.apache.tez.runtime.api.LogicalInput;
-import org.apache.tez.runtime.library.api.KVReader;
-import org.apache.tez.runtime.library.api.KVReader.KVRecord;
+import org.apache.tez.runtime.library.api.KeyValueReader;
 
 /**
  * Process input from tez LogicalInput and write output - for a map plan
@@ -106,17 +105,15 @@ public class MapRecordProcessor  extends RecordProcessor{
     }
 
     MRInput in = (MRInput)inputs.iterator().next();
-    KVReader reader = in.getReader();
+    KeyValueReader reader = in.getReader();
 
     //process records until done
     while(reader.next()){
-      KVRecord kv = reader.getCurrentKV();
-      Object key = kv.getKey();
-      for(Object value : kv.getValues()){
-        boolean needMore = processRow(value);
-        if(!needMore){
-          break;
-        }
+      //ignore the key for maps -  reader.getCurrentKey();
+      Object value = reader.getCurrentValue();
+      boolean needMore = processRow(value);
+      if(!needMore){
+        break;
       }
     }
 

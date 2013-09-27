@@ -39,7 +39,7 @@ import org.apache.tez.runtime.api.LogicalIOProcessor;
 import org.apache.tez.runtime.api.LogicalInput;
 import org.apache.tez.runtime.api.LogicalOutput;
 import org.apache.tez.runtime.api.TezProcessorContext;
-import org.apache.tez.runtime.library.api.KVWriter;
+import org.apache.tez.runtime.library.api.KeyValueWriter;
 import org.apache.tez.runtime.library.output.OnFileSortedOutput;
 
 /**
@@ -118,7 +118,7 @@ public class TezProcessor implements LogicalIOProcessor {
     }
 
 
-    KVWriter kvWriter = null;
+    KeyValueWriter kvWriter = null;
     //TODO: this instanceof probably can be cleaned up
     if (!(out instanceof OnFileSortedOutput)) {
       kvWriter = ((MROutput)out).getWriter();
@@ -210,9 +210,9 @@ public class TezProcessor implements LogicalIOProcessor {
    *
    */
   static class KVOutputCollector implements OutputCollector {
-    private final KVWriter output;
+    private final KeyValueWriter output;
 
-    KVOutputCollector(KVWriter output) {
+    KVOutputCollector(KeyValueWriter output) {
       this.output = output;
     }
 
