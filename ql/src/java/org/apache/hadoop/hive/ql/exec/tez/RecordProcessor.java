@@ -32,6 +32,7 @@ import org.apache.tez.runtime.api.LogicalInput;
 
 /**
  * Process input from tez LogicalInput and write output
+ * It has different subclasses for map and reduce processing
  */
 public abstract class RecordProcessor  {
 
