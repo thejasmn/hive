@@ -72,17 +72,17 @@ public class MapRecordProcessor  extends RecordProcessor{
       // initialize map operator
       mapOp.setConf(mrwork);
       mapOp.setChildren(jconf);
-      mapOp.setOutputCollector(out);
-      mapOp.setReporter(reporter);
-
       l4j.info(mapOp.dump(0));
 
       MapredContext.init(true, new JobConf(jconf));
-      MapredContext.get().setReporter(reporter);
-
       mapOp.setExecContext(execContext);
       mapOp.initializeLocalWork(jconf);
       mapOp.initialize(jconf, null);
+
+      mapOp.setOutputCollector(out);
+      mapOp.setReporter(reporter);
+      MapredContext.get().setReporter(reporter);
+
 
     } catch (Throwable e) {
       abort = true;
