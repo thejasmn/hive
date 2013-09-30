@@ -144,12 +144,14 @@ public class TezProcessor implements LogicalIOProcessor {
   }
 
   private void done(LogicalOutput output) throws IOException {
-    MROutput sOut = (MROutput)output;
-    if (sOut.isCommitRequired()) {
-      //wait for commit approval and commit
-      // TODO EVENTUALLY - Commit is not required for map tasks.
-      // skip a couple of RPCs before exiting.
-      commit(sOut);
+    if(output instanceof MROutput){
+      MROutput sOut = (MROutput)output;
+      if (sOut.isCommitRequired()) {
+        //wait for commit approval and commit
+        // TODO EVENTUALLY - Commit is not required for map tasks.
+        // skip a couple of RPCs before exiting.
+        commit(sOut);
+      }
     }
   }
 
