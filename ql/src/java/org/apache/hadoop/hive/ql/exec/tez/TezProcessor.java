@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.hive.ql.exec.tez;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -135,7 +134,6 @@ public class TezProcessor implements LogicalIOProcessor {
       //TODO: implement reduce side
       throw new UnsupportedOperationException("Reduce is yet to be implemented");
     }
-    //printJobConf(jobConf);
     MRTaskReporter mrReporter = new MRTaskReporter(processorContext);
     rproc.init(jobConf, mrReporter, inputs.values(), collector);
     rproc.run();
@@ -196,14 +194,6 @@ public class TezProcessor implements LogicalIOProcessor {
     } catch (IOException ioe)  {
       LOG.warn("Failure cleaning up: " +
                StringUtils.stringifyException(ioe));
-    }
-  }
-
-  private void printJobConf(JobConf jobConf) {
-    Iterator<Entry<String, String>> it = jobConf.iterator();
-    while(it.hasNext()){
-      Entry<String, String> entry = it.next();
-      System.err.println("JobConf entry " + entry.getKey() + " = " + entry.getValue());
     }
   }
 
