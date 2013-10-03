@@ -77,8 +77,6 @@ import org.apache.tez.mapreduce.hadoop.MRJobConfig;
 import org.apache.tez.mapreduce.hadoop.MultiStageMRConfToTezTranslator;
 import org.apache.tez.mapreduce.input.MRInput;
 import org.apache.tez.mapreduce.output.MROutput;
-import org.apache.tez.mapreduce.processor.map.MapProcessor;
-import org.apache.tez.mapreduce.processor.reduce.ReduceProcessor;
 import org.apache.tez.mapreduce.partition.MRPartitioner;
 
 /**
@@ -231,20 +229,30 @@ public class DagUtils {
     Vertex map = null;
     byte[] serializedConf = MRHelpers.createUserPayloadFromConf(conf);
     if (inputSplitInfo.getNumTasks() != 0) {
+<<<<<<< HEAD
       map = new Vertex(mapWork.getName(),
           new ProcessorDescriptor(TezProcessor.class.getName()).
+=======
+      map = new Vertex("Map "+seqNo,
+          new ProcessorDescriptor(MapTezProcessor.class.getName()).
+>>>>>>> changes to get reducerecord processor working
                setUserPayload(serializedConf),
           inputSplitInfo.getNumTasks(), MRHelpers.getMapResource(conf));
       Map<String, String> environment = new HashMap<String, String>();
       MRHelpers.updateEnvironmentForMRTasks(conf, environment, true);
       map.setTaskEnvironment(environment);
       map.setJavaOpts(MRHelpers.getMapJavaOpts(conf));
+<<<<<<< HEAD
 
       assert mapWork.getAliasToWork().keySet().size() == 1;
 
       String alias = mapWork.getAliasToWork().keySet().iterator().next();
       map.addInput(alias, 
           new InputDescriptor(MRInput.class.getName()).
+=======
+      map.addInput("in_"+seqNo,
+          new InputDescriptor(MRInputLegacy.class.getName()).
+>>>>>>> changes to get reducerecord processor working
                setUserPayload(serializedConf));
 
       map.setTaskLocationsHint(inputSplitInfo.getTaskLocationHints());
@@ -311,8 +319,13 @@ public class DagUtils {
     MultiStageMRConfToTezTranslator.translateVertexConfToTez(conf, null);
 
     // create the vertex
+<<<<<<< HEAD
     Vertex reducer = new Vertex(reduceWork.getName(),
         new ProcessorDescriptor(ReduceProcessor.class.getName()).
+=======
+    Vertex reducer = new Vertex("Reducer "+seqNo,
+        new ProcessorDescriptor(ReduceTezProcessor.class.getName()).
+>>>>>>> changes to get reducerecord processor working
              setUserPayload(MRHelpers.createUserPayloadFromConf(conf)),
         reduceWork.getNumReduceTasks(), MRHelpers.getReduceResource(conf));
 
@@ -611,7 +624,11 @@ public class DagUtils {
 
     // final vertices need to have at least one output
     if (!hasChildren) {
+<<<<<<< HEAD
       v.addOutput("out_"+work.getName(), 
+=======
+      v.addOutput("out_"+seqNo,
+>>>>>>> changes to get reducerecord processor working
           new OutputDescriptor(MROutput.class.getName())
                .setUserPayload(MRHelpers.createUserPayloadFromConf(conf)));
     }

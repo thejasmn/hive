@@ -42,16 +42,16 @@ import org.apache.tez.runtime.library.api.KeyValueWriter;
  */
 public class TezProcessor implements LogicalIOProcessor {
   private static final Log LOG = LogFactory.getLog(TezProcessor.class);
+  private boolean isMap = false;
 
-  boolean isMap;
   RecordProcessor rproc = null;
 
   private JobConf jobConf;
 
   private TezProcessorContext processorContext;
 
-  public TezProcessor() {
-    this.isMap = true;
+  public TezProcessor(boolean isMap) {
+    this.isMap = isMap;
   }
 
   @Override
@@ -97,24 +97,24 @@ public class TezProcessor implements LogicalIOProcessor {
     LogicalInput in = inputs.values().iterator().next();
     LogicalOutput out = outputs.values().iterator().next();
 
-    MRInput input = (MRInput)in;
 
-    //update config
-    Configuration updatedConf = input.getConfigUpdates();
-    if (updatedConf != null) {
-      for (Entry<String, String> entry : updatedConf) {
-        this.jobConf.set(entry.getKey(), entry.getValue());
-      }
-    }
 
     KeyValueWriter kvWriter = (KeyValueWriter)out.getWriter();
     OutputCollector collector = new KVOutputCollector(kvWriter);
 
     if(isMap){
+      MRInput input = (MRInput)in;
+      //update config - TODO is this needed ?
+      Configuration updatedConf = input.getConfigUpdates();
+      if (updatedConf != null) {
+        for (Entry<String, String> entry : updatedConf) {
+          this.jobConf.set(entry.getKey(), entry.getValue());
+        }
+      }
       rproc = new MapRecordProcessor();
     }
     else{
-      throw new UnsupportedOperationException("Reduce is yet to be implemented");
+      rproc = new ReduceRecordProcessor();
     }
 
     MRTaskReporter mrReporter = new MRTaskReporter(processorContext);
@@ -139,5 +139,6 @@ public class TezProcessor implements LogicalIOProcessor {
         output.write(key, value);
     }
   }
+
 
 }
