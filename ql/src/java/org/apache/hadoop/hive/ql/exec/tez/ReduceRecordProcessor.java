@@ -20,6 +20,8 @@ package org.apache.hadoop.hive.ql.exec.tez;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,7 +56,7 @@ import org.apache.tez.runtime.library.input.ShuffledMergedInput;
  * Just pump the records through the query plan.
  */
 public class ReduceRecordProcessor  extends RecordProcessor{
-  private static final String PLAN_KEY = "__REDUCE_PLAN__";
+  private static final String REDUCE_PLAN_KEY = "__REDUCE_PLAN__";
 
   public static final Log l4j = LogFactory.getLog(ReduceRecordProcessor.class);
   private final ExecMapperContext execContext = new ExecMapperContext();
@@ -73,6 +75,12 @@ public class ReduceRecordProcessor  extends RecordProcessor{
   private Operator<?> reducer;
   private boolean isTagged = false;
 
+  private BytesWritable groupKey;
+
+  //TODO: should this be local to the func ?
+  private Object keyObject;
+  List<Object> row = new ArrayList<Object>(Utilities.reduceFieldNameList.size());
+
   @Override
   void init(JobConf jconf, MRTaskReporter mrReporter, Collection<LogicalInput> inputs,
       OutputCollector out){
@@ -84,10 +92,10 @@ public class ReduceRecordProcessor  extends RecordProcessor{
     ObjectInspector[] valueObjectInspector = new ObjectInspector[Byte.MAX_VALUE];
     ObjectInspector keyObjectInspector;
 
-    ReduceWork redWork = (ReduceWork) cache.retrieve(PLAN_KEY);
+    ReduceWork redWork = (ReduceWork) cache.retrieve(REDUCE_PLAN_KEY);
     if (redWork == null) {
       redWork = Utilities.getReduceWork(jconf);
-      cache.cache(PLAN_KEY, redWork);
+      cache.cache(REDUCE_PLAN_KEY, redWork);
     }
 
     reducer = redWork.getReducer();
@@ -174,7 +182,6 @@ public class ReduceRecordProcessor  extends RecordProcessor{
     // reset the execContext for each new row
     execContext.resetRow();
 
-
     try {
       BytesWritable keyWritable = (BytesWritable) key;
       byte tag = 0;
@@ -212,11 +219,12 @@ public class ReduceRecordProcessor  extends RecordProcessor{
         reducer.setGroupKeyObject(keyObject);
       }
       // System.err.print(keyObject.toString());
-      while (values.hasNext()) {
-        BytesWritable valueWritable = (BytesWritable) values.next();
-        // System.err.print(who.getHo().toString());
+      Iterator<Object> valuesIt = values.iterator();
+      while (valuesIt.hasNext()) {
+        BytesWritable valueWritable = (BytesWritable) valuesIt.next();
+        Object valueObj;
         try {
-          valueObject[tag] = inputValueDeserializer[tag].deserialize(valueWritable);
+          valueObj = inputValueDeserializer[tag].deserialize(valueWritable);
         } catch (SerDeException e) {
           throw new HiveException(
               "Hive Runtime Error: Unable to deserialize reduce input value (tag="
@@ -228,16 +236,8 @@ public class ReduceRecordProcessor  extends RecordProcessor{
         }
         row.clear();
         row.add(keyObject);
-        row.add(valueObject[tag]);
-        if (isLogInfoEnabled) {
-          cntr++;
-          if (cntr == nextCntr) {
-            long used_memory = memoryMXBean.getHeapMemoryUsage().getUsed();
-            l4j.info("ExecReducer: processing " + cntr
-                + " rows: used memory = " + used_memory);
-            nextCntr = getNextCntr(cntr);
-          }
-        }
+        row.add(valueObj);
+
         try {
           reducer.process(row, tag);
         } catch (Exception e) {
@@ -250,6 +250,9 @@ public class ReduceRecordProcessor  extends RecordProcessor{
           }
           throw new HiveException("Hive Runtime Error while processing row (tag="
               + tag + ") " + rowString, e);
+        }
+        if (isLogInfoEnabled) {
+          logProgress();
         }
       }
 
@@ -272,21 +275,31 @@ public class ReduceRecordProcessor  extends RecordProcessor{
     if (!abort) {
       abort = execContext.getIoCxt().getIOExceptions();
     }
+    // No row was processed
+    if (out == null) {
+      l4j.trace("Close called no row");
+    }
 
-    // detecting failed executions by exceptions thrown by the operator tree
     try {
-      mapOp.close(abort);
+      if (groupKey != null) {
+        // If a operator wants to do some work at the end of a group
+        l4j.trace("End Group");
+        reducer.endGroup();
+      }
       if (isLogInfoEnabled) {
         logCloseInfo();
       }
+
+      reducer.close(abort);
       reportStats rps = new reportStats(reporter);
-      mapOp.preorderMap(rps);
-      return;
+      reducer.preorderMap(rps);
+
     } catch (Exception e) {
       if (!abort) {
         // signal new failure to map-reduce
         l4j.error("Hit error while closing operators - failing tree");
-        throw new RuntimeException("Hive Runtime Error while closing operators", e);
+        throw new RuntimeException("Hive Runtime Error while closing operators: "
+            + e.getMessage(), e);
       }
     } finally {
       MapredContext.close();

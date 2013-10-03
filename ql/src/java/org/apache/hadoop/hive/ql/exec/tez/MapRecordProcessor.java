@@ -45,11 +45,12 @@ import org.apache.tez.runtime.library.api.KeyValueReader;
  */
 public class MapRecordProcessor  extends RecordProcessor{
 
-  private static final String PLAN_KEY = "__MAP_PLAN__";
+
   private MapOperator mapOp;
   public static final Log l4j = LogFactory.getLog(MapRecordProcessor.class);
   private final ExecMapperContext execContext = new ExecMapperContext();
   private boolean abort = false;
+  protected static final String MAP_PLAN_KEY = "__MAP_PLAN__";
 
   @Override
   void init(JobConf jconf, MRTaskReporter mrReporter, Collection<LogicalInput> inputs,
@@ -61,10 +62,10 @@ public class MapRecordProcessor  extends RecordProcessor{
 
       execContext.setJc(jconf);
       // create map and fetch operators
-      MapWork mrwork = (MapWork) cache.retrieve(PLAN_KEY);
+      MapWork mrwork = (MapWork) cache.retrieve(MAP_PLAN_KEY);
       if (mrwork == null) {
         mrwork = Utilities.getMapWork(jconf);
-        cache.cache(PLAN_KEY, mrwork);
+        cache.cache(MAP_PLAN_KEY, mrwork);
       }
       mapOp = new MapOperator();
 

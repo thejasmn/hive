@@ -68,17 +68,15 @@ import org.apache.tez.dag.api.InputDescriptor;
 import org.apache.tez.dag.api.OutputDescriptor;
 import org.apache.tez.dag.api.ProcessorDescriptor;
 import org.apache.tez.dag.api.Vertex;
-import org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy;
-import org.apache.tez.runtime.library.output.OnFileSortedOutput;
 import org.apache.tez.mapreduce.hadoop.InputSplitInfo;
 import org.apache.tez.mapreduce.hadoop.MRHelpers;
 import org.apache.tez.mapreduce.hadoop.MRJobConfig;
 import org.apache.tez.mapreduce.hadoop.MultiStageMRConfToTezTranslator;
 import org.apache.tez.mapreduce.input.MRInputLegacy;
 import org.apache.tez.mapreduce.output.MROutput;
-import org.apache.tez.mapreduce.processor.map.MapProcessor;
-import org.apache.tez.mapreduce.processor.reduce.ReduceProcessor;
 import org.apache.tez.mapreduce.partition.MRPartitioner;
+import org.apache.tez.runtime.library.input.ShuffledMergedInputLegacy;
+import org.apache.tez.runtime.library.output.OnFileSortedOutput;
 
 /**
  * DagUtils. DagUtils is a collection of helper methods to convert
@@ -227,14 +225,14 @@ public class DagUtils {
     byte[] serializedConf = MRHelpers.createUserPayloadFromConf(conf);
     if (inputSplitInfo.getNumTasks() != 0) {
       map = new Vertex("Map "+seqNo,
-          new ProcessorDescriptor(TezProcessor.class.getName()).
+          new ProcessorDescriptor(MapTezProcessor.class.getName()).
                setUserPayload(serializedConf),
           inputSplitInfo.getNumTasks(), MRHelpers.getMapResource(conf));
       Map<String, String> environment = new HashMap<String, String>();
       MRHelpers.updateEnvironmentForMRTasks(conf, environment, true);
       map.setTaskEnvironment(environment);
       map.setJavaOpts(MRHelpers.getMapJavaOpts(conf));
-      map.addInput("in_"+seqNo, 
+      map.addInput("in_"+seqNo,
           new InputDescriptor(MRInputLegacy.class.getName()).
                setUserPayload(serializedConf));
 
@@ -303,7 +301,7 @@ public class DagUtils {
 
     // create the vertex
     Vertex reducer = new Vertex("Reducer "+seqNo,
-        new ProcessorDescriptor(ReduceProcessor.class.getName()).
+        new ProcessorDescriptor(ReduceTezProcessor.class.getName()).
              setUserPayload(MRHelpers.createUserPayloadFromConf(conf)),
         reduceWork.getNumReduceTasks(), MRHelpers.getReduceResource(conf));
 
@@ -603,7 +601,7 @@ public class DagUtils {
 
     // final vertices need to have at least one output
     if (!hasChildren) {
-      v.addOutput("out_"+seqNo, 
+      v.addOutput("out_"+seqNo,
           new OutputDescriptor(MROutput.class.getName())
                .setUserPayload(MRHelpers.createUserPayloadFromConf(conf)));
     }
