@@ -19,9 +19,9 @@ package org.apache.hadoop.hive.ql.exec.tez;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,7 +80,7 @@ public class ReduceRecordProcessor  extends RecordProcessor{
   List<Object> row = new ArrayList<Object>(Utilities.reduceFieldNameList.size());
 
   @Override
-  void init(JobConf jconf, MRTaskReporter mrReporter, Collection<LogicalInput> inputs,
+  void init(JobConf jconf, MRTaskReporter mrReporter, Map<String, LogicalInput> inputs,
       OutputCollector out){
     super.init(jconf, mrReporter, inputs, out);
 
@@ -157,7 +157,8 @@ public class ReduceRecordProcessor  extends RecordProcessor{
           + ", inputCount=" + inputs.size());
     }
 
-    ShuffledMergedInput in = (ShuffledMergedInput)inputs.iterator().next();
+    //TODO - changes this for joins
+    ShuffledMergedInput in = (ShuffledMergedInput)inputs.values().iterator().next();
     KeyValuesReader reader = in.getReader();
 
     //process records until done

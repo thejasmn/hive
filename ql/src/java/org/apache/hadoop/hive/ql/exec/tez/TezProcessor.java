@@ -118,7 +118,7 @@ public class TezProcessor implements LogicalIOProcessor {
     }
 
     MRTaskReporter mrReporter = new MRTaskReporter(processorContext);
-    rproc.init(jobConf, mrReporter, inputs.values(), collector);
+    rproc.init(jobConf, mrReporter, inputs, collector);
     rproc.run();
 
     //done - output does not need to be committed as hive does not use outputcommitter

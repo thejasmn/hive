@@ -18,7 +18,7 @@
 package org.apache.hadoop.hive.ql.exec.tez;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +53,7 @@ public class MapRecordProcessor  extends RecordProcessor{
   protected static final String MAP_PLAN_KEY = "__MAP_PLAN__";
 
   @Override
-  void init(JobConf jconf, MRTaskReporter mrReporter, Collection<LogicalInput> inputs,
+  void init(JobConf jconf, MRTaskReporter mrReporter, Map<String, LogicalInput> inputs,
       OutputCollector out){
     super.init(jconf, mrReporter, inputs, out);
 
@@ -102,7 +102,8 @@ public class MapRecordProcessor  extends RecordProcessor{
           + ", inputCount=" + inputs.size());
     }
 
-    MRInput in = (MRInput)inputs.iterator().next();
+    //TODO: change this for broadcast join
+    MRInput in = (MRInput)inputs.values().iterator().next();
     KeyValueReader reader = in.getReader();
 
     //process records until done
