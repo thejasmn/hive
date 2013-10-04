@@ -103,7 +103,7 @@ public class TezProcessor implements LogicalIOProcessor {
     OutputCollector collector = new KVOutputCollector(kvWriter);
 
     if(isMap){
-      //TODO: Move this config update to MapProcessor.
+      //TODO: Move this config update to MapRecordProcessor.
       //Update config for MRInput, info like filename comes via this
       MRInput input = (MRInput)in;
       Configuration updatedConf = input.getConfigUpdates();
