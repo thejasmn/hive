@@ -61,9 +61,8 @@ public class ReduceRecordProcessor  extends RecordProcessor{
   public static final Log l4j = LogFactory.getLog(ReduceRecordProcessor.class);
   private final ExecMapperContext execContext = new ExecMapperContext();
   private boolean abort = false;
-
-  // TODO: move to DynamicSerDe when it's ready
   private Deserializer inputKeyDeserializer;
+
   // Input value serde needs to be an array to support different SerDe
   // for different tags
   private final SerDe[] inputValueDeserializer = new SerDe[Byte.MAX_VALUE];
@@ -75,10 +74,9 @@ public class ReduceRecordProcessor  extends RecordProcessor{
   private Operator<?> reducer;
   private boolean isTagged = false;
 
+  private Object keyObject = null;
   private BytesWritable groupKey;
 
-  //TODO: should this be local to the func ?
-  private Object keyObject;
   List<Object> row = new ArrayList<Object>(Utilities.reduceFieldNameList.size());
 
   @Override
@@ -179,11 +177,17 @@ public class ReduceRecordProcessor  extends RecordProcessor{
    * @return true if it is not done and can take more inputs
    */
   private boolean processKeyValues(Object key, Iterable<Object> values) {
+    if(reducer.getDone()){
+      //done - no more records needed
+      return false;
+    }
+
     // reset the execContext for each new row
     execContext.resetRow();
 
     try {
       BytesWritable keyWritable = (BytesWritable) key;
+
       byte tag = 0;
       if (isTagged) {
         // remove the tag from key coming out of reducer
@@ -193,6 +197,7 @@ public class ReduceRecordProcessor  extends RecordProcessor{
         keyWritable.setSize(size);
       }
 
+      //Set the key, check if this is a new group or same group
       if (!keyWritable.equals(groupKey)) {
         // If a operator wants to do some work at the beginning of a group
         if (groupKey == null) { // the first group
@@ -218,7 +223,8 @@ public class ReduceRecordProcessor  extends RecordProcessor{
         reducer.startGroup();
         reducer.setGroupKeyObject(keyObject);
       }
-      // System.err.print(keyObject.toString());
+
+      //process all the values we have for this key
       Iterator<Object> valuesIt = values.iterator();
       while (valuesIt.hasNext()) {
         BytesWritable valueWritable = (BytesWritable) valuesIt.next();
