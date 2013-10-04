@@ -19,9 +19,11 @@ package org.apache.hadoop.hive.ql.exec.tez;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.ql.exec.MapOperator;
 import org.apache.hadoop.hive.ql.exec.MapredContext;
 import org.apache.hadoop.hive.ql.exec.ObjectCache;
@@ -56,6 +58,15 @@ public class MapRecordProcessor  extends RecordProcessor{
   void init(JobConf jconf, MRTaskReporter mrReporter, Map<String, LogicalInput> inputs,
       OutputCollector out){
     super.init(jconf, mrReporter, inputs, out);
+
+    //Update JobConf using MRInput, info like filename comes via this
+    MRInput mrInput = getMRInput(inputs);
+    Configuration updatedConf = mrInput.getConfigUpdates();
+    if (updatedConf != null) {
+      for (Entry<String, String> entry : updatedConf) {
+        jconf.set(entry.getKey(), entry.getValue());
+      }
+    }
 
     ObjectCache cache = ObjectCacheFactory.getCache(jconf);
     try {
@@ -95,6 +106,21 @@ public class MapRecordProcessor  extends RecordProcessor{
     }
   }
 
+  private MRInput getMRInput(Map<String, LogicalInput> inputs) {
+    //there should be only one MRInput
+    MRInput theMRInput = null;
+    for(LogicalInput inp : inputs.values()){
+      if(inp instanceof MRInput){
+        if(theMRInput != null){
+          throw new IllegalArgumentException("Only one MRInput is expected");
+        }
+        //a better logic would be to find the alias
+        theMRInput = (MRInput)inp;
+      }
+    }
+    return theMRInput;
+  }
+
   @Override
   void run() throws IOException{
     if (inputs.size() != 1) {
@@ -102,8 +128,8 @@ public class MapRecordProcessor  extends RecordProcessor{
           + ", inputCount=" + inputs.size());
     }
 
-    //TODO: change this for broadcast join
-    MRInput in = (MRInput)inputs.values().iterator().next();
+    //change this for broadcast join
+    MRInput in = getMRInput(inputs);
     KeyValueReader reader = in.getReader();
 
     //process records until done

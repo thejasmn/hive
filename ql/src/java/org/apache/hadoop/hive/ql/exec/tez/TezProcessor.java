@@ -19,7 +19,6 @@ package org.apache.hadoop.hive.ql.exec.tez;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,7 +26,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.tez.common.TezUtils;
-import org.apache.tez.mapreduce.input.MRInput;
 import org.apache.tez.mapreduce.processor.MRTaskReporter;
 import org.apache.tez.runtime.api.Event;
 import org.apache.tez.runtime.api.LogicalIOProcessor;
@@ -103,15 +101,6 @@ public class TezProcessor implements LogicalIOProcessor {
     OutputCollector collector = new KVOutputCollector(kvWriter);
 
     if(isMap){
-      //TODO: Move this config update to MapRecordProcessor.
-      //Update config for MRInput, info like filename comes via this
-      MRInput input = (MRInput)in;
-      Configuration updatedConf = input.getConfigUpdates();
-      if (updatedConf != null) {
-        for (Entry<String, String> entry : updatedConf) {
-          this.jobConf.set(entry.getKey(), entry.getValue());
-        }
-      }
       rproc = new MapRecordProcessor();
     }
     else{
