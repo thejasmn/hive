@@ -32,6 +32,7 @@ import org.apache.hadoop.hive.ql.exec.Operator;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.exec.mr.ExecMapper.reportStats;
 import org.apache.hadoop.hive.ql.exec.mr.ExecMapperContext;
+import org.apache.hadoop.hive.ql.exec.tez.tools.InputMerger;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.plan.ReduceWork;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
@@ -48,7 +49,6 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.tez.mapreduce.processor.MRTaskReporter;
 import org.apache.tez.runtime.api.LogicalInput;
-import org.apache.tez.runtime.library.api.KeyValuesReader;
 import org.apache.tez.runtime.library.input.ShuffledMergedInput;
 
 /**
@@ -56,6 +56,7 @@ import org.apache.tez.runtime.library.input.ShuffledMergedInput;
  * Just pump the records through the query plan.
  */
 public class ReduceRecordProcessor  extends RecordProcessor{
+
   private static final String REDUCE_PLAN_KEY = "__REDUCE_PLAN__";
 
   public static final Log l4j = LogFactory.getLog(ReduceRecordProcessor.class);
@@ -158,14 +159,19 @@ public class ReduceRecordProcessor  extends RecordProcessor{
           + ", inputCount=" + inputs.size());
     }
 
-    //TODO - changes this for joins
-    ShuffledMergedInput in = (ShuffledMergedInput)inputs.values().iterator().next();
-    KeyValuesReader reader = in.getReader();
+    List<ShuffledMergedInput> shuffleInputs = new ArrayList<ShuffledMergedInput>();
+    for(LogicalInput inp : inputs.values()){
+      System.err.println("input is of type " + inp.getClass());
+      if(inp instanceof ShuffledMergedInput){
+        //TODO - use tags to determine this
+        shuffleInputs.add((ShuffledMergedInput)inp);
+      }
+    }
 
-    //process records until done
-    while(reader.next()){
-      Object key = reader.getCurrentKey();
-      Iterable<Object> values = reader.getCurrentValues();
+    InputMerger inMerger = new InputMerger(shuffleInputs);
+    while(inMerger.next()){
+      Object key = inMerger.getCurrentKey();
+      Iterable<Object> values = inMerger.getCurrentValues();
       boolean needMore = processKeyValues(key, values);
       if(!needMore){
         break;
