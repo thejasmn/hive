@@ -58,7 +58,9 @@ final class ReaderImpl implements Reader {
   private final ObjectInspector inspector;
   private long deserializedSize = -1;
 
-  //TODO: serialize footer instead of keeping this around
+  //serialized footer - Keeping this around for use by getFileMetaInfo()
+  // will help avoid cpu cycles spend in deserializing at cost of increased
+  // memory footprint.
   private final ByteBuffer footerByteBuffer;
 
   private static final PerfLogger perfLogger = PerfLogger.getPerfLogger();
@@ -290,7 +292,7 @@ final class ReaderImpl implements Reader {
     this.fileSystem = fs;
     this.path = path;
 
-    MetaInfo footerMetaData = extractMetaInfoFromFooter(fs, path);
+    FileMetaInfo footerMetaData = extractMetaInfoFromFooter(fs, path);
     MetaInfoObjExtractor rInfo = new MetaInfoObjExtractor(footerMetaData.codeStr,
         footerMetaData.bufferSize, footerMetaData.footerBuffer);
 
@@ -306,7 +308,7 @@ final class ReaderImpl implements Reader {
   }
 
 
-  private static MetaInfo extractMetaInfoFromFooter(FileSystem fs, Path path) throws IOException {
+  private static FileMetaInfo extractMetaInfoFromFooter(FileSystem fs, Path path) throws IOException {
     FSDataInputStream file = fs.open(path);
 
     //read last bytes into buffer to get PostScript
@@ -366,7 +368,7 @@ final class ReaderImpl implements Reader {
     }
     file.close();
 
-    return new MetaInfo(ps.getCompression().toString(), (int) ps.getCompressionBlockSize(), buffer);
+    return new FileMetaInfo(ps.getCompression().toString(), (int) ps.getCompressionBlockSize(), buffer);
 
   }
 
@@ -421,8 +423,8 @@ final class ReaderImpl implements Reader {
     }
   }
 
-  public MetaInfo getMetaInfo(){
-    return new MetaInfo(compressionKind.toString(), bufferSize, footerByteBuffer);
+  public FileMetaInfo getFileMetaInfo(){
+    return new FileMetaInfo(compressionKind.toString(), bufferSize, footerByteBuffer);
   }
 
 
