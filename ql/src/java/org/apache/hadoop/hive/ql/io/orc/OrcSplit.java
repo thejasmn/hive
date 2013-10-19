@@ -20,6 +20,10 @@ import org.apache.hadoop.mapred.FileSplit;
 public class OrcSplit extends FileSplit {
   private Reader.FileMetaInfo fileMetaInfo;
 
+  public OrcSplit(){
+    super();
+  }
+
   public OrcSplit(Path path, long offset, long length, String[] hosts,
       FileMetaInfo fileMetaInfo) {
     super(path, offset, length, hosts);
