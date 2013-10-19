@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedInputFormatInterface;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.hive.ql.io.InputFormatChecker;
+import org.apache.hadoop.hive.ql.io.orc.Reader.FileMetaInfo;
 import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
 import org.apache.hadoop.hive.ql.log.PerfLogger;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
@@ -238,12 +239,12 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
       return (RecordReader) vorr;
     }
 
-    FileSplit fileSplit = (FileSplit) inputSplit;
-    Path path = fileSplit.getPath();
+    OrcSplit orcSplit = (OrcSplit) inputSplit;
+    Path path = orcSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
-    reporter.setStatus(fileSplit.toString());
-    return new OrcRecordReader(OrcFile.createReader(fs, path), conf,
-                               fileSplit.getStart(), fileSplit.getLength());
+    reporter.setStatus(orcSplit.toString());
+    return new OrcRecordReader(OrcFile.createReader(fs, path, orcSplit.getFileMetaInfo()), conf,
+                               orcSplit.getStart(), orcSplit.getLength());
   }
 
   @Override
@@ -476,9 +477,10 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
      * are written with large block sizes.
      * @param offset the start of the split
      * @param length the length of the split
+     * @param fileMetaInfo file metadata from footer and postscript
      * @throws IOException
      */
-    void createSplit(long offset, long length) throws IOException {
+    void createSplit(long offset, long length, FileMetaInfo fileMetaInfo) throws IOException {
       String[] hosts;
       if ((offset % blockSize) + length <= blockSize) {
         // handle the single block case
@@ -522,8 +524,8 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
         hostList.toArray(hosts);
       }
       synchronized (context.splits) {
-        context.splits.add(new FileSplit(file.getPath(), offset, length,
-            hosts));
+        context.splits.add(new OrcSplit(file.getPath(), offset, length,
+            hosts, fileMetaInfo));
       }
     }
 
@@ -543,7 +545,7 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
           // crossed a block boundary, cut the input split here.
           if (currentOffset != -1 && currentLength > context.minSize &&
               (currentOffset / blockSize != stripe.getOffset() / blockSize)) {
-            createSplit(currentOffset, currentLength);
+            createSplit(currentOffset, currentLength, orcReader.getFileMetaInfo());
             currentOffset = -1;
           }
           // if we aren't building a split, start a new one.
@@ -554,12 +556,12 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
             currentLength += stripe.getLength();
           }
           if (currentLength >= context.maxSize) {
-            createSplit(currentOffset, currentLength);
+            createSplit(currentOffset, currentLength, orcReader.getFileMetaInfo());
             currentOffset = -1;
           }
         }
         if (currentOffset != -1) {
-          createSplit(currentOffset, currentLength);
+          createSplit(currentOffset, currentLength, orcReader.getFileMetaInfo());
         }
       } catch (Throwable th) {
         synchronized (context.errors) {

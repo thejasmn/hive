@@ -120,11 +120,11 @@ public interface Reader {
    *
    */
   class FileMetaInfo{
-    final String codeStr;
+    final String compressionType;
     final int bufferSize;
     final ByteBuffer footerBuffer;
-    FileMetaInfo(String codeStr, int bufferSize, ByteBuffer footerBuffer){
-      this.codeStr = codeStr;
+    FileMetaInfo(String compressionType, int bufferSize, ByteBuffer footerBuffer){
+      this.compressionType = compressionType;
       this.bufferSize = bufferSize;
       this.footerBuffer = footerBuffer;
     }

@@ -293,18 +293,47 @@ final class ReaderImpl implements Reader {
     this.path = path;
 
     FileMetaInfo footerMetaData = extractMetaInfoFromFooter(fs, path);
-    MetaInfoObjExtractor rInfo = new MetaInfoObjExtractor(footerMetaData.codeStr,
+
+    MetaInfoObjExtractor rInfo = new MetaInfoObjExtractor(footerMetaData.compressionType,
         footerMetaData.bufferSize, footerMetaData.footerBuffer);
 
     this.footerByteBuffer = footerMetaData.footerBuffer;
-
     this.compressionKind = rInfo.compressionKind;
     this.codec = rInfo.codec;
     this.bufferSize = rInfo.bufferSize;
     this.footer = rInfo.footer;
     this.inspector = rInfo.inspector;
-
     perfLogger.PerfLogEnd(CLASS_NAME, PerfLogger.INIT_ORC_RECORD_READER);
+  }
+
+
+  /**
+   * Constructor that takes already saved footer meta information. Used for creating RecordReader
+   * from saved information in InputSplit
+   * @param fs
+   * @param path
+   * @param fMetaInfo
+   * @throws IOException
+   */
+  ReaderImpl(FileSystem fs, Path path, FileMetaInfo fMetaInfo)
+      throws IOException {
+    perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.INIT_ORC_RECORD_READER);
+    this.fileSystem = fs;
+    this.path = path;
+
+    MetaInfoObjExtractor rInfo = new MetaInfoObjExtractor(
+            fMetaInfo.compressionType,
+            fMetaInfo.bufferSize,
+            fMetaInfo.footerBuffer
+            );
+    this.footerByteBuffer = fMetaInfo.footerBuffer;
+    this.compressionKind = rInfo.compressionKind;
+    this.codec = rInfo.codec;
+    this.bufferSize = rInfo.bufferSize;
+    this.footer = rInfo.footer;
+    this.inspector = rInfo.inspector;
+    perfLogger.PerfLogEnd(CLASS_NAME, PerfLogger.INIT_ORC_RECORD_READER);
+
   }
 
 
@@ -367,36 +396,18 @@ final class ReaderImpl implements Reader {
       buffer.limit(psOffset);
     }
     file.close();
+    //mark this position so that we can call reset() to get back to it
+    buffer.mark();
 
-    return new FileMetaInfo(ps.getCompression().toString(), (int) ps.getCompressionBlockSize(), buffer);
+    return new FileMetaInfo(
+        ps.getCompression().toString(),
+        (int) ps.getCompressionBlockSize(),
+        buffer
+        );
 
   }
 
-  /**
-   * Constructor that takes already saved footer information. Used for creating RecordReader
-   * from saved information in InputSplit
-   * @param fs
-   * @param path
-   * @param codecStr
-   * @param bufferSize
-   * @param footerBuffer
-   * @throws IOException
-   */
-  ReaderImpl(FileSystem fs, Path path, String codecStr, int bufferSize, ByteBuffer footerBuffer)
-      throws IOException {
 
-    this.fileSystem = fs;
-    this.path = path;
-
-    MetaInfoObjExtractor rInfo = new MetaInfoObjExtractor(codecStr, bufferSize, footerBuffer);
-    this.compressionKind = rInfo.compressionKind;
-    this.codec = rInfo.codec;
-    this.bufferSize = rInfo.bufferSize;
-    this.footer = rInfo.footer;
-    this.inspector = rInfo.inspector;
-
-    this.footerByteBuffer = footerBuffer;
-  }
 
   /**
    * MetaInfoObjExtractor - has logic to create the values for the fields in ReaderImpl
