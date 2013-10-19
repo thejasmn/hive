@@ -50,7 +50,6 @@ import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.InvalidInputException;
@@ -302,7 +301,7 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
    */
   static class Context {
     private final ExecutorService threadPool = Executors.newFixedThreadPool(10);
-    private final List<FileSplit> splits = new ArrayList<FileSplit>(10000);
+    private final List<OrcSplit> splits = new ArrayList<OrcSplit>(10000);
     private final List<Throwable> errors = new ArrayList<Throwable>();
     private final HadoopShims shims = ShimLoader.getHadoopShims();
     private final Configuration conf;
@@ -331,7 +330,7 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
      *     the back.
      * @result the Nth file split
      */
-    FileSplit getResult(int index) {
+    OrcSplit getResult(int index) {
       if (index >= 0) {
         return splits.get(index);
       } else {

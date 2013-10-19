@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.ql.exec.vector.VectorizedInputFormatInterface;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatchCtx;
 import org.apache.hadoop.hive.ql.io.InputFormatChecker;
+import org.apache.hadoop.hive.ql.io.orc.Reader.FileMetaInfo;
 import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.io.NullWritable;
@@ -140,11 +141,14 @@ public class VectorizedOrcInputFormat extends FileInputFormat<NullWritable, Vect
   public RecordReader<NullWritable, VectorizedRowBatch>
       getRecordReader(InputSplit inputSplit, JobConf conf,
           Reporter reporter) throws IOException {
-    FileSplit fileSplit = (FileSplit) inputSplit;
-    Path path = fileSplit.getPath();
+    OrcSplit orcSplit = (OrcSplit) inputSplit;
+    reporter.setStatus(orcSplit.toString());
+
+    Path path = orcSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
-    reporter.setStatus(fileSplit.toString());
-    return new VectorizedOrcRecordReader(OrcFile.createReader(fs, path), conf, fileSplit);
+    FileMetaInfo fMetaInfo = orcSplit.getFileMetaInfo();
+
+    return new VectorizedOrcRecordReader(OrcFile.createReader(fs, path, fMetaInfo), conf, orcSplit);
   }
 
   @Override
