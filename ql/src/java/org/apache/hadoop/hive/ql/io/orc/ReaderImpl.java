@@ -427,8 +427,9 @@ final class ReaderImpl implements Reader {
       this.compressionKind = CompressionKind.valueOf(codecStr);
       this.bufferSize = bufferSize;
       this.codec = WriterImpl.createCodec(compressionKind);
+      int footerBufferSize = footerBuffer.limit() - footerBuffer.position();
       InputStream instream = InStream.create("footer", new ByteBuffer[]{footerBuffer},
-          new long[]{0L}, footerBuffer.limit(), codec, bufferSize);
+          new long[]{0L}, footerBufferSize, codec, bufferSize);
       this.footer = OrcProto.Footer.parseFrom(instream);
       this.inspector = OrcStruct.createObjectInspector(0, footer.getTypesList());
     }
