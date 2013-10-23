@@ -20,8 +20,11 @@ import org.apache.hadoop.mapred.FileSplit;
 public class OrcSplit extends FileSplit {
   private Reader.FileMetaInfo fileMetaInfo;
 
-  public OrcSplit(){
-    super();
+  protected OrcSplit(){
+    //The FileSplit() constructor in hadoop 0.20 and 1.x is package private so can't use it.
+    //This constructor is used to create the object and then call readFields()
+    // so just pass nulls to this super constructor.
+    super(null, 0, 0, (String[])null);
   }
 
   public OrcSplit(Path path, long offset, long length, String[] hosts,

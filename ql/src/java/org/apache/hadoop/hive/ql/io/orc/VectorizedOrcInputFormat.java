@@ -141,14 +141,26 @@ public class VectorizedOrcInputFormat extends FileInputFormat<NullWritable, Vect
   public RecordReader<NullWritable, VectorizedRowBatch>
       getRecordReader(InputSplit inputSplit, JobConf conf,
           Reporter reporter) throws IOException {
-    OrcSplit orcSplit = (OrcSplit) inputSplit;
-    reporter.setStatus(orcSplit.toString());
+    FileSplit fSplit = (FileSplit)inputSplit;
+    reporter.setStatus(fSplit.toString());
 
-    Path path = orcSplit.getPath();
+    Path path = fSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
-    FileMetaInfo fMetaInfo = orcSplit.getFileMetaInfo();
 
-    return new VectorizedOrcRecordReader(OrcFile.createReader(fs, path, fMetaInfo), conf, orcSplit);
+    Reader reader = null;
+
+    if(!(fSplit instanceof OrcSplit)){
+      //If CombineHiveInputFormat is used, it works with FileSplit and not OrcSplit
+      reader = OrcFile.createReader(fs, path);
+    } else {
+      //We have OrcSplit, which has footer metadata cached, so used the appropriate reader
+      //constructor
+      OrcSplit orcSplit = (OrcSplit) fSplit;
+      FileMetaInfo fMetaInfo = orcSplit.getFileMetaInfo();
+      reader = OrcFile.createReader(fs, path, fMetaInfo);
+    }
+
+    return new VectorizedOrcRecordReader(reader, conf, fSplit);
   }
 
   @Override
