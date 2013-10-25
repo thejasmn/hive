@@ -50,6 +50,7 @@ import org.apache.hadoop.hive.shims.HadoopShims;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.InvalidInputException;
@@ -237,13 +238,23 @@ public class OrcInputFormat  implements InputFormat<NullWritable, OrcStruct>,
           reporter);
       return (RecordReader) vorr;
     }
-
-    OrcSplit orcSplit = (OrcSplit) inputSplit;
-    Path path = orcSplit.getPath();
+    FileSplit fSplit = (FileSplit)inputSplit;
+    reporter.setStatus(fSplit.toString());
+    Path path = fSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
-    reporter.setStatus(orcSplit.toString());
-    return new OrcRecordReader(OrcFile.createReader(fs, path, orcSplit.getFileMetaInfo()), conf,
-                               orcSplit.getStart(), orcSplit.getLength());
+    Reader reader = null;
+
+    if(!(fSplit instanceof OrcSplit)){
+      //If CombineHiveInputFormat is used, it works with FileSplit and not OrcSplit
+      reader = OrcFile.createReader(fs, path);
+    } else {
+      //We have OrcSplit, which has footer metadata cached, so used the appropriate reader
+      //constructor
+      OrcSplit orcSplit = (OrcSplit) fSplit;
+      FileMetaInfo fMetaInfo = orcSplit.getFileMetaInfo();
+      reader = OrcFile.createReader(fs, path, fMetaInfo);
+    }
+    return new OrcRecordReader(reader, conf, fSplit.getStart(), fSplit.getLength());
   }
 
   @Override
