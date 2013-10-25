@@ -58,7 +58,7 @@ public class HashTableLoader implements org.apache.hadoop.hive.ql.exec.HashTable
     String baseDir = null;
     Path currentInputPath = context.getCurrentInputPath();
     LOG.info("******* Load from HashTable File: input : " + currentInputPath);
-    String fileName = context.getLocalWork().getBucketFileName(currentInputPath);
+    String fileName = context.getLocalWork().getBucketFileName(currentInputPath.toString());
     try {
       if (ShimLoader.getHadoopShims().isLocalMode(hconf)) {
         baseDir = context.getLocalWork().getTmpFileURI();
