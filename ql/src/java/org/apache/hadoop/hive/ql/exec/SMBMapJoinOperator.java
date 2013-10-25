@@ -515,7 +515,7 @@ public class SMBMapJoinOperator extends AbstractMapJoinOperator<SMBJoinDesc> imp
   private void setUpFetchContexts(String alias, MergeQueue mergeQueue) throws HiveException {
     mergeQueue.clearFetchContext();
 
-    String currentInputFile = getExecContext().getCurrentInputFile();
+    String currentInputFile = getExecContext().getCurrentInputPath().toString();
 
     BucketMapJoinContext bucketMatcherCxt = localWork.getBucketMapjoinContext();
     Class<? extends BucketMatcher> bucketMatcherCls = bucketMatcherCxt.getBucketMatcherClass();
