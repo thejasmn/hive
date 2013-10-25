@@ -31,8 +31,8 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.VirtualColumn;
-import org.apache.hadoop.hive.ql.plan.Statistics;
 import org.apache.hadoop.hive.ql.plan.OperatorDesc;
+import org.apache.hadoop.hive.ql.plan.Statistics;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
 import org.apache.hadoop.hive.ql.plan.api.OperatorType;
@@ -107,9 +107,9 @@ public class TableScanOperator extends Operator<TableScanDesc> implements
     Map<String, Integer> bucketNameMapping =
         (conf != null) ? conf.getBucketFileNameMapping() : null;
     if ((bucketNameMapping != null) && (!bucketNameMapping.isEmpty())) {
-      String currentInputFile = getExecContext().getCurrentInputFile();
+      Path currentInputPath = getExecContext().getCurrentInputPath();
       getExecContext().setFileId(Integer.toString(bucketNameMapping.get(
-          Utilities.getFileNameFromDirName(currentInputFile))));
+          currentInputPath.getName())));
     }
   }
 

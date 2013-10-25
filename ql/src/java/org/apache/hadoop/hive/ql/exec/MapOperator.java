@@ -33,8 +33,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
-import org.apache.hadoop.hive.ql.io.IOContext;
 import org.apache.hadoop.hive.ql.exec.mr.ExecMapperContext;
+import org.apache.hadoop.hive.ql.io.IOContext;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.VirtualColumn;
 import org.apache.hadoop.hive.ql.plan.MapWork;
@@ -326,7 +326,7 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
 
   public void setChildren(Configuration hconf) throws HiveException {
 
-    Path fpath = new Path(IOContext.get().getInputFile());
+    Path fpath = IOContext.get().getInputFile();
 
     boolean schemeless = fpath.toUri().getScheme() == null;
 
@@ -441,7 +441,7 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
   // Find context for current input file
   @Override
   public void cleanUpInputFileChangedOp() throws HiveException {
-    Path fpath = normalizePath(getExecContext().getCurrentInputFile());
+    Path fpath = getExecContext().getCurrentInputPath();
 
     for (String onefile : conf.getPathToAliases().keySet()) {
       Path onepath = normalizePath(onefile);
@@ -537,7 +537,7 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
       VirtualColumn vc = vcs.get(i);
       if (vc.equals(VirtualColumn.FILENAME)) {
         if (ctx.inputFileChanged()) {
-          vcValues[i] = new Text(ctx.getCurrentInputFile());
+          vcValues[i] = new Text(ctx.getCurrentInputPath().toString());
         }
       } else if (vc.equals(VirtualColumn.BLOCKOFFSET)) {
         long current = ctx.getIoCxt().getCurrentBlockStart();

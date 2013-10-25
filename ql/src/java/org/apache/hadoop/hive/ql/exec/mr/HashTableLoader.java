@@ -56,7 +56,7 @@ public class HashTableLoader implements org.apache.hadoop.hive.ql.exec.HashTable
       MapJoinTableContainerSerDe[] mapJoinTableSerdes) throws HiveException {
 
     String baseDir = null;
-    String currentInputFile = context.getCurrentInputFile();
+    String currentInputFile = context.getCurrentInputPath();
     LOG.info("******* Load from HashTable File: input : " + currentInputFile);
     String fileName = context.getLocalWork().getBucketFileName(currentInputFile);
     try {
