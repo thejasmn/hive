@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.Context;
@@ -396,7 +397,7 @@ public class CommonJoinTaskDispatcher extends AbstractJoinTaskDispatcher impleme
     // create alias to task mapping and alias to input file mapping for resolver
     HashMap<String, Task<? extends Serializable>> aliasToTask =
         new HashMap<String, Task<? extends Serializable>>();
-    HashMap<String, ArrayList<String>> pathToAliases = currWork.getPathToAliases();
+    HashMap<Path, ArrayList<String>> pathToAliases = currWork.getPathToAliases();
     Map<String, Operator<? extends OperatorDesc>> aliasToWork = currWork.getAliasToWork();
 
     // get parseCtx for this Join Operator

@@ -31,6 +31,7 @@ import java.util.Stack;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.exec.AbstractMapJoinOperator;
@@ -162,13 +163,13 @@ public class MapJoinProcessor implements Transform {
       smallTableAliasList.add(alias);
       // get input path and remove this alias from pathToAlias
       // because this file will be fetched by fetch operator
-      LinkedHashMap<String, ArrayList<String>> pathToAliases = newWork.getMapWork().getPathToAliases();
+      LinkedHashMap<Path, ArrayList<String>> pathToAliases = newWork.getMapWork().getPathToAliases();
 
       // keep record all the input path for this alias
       HashSet<String> pathSet = new HashSet<String>();
       HashSet<String> emptyPath = new HashSet<String>();
-      for (Map.Entry<String, ArrayList<String>> entry2 : pathToAliases.entrySet()) {
-        String path = entry2.getKey();
+      for (Map.Entry<Path, ArrayList<String>> entry2 : pathToAliases.entrySet()) {
+        String path = entry2.getKey().toString();
         ArrayList<String> list = entry2.getValue();
         if (list.contains(alias)) {
           // add to path set
@@ -237,7 +238,7 @@ public class MapJoinProcessor implements Transform {
    * @return the alias to the big table
    * @throws SemanticException
    */
-  public static String genMapJoinOpAndLocalWork(HiveConf conf, MapredWork newWork, 
+  public static String genMapJoinOpAndLocalWork(HiveConf conf, MapredWork newWork,
     JoinOperator op, int mapJoinPos)
       throws SemanticException {
     LinkedHashMap<Operator<? extends OperatorDesc>, OpParseContext> opParseCtxMap =

@@ -19,7 +19,6 @@
 package org.apache.hadoop.hive.ql.io;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.exec.Operator;
 import org.apache.hadoop.hive.ql.exec.Utilities;
-import org.apache.hadoop.hive.ql.io.HivePassThroughOutputFormat;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.plan.FileSinkDesc;
 import org.apache.hadoop.hive.ql.plan.OperatorDesc;
@@ -51,8 +49,8 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.SequenceFileOutputFormat;
 import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.hadoop.util.Shell;
 
 /**
  * An util class for various Hive file format tasks.
@@ -116,7 +114,7 @@ public final class HiveFileFormatUtils {
    * get a RealOutputFormatClassName corresponding to the HivePassThroughOutputFormat
    */
   @SuppressWarnings("unchecked")
-  public static String getRealOutputFormatClassName() 
+  public static String getRealOutputFormatClassName()
   {
     return realoutputFormat;
   }
@@ -402,7 +400,7 @@ public final class HiveFileFormatUtils {
     return part;
   }
 
-  private static boolean foundAlias(Map<String, ArrayList<String>> pathToAliases,
+  private static boolean foundAlias(Map<Path, ArrayList<String>> pathToAliases,
                                     String path) {
     List<String> aliases = pathToAliases.get(path);
     if ((aliases == null) || (aliases.isEmpty())) {
@@ -411,7 +409,7 @@ public final class HiveFileFormatUtils {
     return true;
   }
 
-  private static String getMatchingPath(Map<String, ArrayList<String>> pathToAliases,
+  private static String getMatchingPath(Map<Path, ArrayList<String>> pathToAliases,
                                         Path dir) {
     // First find the path to be searched
     String path = dir.toString();
@@ -456,7 +454,7 @@ public final class HiveFileFormatUtils {
    * @param dir            The path to look for
    **/
   public static List<Operator<? extends OperatorDesc>> doGetWorksFromPath(
-    Map<String, ArrayList<String>> pathToAliases,
+    Map<Path, ArrayList<String>> pathToAliases,
     Map<String, Operator<? extends OperatorDesc>> aliasToWork, Path dir) {
     List<Operator<? extends OperatorDesc>> opList =
       new ArrayList<Operator<? extends OperatorDesc>>();
@@ -474,7 +472,7 @@ public final class HiveFileFormatUtils {
    * @param dir            The path to look for
    **/
   public static List<String> doGetAliasesFromPath(
-    Map<String, ArrayList<String>> pathToAliases,
+    Map<Path, ArrayList<String>> pathToAliases,
     Path dir) {
     if (pathToAliases == null) {
       return new ArrayList<String>();

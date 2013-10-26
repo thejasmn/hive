@@ -31,6 +31,7 @@ import java.util.Stack;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.exec.ColumnInfo;
@@ -422,12 +423,12 @@ public class Vectorizer implements PhysicalPlanResolver {
       VectorizationContext vContext = vContextsByTSOp.get(tsOp);
       if (vContext == null) {
         String fileKey = "";
-        for (String onefile : mWork.getPathToAliases().keySet()) {
+        for (Path onefile : mWork.getPathToAliases().keySet()) {
           List<String> aliases = mWork.getPathToAliases().get(onefile);
           for (String alias : aliases) {
             Operator<? extends OperatorDesc> op = mWork.getAliasToWork().get(alias);
             if (op == tsOp) {
-              fileKey = onefile;
+              fileKey = onefile.toString();
               break;
             }
           }

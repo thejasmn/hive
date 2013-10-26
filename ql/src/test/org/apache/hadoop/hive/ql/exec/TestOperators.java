@@ -318,9 +318,9 @@ public class TestOperators extends TestCase {
       ArrayList<String> aliases = new ArrayList<String>();
       aliases.add("a");
       aliases.add("b");
-      LinkedHashMap<String, ArrayList<String>> pathToAliases =
-        new LinkedHashMap<String, ArrayList<String>>();
-      pathToAliases.put("hdfs:///testDir", aliases);
+      LinkedHashMap<Path, ArrayList<String>> pathToAliases =
+        new LinkedHashMap<Path, ArrayList<String>>();
+      pathToAliases.put(new Path("hdfs:///testDir"), aliases);
 
       // initialize pathToTableInfo
       // Default: treat the table as a single column "col"

@@ -236,15 +236,15 @@ public class ConditionalResolverMergeFiles implements ConditionalResolver,
     // cleanup pathToPartitionInfo
     Map<String, PartitionDesc> ptpi = work.getPathToPartitionInfo();
     assert ptpi.size() == 1;
-    String path = ptpi.keySet().iterator().next();
-    PartitionDesc partDesc = ptpi.get(path);
+    String pathStr = ptpi.keySet().iterator().next();
+    PartitionDesc partDesc = ptpi.get(pathStr);
     TableDesc tblDesc = partDesc.getTableDesc();
-    ptpi.remove(path); // the root path is not useful anymore
+    ptpi.remove(pathStr); // the root path is not useful anymore
 
     // cleanup pathToAliases
-    Map<String, ArrayList<String>> pta = work.getPathToAliases();
+    Map<Path, ArrayList<String>> pta = work.getPathToAliases();
     assert pta.size() == 1;
-    path = pta.keySet().iterator().next();
+    Path path = pta.keySet().iterator().next();
     ArrayList<String> aliases = pta.get(path);
     pta.remove(path); // the root path is not useful anymore
 

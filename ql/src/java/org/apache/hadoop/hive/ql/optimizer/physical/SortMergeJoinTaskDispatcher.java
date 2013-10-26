@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.Context;
@@ -77,7 +78,7 @@ public class SortMergeJoinTaskDispatcher extends AbstractJoinTaskDispatcher impl
     Map<String, PartitionDesc> aliasToPartitionInfo = currWork.getAliasToPartnInfo();
     List<String> removePaths = new ArrayList<String>();
 
-    for (Map.Entry<String, ArrayList<String>> entry : currWork.getPathToAliases().entrySet()) {
+    for (Map.Entry<Path, ArrayList<String>> entry : currWork.getPathToAliases().entrySet()) {
       boolean keepPath = false;
       for (String alias : entry.getValue()) {
         if (aliasToPartitionInfo.containsKey(alias)) {
@@ -88,7 +89,7 @@ public class SortMergeJoinTaskDispatcher extends AbstractJoinTaskDispatcher impl
 
       // Remove if the path is not present
       if (!keepPath) {
-        removePaths.add(entry.getKey());
+        removePaths.add(entry.getKey().toString());
       }
     }
 
@@ -118,10 +119,10 @@ public class SortMergeJoinTaskDispatcher extends AbstractJoinTaskDispatcher impl
 
       PartitionDesc partitionInfo = currWork.getAliasToPartnInfo().get(alias);
       if (fetchWork.getTblDir() != null) {
-        currWork.mergeAliasedInput(alias, fetchWork.getTblDir(), partitionInfo);
+        currWork.mergeAliasedInput(alias, new Path(fetchWork.getTblDir()), partitionInfo);
       } else {
         for (String pathDir : fetchWork.getPartDir()) {
-          currWork.mergeAliasedInput(alias, pathDir, partitionInfo);
+          currWork.mergeAliasedInput(alias, new Path(pathDir), partitionInfo);
         }
       }
     }
@@ -268,7 +269,7 @@ public class SortMergeJoinTaskDispatcher extends AbstractJoinTaskDispatcher impl
     HashMap<String, Task<? extends Serializable>> aliasToTask =
         new HashMap<String, Task<? extends Serializable>>();
     // Note that pathToAlias will behave as if the original plan was a join plan
-    HashMap<String, ArrayList<String>> pathToAliases = currJoinWork.getMapWork().getPathToAliases();
+    HashMap<Path, ArrayList<String>> pathToAliases = currJoinWork.getMapWork().getPathToAliases();
 
     // generate a map join task for the big table
     SMBJoinDesc originalSMBJoinDesc = originalSMBJoinOp.getConf();

@@ -175,8 +175,6 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
 
-import org.apache.commons.codec.binary.Base64;
-
 /**
  * Utilities.
  *
@@ -2075,19 +2073,19 @@ public final class Utilities {
     // this method will avoid number of threads out of control.
     synchronized (INPUT_SUMMARY_LOCK) {
       // For each input path, calculate the total size.
-      for (String path : work.getPathToAliases().keySet()) {
-        Path p = new Path(path);
+      for (Path path : work.getPathToAliases().keySet()) {
+        String pathStr = path.toString();
 
-        if (filter != null && !filter.accept(p)) {
+        if (filter != null && !filter.accept(path)) {
           continue;
         }
 
-        ContentSummary cs = ctx.getCS(path);
+        ContentSummary cs = ctx.getCS(pathStr);
         if (cs == null) {
-          if (path == null) {
+          if (pathStr == null) {
             continue;
           }
-          pathNeedProcess.add(path);
+          pathNeedProcess.add(pathStr);
         } else {
           summary[0] += cs.getLength();
           summary[1] += cs.getFileCount();
@@ -2863,10 +2861,10 @@ public final class Utilities {
 
       // The alias may not have any path
       Path path = null;
-      for (String file : new LinkedList<String>(work.getPathToAliases().keySet())) {
-        List<String> aliases = work.getPathToAliases().get(file);
+      for (Path  aliasPath : new LinkedList<Path >(work.getPathToAliases().keySet())) {
+        List<String> aliases = work.getPathToAliases().get(aliasPath);
         if (aliases.contains(alias)) {
-          path = new Path(file);
+          path = aliasPath;
 
           // Multiple aliases can point to the same path - it should be
           // processed only once
@@ -2963,8 +2961,8 @@ public final class Utilities {
     // update the work
     String strNewPath = newPath.toString();
 
-    LinkedHashMap<String, ArrayList<String>> pathToAliases = work.getPathToAliases();
-    pathToAliases.put(strNewPath, pathToAliases.get(strPath));
+    LinkedHashMap<Path, ArrayList<String>> pathToAliases = work.getPathToAliases();
+    pathToAliases.put(newPath, pathToAliases.get(strPath));
     pathToAliases.remove(strPath);
 
     work.setPathToAliases(pathToAliases);
@@ -3000,10 +2998,10 @@ public final class Utilities {
 
     // update the work
 
-    LinkedHashMap<String, ArrayList<String>> pathToAliases = work.getPathToAliases();
+    LinkedHashMap<Path, ArrayList<String>> pathToAliases = work.getPathToAliases();
     ArrayList<String> newList = new ArrayList<String>();
     newList.add(alias);
-    pathToAliases.put(newPath.toUri().toString(), newList);
+    pathToAliases.put(newPath, newList);
 
     work.setPathToAliases(pathToAliases);
 
@@ -3066,7 +3064,7 @@ public final class Utilities {
   public static void createTmpDirs(Configuration conf, MapWork mWork)
       throws IOException {
 
-    Map<String, ArrayList<String>> pa = mWork.getPathToAliases();
+    Map<Path, ArrayList<String>> pa = mWork.getPathToAliases();
     if (pa != null) {
       List<Operator<? extends OperatorDesc>> ops =
         new ArrayList<Operator<? extends OperatorDesc>>();

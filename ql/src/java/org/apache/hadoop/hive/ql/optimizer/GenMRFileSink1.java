@@ -489,7 +489,7 @@ public class GenMRFileSink1 implements NodeProcessor {
     // constructing the default MapredWork
     MapredWork cMrPlan = GenMapRedUtils.getMapRedWorkFromConf(conf);
     MapWork cplan = cMrPlan.getMapWork();
-    cplan.getPathToAliases().put(inputDir, aliases);
+    cplan.getPathToAliases().put(new Path(inputDir), aliases);
     cplan.getPathToPartitionInfo().put(inputDir, new PartitionDesc(tblDesc, null));
     cplan.getAliasToWork().put(inputDir, topOp);
     cplan.setMapperCannotSpanPartns(true);
@@ -520,9 +520,9 @@ public class GenMRFileSink1 implements NodeProcessor {
 
       MergeWork work = new MergeWork(inputDirs, finalName,
           hasDynamicPartitions, fsInputDesc.getDynPartCtx());
-      LinkedHashMap<String, ArrayList<String>> pathToAliases =
-          new LinkedHashMap<String, ArrayList<String>>();
-      pathToAliases.put(inputDir, (ArrayList<String>) inputDirs.clone());
+      LinkedHashMap<Path, ArrayList<String>> pathToAliases =
+          new LinkedHashMap<Path, ArrayList<String>>();
+      pathToAliases.put(new Path(inputDir), (ArrayList<String>) inputDirs.clone());
       work.setMapperCannotSpanPartns(true);
       work.setPathToAliases(pathToAliases);
       work.setAliasToWork(

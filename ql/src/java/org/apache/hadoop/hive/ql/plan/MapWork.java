@@ -64,7 +64,7 @@ public class MapWork extends BaseWork {
 
   // use LinkedHashMap to make sure the iteration order is
   // deterministic, to ease testing
-  private LinkedHashMap<String, ArrayList<String>> pathToAliases = new LinkedHashMap<String, ArrayList<String>>();
+  private LinkedHashMap<Path, ArrayList<String>> pathToAliases = new LinkedHashMap<Path, ArrayList<String>>();
 
   private LinkedHashMap<String, PartitionDesc> pathToPartitionInfo = new LinkedHashMap<String, PartitionDesc>();
 
@@ -123,12 +123,12 @@ public class MapWork extends BaseWork {
   }
 
   @Explain(displayName = "Path -> Alias", normalExplain = false)
-  public LinkedHashMap<String, ArrayList<String>> getPathToAliases() {
+  public LinkedHashMap<Path, ArrayList<String>> getPathToAliases() {
     return pathToAliases;
   }
 
   public void setPathToAliases(
-      final LinkedHashMap<String, ArrayList<String>> pathToAliases) {
+      final LinkedHashMap<Path, ArrayList<String>> pathToAliases) {
     this.pathToAliases = pathToAliases;
   }
 
@@ -147,11 +147,11 @@ public class MapWork extends BaseWork {
   public Map<String, ArrayList<String>> getTruncatedPathToAliases() {
     Map<String, ArrayList<String>> trunPathToAliases = new LinkedHashMap<String,
         ArrayList<String>>();
-    Iterator<Entry<String, ArrayList<String>>> itr = this.pathToAliases.entrySet().iterator();
+    Iterator<Entry<Path, ArrayList<String>>> itr = this.pathToAliases.entrySet().iterator();
     while (itr.hasNext()) {
-      final Entry<String, ArrayList<String>> entry = itr.next();
-      String origiKey = entry.getKey();
-      String newKey = PlanUtils.removePrefixFromWarehouseConfig(origiKey);
+      final Entry<Path, ArrayList<String>> entry = itr.next();
+      Path origiKey = entry.getKey();
+      String newKey = PlanUtils.removePrefixFromWarehouseConfig(origiKey.toString());
       ArrayList<String> value = entry.getValue();
       trunPathToAliases.put(newKey, value);
     }
@@ -250,7 +250,7 @@ public class MapWork extends BaseWork {
     if (curAliases == null) {
       assert (pathToPartitionInfo.get(path) == null);
       curAliases = new ArrayList<String>();
-      pathToAliases.put(path, curAliases);
+      pathToAliases.put(new Path(path), curAliases);
       pathToPartitionInfo.put(path, pd);
     } else {
       assert (pathToPartitionInfo.get(path) != null);
@@ -280,7 +280,7 @@ public class MapWork extends BaseWork {
 
   public void resolveDynamicPartitionStoredAsSubDirsMerge(HiveConf conf, Path path,
       TableDesc tblDesc, ArrayList<String> aliases, PartitionDesc partDesc) {
-    pathToAliases.put(path.toString(), aliases);
+    pathToAliases.put(path, aliases);
     pathToPartitionInfo.put(path.toString(), partDesc);
   }
 
@@ -302,7 +302,7 @@ public class MapWork extends BaseWork {
   protected List<Operator<?>> getAllRootOperators() {
     ArrayList<Operator<?>> opList = new ArrayList<Operator<?>>();
 
-    Map<String, ArrayList<String>> pa = getPathToAliases();
+    Map<Path, ArrayList<String>> pa = getPathToAliases();
     if (pa != null) {
       for (List<String> ls : pa.values()) {
         for (String a : ls) {
@@ -316,12 +316,12 @@ public class MapWork extends BaseWork {
     return opList;
   }
 
-  public void mergeAliasedInput(String alias, String pathDir, PartitionDesc partitionInfo) {
+  public void mergeAliasedInput(String alias, Path pathDir, PartitionDesc partitionInfo) {
     ArrayList<String> aliases = pathToAliases.get(pathDir);
     if (aliases == null) {
       aliases = new ArrayList<String>(Arrays.asList(alias));
       pathToAliases.put(pathDir, aliases);
-      pathToPartitionInfo.put(pathDir, partitionInfo);
+      pathToPartitionInfo.put(pathDir.toString(), partitionInfo);
     } else {
       aliases.add(alias);
     }
@@ -414,8 +414,8 @@ public class MapWork extends BaseWork {
     return new ArrayList<Operator<?>>(aliasToWork.values());
   }
 
-  public ArrayList<String> getPaths() {
-    return new ArrayList<String>(pathToAliases.keySet());
+  public ArrayList<Path> getPaths() {
+    return new ArrayList<Path>(pathToAliases.keySet());
   }
 
   public ArrayList<PartitionDesc> getPartitionDescs() {

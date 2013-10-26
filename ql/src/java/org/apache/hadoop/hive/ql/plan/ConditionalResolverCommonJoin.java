@@ -44,7 +44,7 @@ public class ConditionalResolverCommonJoin implements ConditionalResolver, Seria
     private static final long serialVersionUID = 1L;
 
     private HashMap<String, Task<? extends Serializable>> aliasToTask;
-    HashMap<String, ArrayList<String>> pathToAliases;
+    HashMap<Path, ArrayList<String>> pathToAliases;
     HashMap<String, Long> aliasToKnownSize;
     private Task<? extends Serializable> commonJoinTask;
 
@@ -78,11 +78,11 @@ public class ConditionalResolverCommonJoin implements ConditionalResolver, Seria
       this.aliasToKnownSize = aliasToKnownSize;
     }
 
-    public HashMap<String, ArrayList<String>> getPathToAliases() {
+    public HashMap<Path, ArrayList<String>> getPathToAliases() {
       return pathToAliases;
     }
 
-    public void setPathToAliases(HashMap<String, ArrayList<String>> pathToAliases) {
+    public void setPathToAliases(HashMap<Path, ArrayList<String>> pathToAliases) {
       this.pathToAliases = pathToAliases;
     }
 
@@ -112,7 +112,7 @@ public class ConditionalResolverCommonJoin implements ConditionalResolver, Seria
     List<Task<? extends Serializable>> resTsks = new ArrayList<Task<? extends Serializable>>();
 
     // get aliasToPath and pass it to the heuristic
-    HashMap<String, ArrayList<String>> pathToAliases = ctx.getPathToAliases();
+    HashMap<Path, ArrayList<String>> pathToAliases = ctx.getPathToAliases();
     HashMap<String, Long> aliasToKnownSize = ctx.getAliasToKnownSize();
     String bigTableAlias = this.resolveMapJoinTask(pathToAliases, ctx
         .getAliasToTask(), aliasToKnownSize, ctx.getHdfsTmpDir(), ctx
@@ -153,7 +153,7 @@ public class ConditionalResolverCommonJoin implements ConditionalResolver, Seria
   }
 
   private String resolveMapJoinTask(
-      HashMap<String, ArrayList<String>> pathToAliases,
+      HashMap<Path, ArrayList<String>> pathToAliases,
       HashMap<String, Task<? extends Serializable>> aliasToTask,
       HashMap<String, Long> aliasToKnownSize, String hdfsTmpDir,
       String localTmpDir, HiveConf conf) {
@@ -171,9 +171,9 @@ public class ConditionalResolverCommonJoin implements ConditionalResolver, Seria
     try {
       // need to compute the input size at runtime, and select the biggest as
       // the big table.
-      for (Map.Entry<String, ArrayList<String>> oneEntry : pathToAliases
+      for (Map.Entry<Path, ArrayList<String>> oneEntry : pathToAliases
           .entrySet()) {
-        String p = oneEntry.getKey();
+        String p = oneEntry.getKey().toString();
         // this path is intermediate data
         if (p.startsWith(hdfsTmpDir) || p.startsWith(localTmpDir)) {
           ArrayList<String> aliasArray = oneEntry.getValue();

@@ -279,8 +279,8 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
     try {
       Map<ObjectInspector, Boolean> oiSettableProperties = new HashMap<ObjectInspector, Boolean>();
 
-      for (String onefile : conf.getPathToAliases().keySet()) {
-        PartitionDesc pd = conf.getPathToPartitionInfo().get(onefile);
+      for (Path onePath : conf.getPathToAliases().keySet()) {
+        PartitionDesc pd = conf.getPathToPartitionInfo().get(onePath.toString());
         TableDesc tableDesc = pd.getTableDesc();
         Properties tblProps = tableDesc.getProperties();
         // If the partition does not exist, use table properties
@@ -336,11 +336,12 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
     Map<TableDesc, StructObjectInspector> convertedOI = getConvertedOI(hconf);
 
     try {
-      for (Map.Entry<String, ArrayList<String>> entry : conf.getPathToAliases().entrySet()) {
-        String onefile = entry.getKey();
+      for (Map.Entry<Path, ArrayList<String>> entry : conf.getPathToAliases().entrySet()) {
+
+        Path onepath = entry.getKey();
         List<String> aliases = entry.getValue();
 
-        Path onepath = new Path(onefile);
+        String onefile  = onepath.toString();
         if (schemeless) {
           onepath = new Path(onepath.toUri().getPath());
         }
@@ -443,15 +444,15 @@ public class MapOperator extends Operator<MapWork> implements Serializable, Clon
   public void cleanUpInputFileChangedOp() throws HiveException {
     Path fpath = getExecContext().getCurrentInputPath();
 
-    for (String onefile : conf.getPathToAliases().keySet()) {
-      Path onepath = normalizePath(onefile);
+    for (Path onepath : conf.getPathToAliases().keySet()) {
+      String onefile = onepath.toString();
       // check for the operators who will process rows coming to this Map
       // Operator
       if (onepath.toUri().relativize(fpath.toUri()).equals(fpath.toUri())) {
         // not from this
         continue;
       }
-      PartitionDesc partDesc = conf.getPathToPartitionInfo().get(onefile);
+      PartitionDesc partDesc = conf.getPathToPartitionInfo().get(onepath.toString());
       for (String onealias : conf.getPathToAliases().get(onefile)) {
         Operator<? extends OperatorDesc> op = conf.getAliasToWork().get(onealias);
         MapInputPath inp = new MapInputPath(onefile, onealias, op, partDesc);

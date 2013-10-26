@@ -498,10 +498,10 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
     Operator<?> topOp = mWork.getAliasToWork().get(alias);
     PartitionDesc partDesc = mWork.getAliasToPartnInfo().get(alias);
 
-    ArrayList<String> paths = mWork.getPaths();
+    ArrayList<Path > paths = mWork.getPaths();
     ArrayList<PartitionDesc> parts = mWork.getPartitionDescs();
 
-    Path onePath = new Path(paths.get(0));
+    Path onePath = paths.get(0);
     String tmpPath = context.getCtx().getExternalTmpFileURI(onePath.toUri());
 
     Path partitionFile = new Path(tmpPath, ".partitions");
@@ -512,8 +512,7 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
     if (mWork.getSamplingType() == MapWork.SAMPLING_ON_PREV_MR) {
       console.printInfo("Use sampling data created in previous MR");
       // merges sampling data from previous MR and make paritition keys for total sort
-      for (String path : paths) {
-        Path inputPath = new Path(path);
+      for (Path inputPath : paths) {
         FileSystem fs = inputPath.getFileSystem(job);
         for (FileStatus status : fs.globStatus(new Path(inputPath, ".sampling*"))) {
           sampler.addSampleFile(status.getPath(), job);
@@ -527,9 +526,9 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
       FetchWork fetchWork;
       if (!partDesc.isPartitioned()) {
         assert paths.size() == 1;
-        fetchWork = new FetchWork(paths.get(0), partDesc.getTableDesc());
+        fetchWork = new FetchWork(paths.get(0).toString(), partDesc.getTableDesc());
       } else {
-        fetchWork = new FetchWork(paths, parts, partDesc.getTableDesc());
+        fetchWork = new FetchWork(getPathStrList(paths), parts, partDesc.getTableDesc());
       }
       fetchWork.setSource(ts);
 
@@ -546,6 +545,14 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
       throw new IllegalArgumentException("Invalid sampling type " + mWork.getSamplingType());
     }
     sampler.writePartitionKeys(partitionFile, job);
+  }
+
+  private List<String> getPathStrList(ArrayList<Path> paths) {
+    ArrayList<String> pathStrList = new ArrayList<String>(paths.size());
+    for(Path path : paths){
+      pathStrList.add(path.toString());
+    }
+    return pathStrList;
   }
 
   /**

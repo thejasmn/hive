@@ -201,7 +201,7 @@ public final class GenMapRedUtils {
           TableDesc tt_desc = tt_descLst.get(pos);
           MapWork mWork = plan.getMapWork();
           if (mWork.getPathToAliases().get(taskTmpDir) == null) {
-            mWork.getPathToAliases().put(taskTmpDir,
+            mWork.getPathToAliases().put(new Path(taskTmpDir),
                 new ArrayList<String>());
             mWork.getPathToAliases().get(taskTmpDir).add(taskTmpDir);
             mWork.getPathToPartitionInfo().put(taskTmpDir,
@@ -684,7 +684,7 @@ public final class GenMapRedUtils {
 
         // Add the path to alias mapping
         if (plan.getPathToAliases().get(path) == null) {
-          plan.getPathToAliases().put(path, new ArrayList<String>());
+          plan.getPathToAliases().put(new Path(path), new ArrayList<String>());
         }
         plan.getPathToAliases().get(path).add(alias_id);
         plan.getPathToPartitionInfo().put(path, prtDesc);
@@ -744,7 +744,7 @@ public final class GenMapRedUtils {
 
     if (!local) {
       if (plan.getPathToAliases().get(path) == null) {
-        plan.getPathToAliases().put(path, new ArrayList<String>());
+        plan.getPathToAliases().put(new Path(path), new ArrayList<String>());
       }
       plan.getPathToAliases().get(path).add(alias);
       plan.getPathToPartitionInfo().put(path, new PartitionDesc(tt_desc, null));
@@ -868,7 +868,7 @@ public final class GenMapRedUtils {
         conf.getBoolVar(
             HiveConf.ConfVars.HIVE_MAPPER_CANNOT_SPAN_MULTIPLE_PARTITIONS);
     work.setMapperCannotSpanPartns(mapperCannotSpanPartns);
-    work.setPathToAliases(new LinkedHashMap<String, ArrayList<String>>());
+    work.setPathToAliases(new LinkedHashMap<Path, ArrayList<String>>());
     work.setPathToPartitionInfo(new LinkedHashMap<String, PartitionDesc>());
     work.setAliasToWork(new LinkedHashMap<String, Operator<? extends OperatorDesc>>());
     work.setHadoopSupportsSplittable(
@@ -1048,12 +1048,12 @@ public final class GenMapRedUtils {
    */
   public static void replaceMapWork(String sourceAlias, String targetAlias,
       MapWork source, MapWork target) {
-    Map<String, ArrayList<String>> sourcePathToAliases = source.getPathToAliases();
+    Map<Path, ArrayList<String>> sourcePathToAliases = source.getPathToAliases();
     Map<String, PartitionDesc> sourcePathToPartitionInfo = source.getPathToPartitionInfo();
     Map<String, Operator<? extends OperatorDesc>> sourceAliasToWork = source.getAliasToWork();
     Map<String, PartitionDesc> sourceAliasToPartnInfo = source.getAliasToPartnInfo();
 
-    Map<String, ArrayList<String>> targetPathToAliases = target.getPathToAliases();
+    Map<Path, ArrayList<String>> targetPathToAliases = target.getPathToAliases();
     Map<String, PartitionDesc> targetPathToPartitionInfo = target.getPathToPartitionInfo();
     Map<String, Operator<? extends OperatorDesc>> targetAliasToWork = target.getAliasToWork();
     Map<String, PartitionDesc> targetAliasToPartnInfo = target.getAliasToPartnInfo();
@@ -1075,31 +1075,31 @@ public final class GenMapRedUtils {
     // Remove unnecessary information from target
     targetAliasToWork.remove(targetAlias);
     targetAliasToPartnInfo.remove(targetAlias);
-    List<String> pathsToRemove = new ArrayList<String>();
-    for (Entry<String, ArrayList<String>> entry: targetPathToAliases.entrySet()) {
+    List<Path> pathsToRemove = new ArrayList<Path>();
+    for (Entry<Path, ArrayList<String>> entry: targetPathToAliases.entrySet()) {
       ArrayList<String> aliases = entry.getValue();
       aliases.remove(targetAlias);
       if (aliases.isEmpty()) {
         pathsToRemove.add(entry.getKey());
       }
     }
-    for (String pathToRemove: pathsToRemove) {
+    for (Path pathToRemove: pathsToRemove) {
       targetPathToAliases.remove(pathToRemove);
-      targetPathToPartitionInfo.remove(pathToRemove);
+      targetPathToPartitionInfo.remove(pathToRemove.toString());
     }
 
     // Add new information from source to target
     targetAliasToWork.put(sourceAlias, sourceAliasToWork.get(sourceAlias));
     targetAliasToPartnInfo.putAll(sourceAliasToPartnInfo);
     targetPathToPartitionInfo.putAll(sourcePathToPartitionInfo);
-    List<String> pathsToAdd = new ArrayList<String>();
-    for (Entry<String, ArrayList<String>> entry: sourcePathToAliases.entrySet()) {
+    List<Path> pathsToAdd = new ArrayList<Path>();
+    for (Entry<Path, ArrayList<String>> entry: sourcePathToAliases.entrySet()) {
       ArrayList<String> aliases = entry.getValue();
       if (aliases.contains(sourceAlias)) {
         pathsToAdd.add(entry.getKey());
       }
     }
-    for (String pathToAdd: pathsToAdd) {
+    for (Path pathToAdd: pathsToAdd) {
       if (!targetPathToAliases.containsKey(pathToAdd)) {
         targetPathToAliases.put(pathToAdd, new ArrayList<String>());
       }

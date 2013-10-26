@@ -217,10 +217,10 @@ public class MetadataOnlyOptimizer implements PhysicalPlanResolver {
       return desc;
     }
 
-    private List<String> getPathsForAlias(MapWork work, String alias) {
-      List<String> paths = new ArrayList<String>();
+    private List<Path> getPathsForAlias(MapWork work, String alias) {
+      List<Path> paths = new ArrayList<Path>();
 
-      for (Map.Entry<String, ArrayList<String>> entry : work.getPathToAliases().entrySet()) {
+      for (Map.Entry<Path, ArrayList<String>> entry : work.getPathToAliases().entrySet()) {
         if (entry.getValue().contains(alias)) {
           paths.add(entry.getKey());
         }
@@ -234,17 +234,17 @@ public class MetadataOnlyOptimizer implements PhysicalPlanResolver {
       PartitionDesc aliasPartn = work.getAliasToPartnInfo().get(alias);
       changePartitionToMetadataOnly(aliasPartn);
 
-      List<String> paths = getPathsForAlias(work, alias);
-      for (String path : paths) {
-        PartitionDesc partDesc = work.getPathToPartitionInfo().get(path);
+      List<Path> paths = getPathsForAlias(work, alias);
+      for (Path path : paths) {
+        PartitionDesc partDesc = work.getPathToPartitionInfo().get(path.toString());
         PartitionDesc newPartition = changePartitionToMetadataOnly(partDesc);
         Path fakePath = new Path(physicalContext.getContext().getMRTmpFileURI()
             + newPartition.getTableName()
             + encode(newPartition.getPartSpec()));
-        work.getPathToPartitionInfo().remove(path);
+        work.getPathToPartitionInfo().remove(path.toString());
         work.getPathToPartitionInfo().put(fakePath.getName(), newPartition);
         ArrayList<String> aliases = work.getPathToAliases().remove(path);
-        work.getPathToAliases().put(fakePath.getName(), aliases);
+        work.getPathToAliases().put(new Path(fakePath.getName()), aliases);
       }
     }
 

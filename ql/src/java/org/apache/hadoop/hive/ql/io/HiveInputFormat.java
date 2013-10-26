@@ -37,6 +37,7 @@ import org.apache.hadoop.hive.io.HiveIOExceptionHandlerUtil;
 import org.apache.hadoop.hive.ql.exec.Operator;
 import org.apache.hadoop.hive.ql.exec.TableScanOperator;
 import org.apache.hadoop.hive.ql.exec.Utilities;
+import org.apache.hadoop.hive.ql.io.HiveInputFormat.HiveInputSplit;
 import org.apache.hadoop.hive.ql.log.PerfLogger;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.MapWork;
@@ -425,12 +426,12 @@ public class HiveInputFormat<K extends WritableComparable, V extends Writable>
     }
 
     ArrayList<String> aliases = new ArrayList<String>();
-    Iterator<Entry<String, ArrayList<String>>> iterator = this.mrwork
+    Iterator<Entry<Path, ArrayList<String>>> iterator = this.mrwork
         .getPathToAliases().entrySet().iterator();
 
     while (iterator.hasNext()) {
-      Entry<String, ArrayList<String>> entry = iterator.next();
-      String key = entry.getKey();
+      Entry<Path, ArrayList<String>> entry = iterator.next();
+      String key = entry.getKey().toString();
       boolean match;
       if (nonNative) {
         // For non-native tables, we need to do an exact match to avoid

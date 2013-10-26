@@ -264,7 +264,7 @@ public final class GenMRSkewJoinProcessor {
       String alias = src.toString();
       aliases.add(alias);
       String bigKeyDirPath = bigKeysDirMap.get(src);
-      newPlan.getPathToAliases().put(bigKeyDirPath, aliases);
+      newPlan.getPathToAliases().put(new Path(bigKeyDirPath), aliases);
 
       newPlan.getAliasToWork().put(alias, tblScan_op);
       PartitionDesc part = new PartitionDesc(tableDescList.get(src), null);

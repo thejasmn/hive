@@ -266,7 +266,7 @@ public class CombineHiveInputFormat<K extends WritableComparable, V extends Writ
     PerfLogger perfLogger = PerfLogger.getPerfLogger();
     perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.GET_SPLITS);
     init(job);
-    Map<String, ArrayList<String>> pathToAliases = mrwork.getPathToAliases();
+    Map<Path, ArrayList<String>> pathToAliases = mrwork.getPathToAliases();
     Map<String, Operator<? extends OperatorDesc>> aliasToWork =
       mrwork.getAliasToWork();
     CombineFileInputFormatShim combine = ShimLoader.getHadoopShims()
@@ -448,8 +448,8 @@ public class CombineHiveInputFormat<K extends WritableComparable, V extends Writ
     HashMap<String, SplitSample> nameToSamples = mrwork.getNameToSplitSample();
     List<InputSplitShim> retLists = new ArrayList<InputSplitShim>();
     Map<String, ArrayList<InputSplitShim>> aliasToSplitList = new HashMap<String, ArrayList<InputSplitShim>>();
-    Map<String, ArrayList<String>> pathToAliases = mrwork.getPathToAliases();
-    Map<String, ArrayList<String>> pathToAliasesNoScheme = removeScheme(pathToAliases);
+    Map<Path, ArrayList<String>> pathToAliases = mrwork.getPathToAliases();
+    Map<Path, ArrayList<String>> pathToAliasesNoScheme = removeScheme(pathToAliases);
 
     // Populate list of exclusive splits for every sampled alias
     //
@@ -518,10 +518,10 @@ public class CombineHiveInputFormat<K extends WritableComparable, V extends Writ
     return retLists;
   }
 
-  Map<String, ArrayList<String>> removeScheme(Map<String, ArrayList<String>> pathToAliases) {
-    Map<String, ArrayList<String>> result = new HashMap<String, ArrayList<String>>();
-    for (Map.Entry <String, ArrayList<String>> entry : pathToAliases.entrySet()) {
-      String newKey = new Path(entry.getKey()).toUri().getPath();
+  Map<Path, ArrayList<String>> removeScheme(Map<Path, ArrayList<String>> pathToAliases) {
+    Map<Path, ArrayList<String>> result = new HashMap<Path, ArrayList<String>>();
+    for (Map.Entry <Path, ArrayList<String>> entry : pathToAliases.entrySet()) {
+      Path newKey = new Path(entry.getKey().toUri().getPath());
       result.put(newKey, entry.getValue());
     }
     return result;

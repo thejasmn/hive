@@ -40,7 +40,7 @@ public class SymbolicInputFormat implements ReworkMapredInputFormat {
     Map<String, PartitionDesc> pathToParts = work.getMapWork().getPathToPartitionInfo();
     List<String> toRemovePaths = new ArrayList<String>();
     Map<String, PartitionDesc> toAddPathToPart = new HashMap<String, PartitionDesc>();
-    Map<String, ArrayList<String>> pathToAliases = work.getMapWork().getPathToAliases();
+    Map<Path, ArrayList<String>> pathToAliases = work.getMapWork().getPathToAliases();
 
     for (Map.Entry<String, PartitionDesc> pathPartEntry : pathToParts
         .entrySet()) {
@@ -75,7 +75,7 @@ public class SymbolicInputFormat implements ReworkMapredInputFormat {
               // no check for the line? How to check?
               // if the line is invalid for any reason, the job will fail.
               toAddPathToPart.put(line, partDesc);
-              pathToAliases.put(line, aliases);
+              pathToAliases.put(new Path(line), aliases);
             }
           } finally {
             org.apache.hadoop.io.IOUtils.closeStream(reader);
