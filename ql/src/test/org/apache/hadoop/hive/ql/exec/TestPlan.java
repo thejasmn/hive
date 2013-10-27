@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 
 import junit.framework.TestCase;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.parse.TypeCheckProcFactory;
 import org.apache.hadoop.hive.ql.plan.ExprNodeColumnDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
@@ -62,8 +63,8 @@ public class TestPlan extends TestCase {
 
       ArrayList<String> aliasList = new ArrayList<String>();
       aliasList.add("a");
-      LinkedHashMap<String, ArrayList<String>> pa = new LinkedHashMap<String, ArrayList<String>>();
-      pa.put("/tmp/testfolder", aliasList);
+      LinkedHashMap<Path, ArrayList<String>> pa = new LinkedHashMap<Path, ArrayList<String>>();
+      pa.put(new Path("/tmp/testfolder"), aliasList);
 
       TableDesc tblDesc = Utilities.defaultTd;
       PartitionDesc partDesc = new PartitionDesc(tblDesc, null);
