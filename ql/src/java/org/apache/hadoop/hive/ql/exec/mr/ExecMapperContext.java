@@ -81,7 +81,7 @@ public class ExecMapperContext {
    */
   public boolean inputFileChanged() {
     if (!inputFileChecked) {
-      currentInputPath = this.ioCxt.getInputFile();
+      currentInputPath = this.ioCxt.getInputPath();
       inputFileChecked = true;
     }
     return lastInputPath == null || !lastInputPath.equals(currentInputPath);
@@ -107,7 +107,7 @@ public class ExecMapperContext {
   }
 
   public Path getCurrentInputPath() {
-    currentInputPath = this.ioCxt.getInputFile();
+    currentInputPath = this.ioCxt.getInputPath();
     return currentInputPath;
   }
 

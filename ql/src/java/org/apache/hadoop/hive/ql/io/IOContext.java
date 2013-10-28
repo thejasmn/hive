@@ -111,12 +111,12 @@ public class IOContext {
     this.isBlockPointer = isBlockPointer;
   }
 
-  public Path getInputFile() {
+  public Path getInputPath() {
     return inputPath;
   }
 
-  public void setInputFile(Path inputFile) {
-    this.inputPath = inputFile;
+  public void setInputPath(Path inputPath) {
+    this.inputPath = inputPath;
   }
 
   public void setIOExceptions(boolean ioe) {
