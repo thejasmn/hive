@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.hive.ql.io;
 
+import org.apache.hadoop.fs.Path;
+
 
 /**
  * IOContext basically contains the position information of the current
@@ -67,7 +69,7 @@ public class IOContext {
     UNKNOWN
   }
 
-  String inputFile;
+  Path inputPath;
 
   public IOContext() {
     this.currentBlockStart = 0;
@@ -109,12 +111,12 @@ public class IOContext {
     this.isBlockPointer = isBlockPointer;
   }
 
-  public String getInputFile() {
-    return inputFile;
+  public Path getInputFile() {
+    return inputPath;
   }
 
-  public void setInputFile(String inputFile) {
-    this.inputFile = inputFile;
+  public void setInputFile(Path inputFile) {
+    this.inputPath = inputFile;
   }
 
   public void setIOExceptions(boolean ioe) {
