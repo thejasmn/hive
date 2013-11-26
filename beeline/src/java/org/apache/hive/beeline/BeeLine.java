@@ -225,7 +225,6 @@ public class BeeLine {
       new ReflectiveCommandHandler(this, new String[] {"call"},
           null),
       new ReflectiveCommandHandler(this, new String[] {"nullemptystring"},
-          
           new Completor[] {new BooleanCompletor()}),    
   };
 
