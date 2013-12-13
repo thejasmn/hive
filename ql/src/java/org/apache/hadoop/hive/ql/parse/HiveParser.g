@@ -1341,16 +1341,24 @@ showGrants
 privilegeIncludeColObject
 @init {msgs.push("privilege object including columns");}
 @after {msgs.pop();}
-    : KW_ON (table=KW_TABLE|KW_DATABASE) identifier (LPAREN cols=columnNameList RPAREN)? partitionSpec?
+    : KW_ON table=objectType? identifier (LPAREN cols=columnNameList RPAREN)? partitionSpec?
     -> ^(TOK_PRIV_OBJECT_COL identifier $table? $cols? partitionSpec?)
     ;
 
 privilegeObject
 @init {msgs.push("privilege subject");}
 @after {msgs.pop();}
-    : KW_ON (table=KW_TABLE|KW_DATABASE) identifier partitionSpec?
+    : KW_ON table=objectType? identifier partitionSpec?
     -> ^(TOK_PRIV_OBJECT identifier $table? partitionSpec?)
     ;
+
+
+objectType
+@init {msgs.push("object type");}
+@after {msgs.pop();}
+    : KW_TABLE|KW_DATABASE
+    ;
+
 
 privilegeList
 @init {msgs.push("grant privilege list");}
