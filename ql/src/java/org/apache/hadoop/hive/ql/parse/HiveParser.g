@@ -1320,7 +1320,7 @@ grantRole
 revokeRole
 @init {msgs.push("revoke role");}
 @after {msgs.pop();}
-    : KW_REVOKE KW_ROLE identifier (COMMA identifier)* KW_FROM principalSpecification
+    : KW_REVOKE KW_ROLE? identifier (COMMA identifier)* KW_FROM principalSpecification
     -> ^(TOK_REVOKE_ROLE principalSpecification identifier+)
     ;
 

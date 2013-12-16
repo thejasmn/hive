@@ -13,3 +13,13 @@ PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant user user2
 POSTHOOK: type: SHOW_ROLE_GRANT
 role name:src_role2
+PREHOOK: query: -- revoke role without role keyword
+revoke src_role2 from user user2
+PREHOOK: type: REVOKE_ROLE
+POSTHOOK: query: -- revoke role without role keyword
+revoke src_role2 from user user2
+POSTHOOK: type: REVOKE_ROLE
+PREHOOK: query: show role grant user user2
+PREHOOK: type: SHOW_ROLE_GRANT
+POSTHOOK: query: show role grant user user2
+POSTHOOK: type: SHOW_ROLE_GRANT
