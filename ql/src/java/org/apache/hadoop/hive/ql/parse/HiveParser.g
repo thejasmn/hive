@@ -1313,7 +1313,7 @@ revokePrivileges
 grantRole
 @init {msgs.push("grant role");}
 @after {msgs.pop();}
-    : KW_GRANT KW_ROLE identifier (COMMA identifier)* KW_TO principalSpecification
+    : KW_GRANT KW_ROLE? identifier (COMMA identifier)* KW_TO principalSpecification
     -> ^(TOK_GRANT_ROLE principalSpecification identifier+)
     ;
 

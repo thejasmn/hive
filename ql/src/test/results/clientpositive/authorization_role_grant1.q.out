@@ -1,0 +1,15 @@
+PREHOOK: query: -- role granting without role keyword
+create role src_role2
+PREHOOK: type: CREATEROLE
+POSTHOOK: query: -- role granting without role keyword
+create role src_role2
+POSTHOOK: type: CREATEROLE
+PREHOOK: query: grant  src_role2 to user user2
+PREHOOK: type: GRANT_ROLE
+POSTHOOK: query: grant  src_role2 to user user2
+POSTHOOK: type: GRANT_ROLE
+PREHOOK: query: show role grant user user2
+PREHOOK: type: SHOW_ROLE_GRANT
+POSTHOOK: query: show role grant user user2
+POSTHOOK: type: SHOW_ROLE_GRANT
+role name:src_role2
