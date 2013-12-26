@@ -1299,8 +1299,8 @@ grantPrivileges
     : KW_GRANT privList=privilegeList
       privilegeObject?
       KW_TO principalSpecification
-      (KW_WITH withOption)?
-    -> ^(TOK_GRANT $privList principalSpecification privilegeObject? withOption?)
+      (withGrantOption)?
+    -> ^(TOK_GRANT $privList principalSpecification privilegeObject? withGrantOption?)
     ;
 
 revokePrivileges
@@ -1313,15 +1313,15 @@ revokePrivileges
 grantRole
 @init {msgs.push("grant role");}
 @after {msgs.pop();}
-    : KW_GRANT KW_ROLE? identifier (COMMA identifier)* KW_TO principalSpecification
-    -> ^(TOK_GRANT_ROLE principalSpecification identifier+)
+    : KW_GRANT KW_ROLE? identifier (COMMA identifier)* KW_TO principalSpecification withAdminOption?
+    -> ^(TOK_GRANT_ROLE principalSpecification withAdminOption? identifier+)
     ;
 
 revokeRole
 @init {msgs.push("revoke role");}
 @after {msgs.pop();}
-    : KW_REVOKE KW_ROLE? identifier (COMMA identifier)* KW_FROM principalSpecification
-    -> ^(TOK_REVOKE_ROLE principalSpecification identifier+)
+    : KW_REVOKE KW_ROLE? identifier (COMMA identifier)* KW_FROM principalSpecification withAdminOption?
+    -> ^(TOK_REVOKE_ROLE principalSpecification withAdminOption? identifier+)
     ;
 
 showRoleGrants
@@ -1402,10 +1402,17 @@ principalName
     | KW_ROLE identifier -> ^(TOK_ROLE identifier)
     ;
 
-withOption
-@init {msgs.push("grant with option");}
+withGrantOption
+@init {msgs.push("with grant option");}
 @after {msgs.pop();}
-    : KW_GRANT KW_OPTION
+    : KW_WITH KW_GRANT KW_OPTION
+    -> ^(TOK_GRANT_WITH_OPTION)
+    ;
+    
+withAdminOption
+@init {msgs.push("with admin option");}
+@after {msgs.pop();}
+    : KW_WITH KW_ADMIN KW_OPTION
     -> ^(TOK_GRANT_WITH_OPTION)
     ;
 
