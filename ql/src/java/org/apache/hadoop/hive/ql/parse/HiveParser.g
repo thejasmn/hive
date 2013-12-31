@@ -1356,7 +1356,8 @@ privilegeObject
 objectType
 @init {msgs.push("object type");}
 @after {msgs.pop();}
-    : KW_TABLE|KW_DATABASE
+    : tableOrDb=KW_TABLE|KW_DATABASE
+    -> ^($tableOrDb)
     ;
 
 
