@@ -1356,6 +1356,7 @@ privilegeObject
     ;
 
 
+// database or table type. Type is optional, default type is table
 privObjectType
 @init {msgs.push("privilege object type type");}
 @after {msgs.pop();}
