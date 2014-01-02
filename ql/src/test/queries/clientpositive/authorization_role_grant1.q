@@ -12,9 +12,9 @@ show role grant user user2;
 ----------------------------------------
 
 create role src_role_wadmin;
-grant  src_role_wadmin to user user2 with admin;
+grant  src_role_wadmin to user user2 with admin option;
 show role grant user user2;
 
 -- revoke role without role keyword
-revoke src_role_wadmin from user user2 with admin;
+revoke src_role_wadmin from user user2 with admin option;
 show role grant user user2;

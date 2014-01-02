@@ -459,8 +459,17 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   private void analyzeGrantRevokeRole(boolean grant, ASTNode ast) {
     List<PrincipalDesc> principalDesc = analyzePrincipalListDef(
         (ASTNode) ast.getChild(0));
+    
+    //check if admin option has been specified
+    int rolesStartPos = 1;
+    ASTNode wAdminOption = (ASTNode) ast.getChild(1);
+    if(wAdminOption.getToken().getType() == HiveParser.TOK_GRANT_WITH_ADMIN_OPTION){
+      rolesStartPos = 2; //start reading role names from next postion
+      //TODO: use the admin option
+    }
+    
     List<String> roles = new ArrayList<String>();
-    for (int i = 1; i < ast.getChildCount(); i++) {
+    for (int i = rolesStartPos; i < ast.getChildCount(); i++) {
       roles.add(unescapeIdentifier(ast.getChild(i).getText()));
     }
     String roleOwnerName = "";
