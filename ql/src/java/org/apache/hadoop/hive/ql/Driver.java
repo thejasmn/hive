@@ -543,6 +543,7 @@ public class Driver implements CommandProcessor {
         }
       }
       if (outputs != null && outputs.size() > 0) {
+        //do authorization for each output
         for (WriteEntity write : outputs) {
           if (write.getType() == Entity.Type.DATABASE) {
             ss.getAuthorizer().authorize(write.getDatabase(),
@@ -570,10 +571,10 @@ public class Driver implements CommandProcessor {
     }
 
     if (inputs != null && inputs.size() > 0) {
-
       Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
       Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
 
+      //determine if partition level privileges should be checked for input tables
       Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
       for (ReadEntity read : inputs) {
         if (read.getType() == Entity.Type.DATABASE) {
@@ -596,6 +597,8 @@ public class Driver implements CommandProcessor {
         }
       }
 
+      //for a select or create-as-select query, populate the partition to column (par2Cols) or
+      // table to columns mapping (tab2Cols)
       if (op.equals(HiveOperation.CREATETABLE_AS_SELECT)
           || op.equals(HiveOperation.QUERY)) {
         SemanticAnalyzer querySem = (SemanticAnalyzer) sem;
