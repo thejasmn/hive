@@ -54,7 +54,10 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
+import org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
 import org.apache.hadoop.hive.ql.util.DosToUnix;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.util.ReflectionUtils;
@@ -118,6 +121,10 @@ public class SessionState {
 
   private HiveAuthorizationProvider authorizer;
 
+  private HiveAuthorizerFactory authorizerV2;
+  
+  public enum AuthorizationMode{V1, V2};
+  
   private HiveAuthenticationProvider authenticator;
 
   private CreateTableAutomaticGrant createTableGrants;
@@ -297,15 +304,31 @@ public class SessionState {
       // that would cause ClassNoFoundException otherwise
       throw new RuntimeException(e);
     }
+    setupAuth(startSs);
+    return startSs;
+  }
 
+  /**
+   * Setup authentication and authorization plugins for this session.
+   * @param startSs
+   */
+  private static void setupAuth(SessionState startSs) {
     try {
       startSs.authenticator = HiveUtils.getAuthenticator(
           startSs.getConf(),HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
       startSs.authorizer = HiveUtils.getAuthorizeProviderManager(
           startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER,
-          startSs.authenticator);
-      startSs.createTableGrants = CreateTableAutomaticGrant.create(startSs
-          .getConf());
+          startSs.authenticator, true);
+      
+      if(startSs.authorizer == null){
+        //if it was null, the new authorization plugin must be specified in config
+        startSs.authorizerV2 = 
+            HiveUtils.getAuthorizerFactory(startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
+      }
+      else{
+        startSs.createTableGrants = CreateTableAutomaticGrant.create(startSs
+            .getConf());
+      }
     } catch (HiveException e) {
       throw new RuntimeException(e);
     }
@@ -325,6 +348,7 @@ public class SessionState {
     }
 
     return startSs;
+
   }
 
   /**
@@ -841,6 +865,19 @@ public class SessionState {
       tezSessionState = null;
     }
   }
+  
+  public AuthorizationMode getAuthorizationMode(){
+    if(authorizer != null){
+      return AuthorizationMode.V1;
+    }else if(authorizerV2 != null){
+      return AuthorizationMode.V2;
+    }
+    else {
+      //should not happen - this should not get called before this.start() is called
+      throw new RuntimeException("Authorization plugins not initialized!");
+    }
+  }
+  
 
   /**
    * @param resetPerfLogger
