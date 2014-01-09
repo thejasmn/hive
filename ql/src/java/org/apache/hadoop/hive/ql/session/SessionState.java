@@ -121,7 +121,7 @@ public class SessionState {
 
   private HiveAuthorizationProvider authorizer;
 
-  private HiveAuthorizerFactory authorizerV2;
+  private HiveAuthorizer authorizerV2;
   
   public enum AuthorizationMode{V1, V2};
   
@@ -322,8 +322,9 @@ public class SessionState {
       
       if(startSs.authorizer == null){
         //if it was null, the new authorization plugin must be specified in config
-        startSs.authorizerV2 = 
+        HiveAuthorizerFactory authorizerFactory =
             HiveUtils.getAuthorizerFactory(startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
+        startSs.authorizerV2 = authorizerFactory.createHiveAuthorizer(Hive.get(), startSs.getConf());
       }
       else{
         startSs.createTableGrants = CreateTableAutomaticGrant.create(startSs
@@ -773,6 +774,10 @@ public class SessionState {
     this.authorizer = authorizer;
   }
 
+  public HiveAuthorizer getAuthorizerV2() {
+    return authorizerV2;
+  }
+  
   public HiveAuthenticationProvider getAuthenticator() {
     return authenticator;
   }

@@ -1,5 +1,7 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
+import java.util.List;
+
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 
@@ -19,9 +21,25 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
      this.accessController = accessController;
      this.authValidator = authValidator;
    }
-   void grantPrivileges(){
-      //  HiveAccessController.grantPrivileges();
-   }
+
+  @Override
+  public void grantPrivileges(List<HivePrincipal> hivePrincipals,
+      List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
+      HivePrincipal grantorPrincipal, boolean grantOption) {
+    accessController.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject, 
+        grantorPrincipal, grantOption);
+    
+  }
+
+  @Override
+  public void revokePrivileges(List<HivePrincipal> hivePrincipals,
+      List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
+      HivePrincipal grantorPrincipal, boolean grantOption) {
+    accessController.revokePrivileges(hivePrincipals, hivePrivileges, hivePrivObject, 
+        grantorPrincipal, grantOption);
+    
+  }
+
 
  // other access control functions
 
