@@ -55,6 +55,18 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
     return accessController.getRoles(hivePrincipal);
   }
 
+  @Override
+  public void grantRole(List<HivePrincipal> hivePrincipals, List<String> roles,
+      boolean grantOption, HivePrincipal grantorPrinc) {
+    accessController.grantRole(hivePrincipals, roles, grantOption, grantorPrinc);
+  }
+
+  @Override
+  public void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles,
+      boolean grantOption, HivePrincipal grantorPrinc) {
+    accessController.revokeRole(hivePrincipals, roles, grantOption, grantorPrinc);
+  }
+
 
  // other access control functions
 

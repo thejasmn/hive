@@ -22,5 +22,11 @@ public interface HiveAccessController {
   void dropRole(String roleName);
 
   List<String> getRoles(HivePrincipal hivePrincipal);
+
+  void grantRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
+      HivePrincipal grantorPrinc);
+
+  void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
+      HivePrincipal grantorPrinc);
   
 }

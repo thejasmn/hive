@@ -496,6 +496,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       boolean grantRole = grantOrRevokeRoleDDL.getGrant();
       List<PrincipalDesc> principals = grantOrRevokeRoleDDL.getPrincipalDesc();
       List<String> roles = grantOrRevokeRoleDDL.getRoles();
+      
+      if(SessionState.get().isAuthorizationModeV2()){
+        return grantOrRevokeRoleV2(grantOrRevokeRoleDDL);
+      }
+      
       for (PrincipalDesc principal : principals) {
         String userName = principal.getName();
         for (String roleName : roles) {
@@ -510,6 +515,27 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       }
     } catch (Exception e) {
       throw new HiveException(e);
+    }
+    return 0;
+  }
+
+  private int grantOrRevokeRoleV2(GrantRevokeRoleDDL grantOrRevokeRoleDDL) throws HiveException {
+    HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
+    HivePrincipal grantorPrinc = null;
+    if(grantOrRevokeRoleDDL.getGrantor() != null){
+      grantorPrinc = new HivePrincipal(grantOrRevokeRoleDDL.getGrantor(),
+          getHivePrincipalType(grantOrRevokeRoleDDL.getGrantorType()));
+    }
+    List<HivePrincipal> hivePrincipals = getHivePrincipals(grantOrRevokeRoleDDL.getPrincipalDesc());
+    List<String> roles = grantOrRevokeRoleDDL.getRoles();
+    
+    if(grantOrRevokeRoleDDL.getGrant()){
+      authorizer.grantRole(hivePrincipals, roles,
+          grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
+    }
+    else{
+      authorizer.revokeRole(hivePrincipals, roles,
+          grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
     }
     return 0;
   }
@@ -853,31 +879,13 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     throw new HiveException(objType + " " + objName + " not found");
   }
 
-  private int roleDDL(RoleDDLDesc roleDDLDesc) throws HiveException {
-    RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
-    DataOutputStream outStream = null;
-
+  private int roleDDL(RoleDDLDesc roleDDLDesc) throws HiveException, IOException {
     if(SessionState.get().isAuthorizationModeV2()){
-      
-      HivePrincipal currentUser = getAuthenticatedUser(); 
-      
-      HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
-      switch(operation){
-      case CREATE_ROLE:
-        authorizer.createRole(roleDDLDesc.getName(), null);
-        break;
-      case DROP_ROLE:
-        authorizer.dropRole(roleDDLDesc.getName());
-        break;
-      case SHOW_ROLE_GRANT:
-        break;
-      default:
-        throw new HiveException("Unkown role operation "
-            + operation.getOperationName());
-      }
-      
+      return roleDDLV2(roleDDLDesc);
     }
-
+    
+    DataOutput outStream = null;
+    RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     try {
       if (operation.equals(RoleDDLDesc.RoleOperation.CREATE_ROLE)) {
         db.createRole(roleDDLDesc.getName(), roleDDLDesc.getRoleOwnerName());
@@ -925,6 +933,37 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
 
     return 0;
+  }
+
+  private int roleDDLV2(RoleDDLDesc roleDDLDesc) throws HiveException, IOException {
+    HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
+    RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
+    switch(operation){
+    case CREATE_ROLE:
+      authorizer.createRole(roleDDLDesc.getName(), null);
+      break;
+    case DROP_ROLE:
+      authorizer.dropRole(roleDDLDesc.getName());
+      break;
+    case SHOW_ROLE_GRANT:
+      List<String> roles = authorizer.getRoles(new HivePrincipal(roleDDLDesc.getName(),
+          getHivePrincipalType(roleDDLDesc.getPrincipalType())));
+      writeListToFile(roles, roleDDLDesc.getResFile());
+      break;
+    default:
+      throw new HiveException("Unkown role operation "
+          + operation.getOperationName());
+    }
+    return 0;
+  }
+
+  private void writeListToFile(List<String> roles, String resFile) throws IOException {
+    StringBuilder sb = new StringBuilder(roles.size()*2);
+    for(String role : roles){
+      sb.append(role);
+      sb.append(terminator);
+    }
+    writeToFile(sb.toString(), resFile);
   }
 
   private HiveCurrentAuthorizationID getCurrentAuthorizationID (){

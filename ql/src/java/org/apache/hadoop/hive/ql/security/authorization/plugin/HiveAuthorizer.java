@@ -59,6 +59,26 @@ public interface HiveAuthorizer {
    */
   List<String> getRoles(HivePrincipal hivePrincipal);
 
+  /**
+   * Grant roles in given roles list to principals in given hivePrincipals list
+   * @param hivePrincipals
+   * @param roles
+   * @param grantOption
+   * @param grantorPrinc
+   */
+  void grantRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
+      HivePrincipal grantorPrinc);
+
+  /**
+   * Revoke roles in given roles list to principals in given hivePrincipals list
+   * @param hivePrincipals
+   * @param roles
+   * @param grantOption
+   * @param grantorPrinc
+   */
+  void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
+      HivePrincipal grantorPrinc);
+
 
   
   
