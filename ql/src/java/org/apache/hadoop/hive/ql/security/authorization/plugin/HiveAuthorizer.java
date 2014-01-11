@@ -39,6 +39,26 @@ public interface HiveAuthorizer {
   void revokePrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption);
 
+  /**
+   * Create role
+   * @param roleName
+   * @param adminGrantor - The user in "[ WITH ADMIN <user> ]" clause of "create role"
+   */
+  void createRole(String roleName, HivePrincipal adminGrantor);
+
+  /**
+   * Drop role
+   * @param roleName
+   */
+  void dropRole(String roleName);
+
+  /**
+   * Get roles that this user/role belongs to
+   * @param hivePrincipal - user or role
+   * @return list of roles
+   */
+  List<String> getRoles(HivePrincipal hivePrincipal);
+
 
   
   

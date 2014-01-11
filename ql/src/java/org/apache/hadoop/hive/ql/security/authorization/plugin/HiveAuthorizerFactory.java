@@ -13,5 +13,6 @@ import org.apache.hadoop.hive.ql.metadata.Hive;
 @Public
 @Evolving
 public interface HiveAuthorizerFactory {
-  HiveAuthorizer createHiveAuthorizer(Hive db, HiveConf conf);
+  HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
+      HiveConf conf, String hiveCurrentUser);
 }

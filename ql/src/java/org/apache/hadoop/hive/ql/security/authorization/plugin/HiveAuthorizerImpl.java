@@ -40,6 +40,21 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
     
   }
 
+  @Override
+  public void createRole(String roleName, HivePrincipal adminGrantor) {
+    accessController.createRole(roleName, adminGrantor);
+  }
+
+  @Override
+  public void dropRole(String roleName) {
+    accessController.dropRole(roleName);
+  }
+
+  @Override
+  public List<String> getRoles(HivePrincipal hivePrincipal) {
+    return accessController.getRoles(hivePrincipal);
+  }
+
 
  // other access control functions
 

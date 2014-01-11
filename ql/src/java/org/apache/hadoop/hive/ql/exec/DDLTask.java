@@ -157,6 +157,7 @@ import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveCurrentAuthorizationID;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -625,26 +626,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int grantOrRevokePrivileges(List<PrincipalDesc> principals,
       List<PrivilegeDesc> privileges, PrivilegeObjectDesc privSubjectDesc,
-      String grantor, PrincipalType grantorType, boolean grantOption, boolean isGrant) throws HiveException {
+      String grantor, PrincipalType grantorType, boolean grantOption, boolean isGrant)
+          throws HiveException {
     
-    if(SessionState.get().getAuthorizationMode() == SessionState.AuthorizationMode.V2){
-      HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
-      
-      //Convert to object types used by the authorization plugin interface
-      List<HivePrincipal> hivePrincipals = getHivePrincipals(principals);
-      List<HivePrivilege> hivePrivileges = getHivePrivileges(privileges);
-      HivePrivilegeObject hivePrivObject = getHivePrivilegeObject(privSubjectDesc);
-      HivePrincipal grantorPrincipal = new HivePrincipal(grantor, getHivePrincipalType(grantorType));
-
-      if(isGrant){
-        authorizer.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
-            grantorPrincipal, grantOption);
-      }else {
-        authorizer.revokePrivileges(hivePrincipals, hivePrivileges, hivePrivObject, grantorPrincipal,
-            grantOption);
-      }
-      //no exception thrown, so looks good
-      return 0;
+    if(SessionState.get().isAuthorizationModeV2()){
+      return grantOrRevokePrivilegesV2(principals, privileges, privSubjectDesc, grantor,
+          grantorType, grantOption, isGrant);
     }
 
     if (privileges == null || privileges.size() == 0) {
@@ -781,6 +768,28 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
+  private int grantOrRevokePrivilegesV2(List<PrincipalDesc> principals,
+      List<PrivilegeDesc> privileges, PrivilegeObjectDesc privSubjectDesc, String grantor,
+      PrincipalType grantorType, boolean grantOption, boolean isGrant) throws HiveException {
+    HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
+    
+    //Convert to object types used by the authorization plugin interface
+    List<HivePrincipal> hivePrincipals = getHivePrincipals(principals);
+    List<HivePrivilege> hivePrivileges = getHivePrivileges(privileges);
+    HivePrivilegeObject hivePrivObject = getHivePrivilegeObject(privSubjectDesc);
+    HivePrincipal grantorPrincipal = new HivePrincipal(grantor, getHivePrincipalType(grantorType));
+
+    if(isGrant){
+      authorizer.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
+          grantorPrincipal, grantOption);
+    }else {
+      authorizer.revokePrivileges(hivePrincipals, hivePrivileges,
+          hivePrivObject, grantorPrincipal, grantOption);
+    }
+    //no exception thrown, so looks good
+    return 0;
+  }
+
   /**
    * @param obj table name that might contain db name (eg "db1.tabl1")
    * @return string array with db name, table name
@@ -844,9 +853,31 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     throw new HiveException(objType + " " + objName + " not found");
   }
 
-  private int roleDDL(RoleDDLDesc roleDDLDesc) {
+  private int roleDDL(RoleDDLDesc roleDDLDesc) throws HiveException {
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     DataOutputStream outStream = null;
+
+    if(SessionState.get().isAuthorizationModeV2()){
+      
+      HivePrincipal currentUser = getAuthenticatedUser(); 
+      
+      HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
+      switch(operation){
+      case CREATE_ROLE:
+        authorizer.createRole(roleDDLDesc.getName(), null);
+        break;
+      case DROP_ROLE:
+        authorizer.dropRole(roleDDLDesc.getName());
+        break;
+      case SHOW_ROLE_GRANT:
+        break;
+      default:
+        throw new HiveException("Unkown role operation "
+            + operation.getOperationName());
+      }
+      
+    }
+
     try {
       if (operation.equals(RoleDDLDesc.RoleOperation.CREATE_ROLE)) {
         db.createRole(roleDDLDesc.getName(), roleDDLDesc.getRoleOwnerName());
@@ -894,6 +925,24 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
 
     return 0;
+  }
+
+  private HiveCurrentAuthorizationID getCurrentAuthorizationID (){
+    return new HiveCurrentAuthorizationID(getAuthenticatedUser(), getCurrentRole());
+  }
+  
+  private HivePrincipal getAuthenticatedUser() {
+    String username = SessionState.get().getAuthenticator().getUserName();
+    return new HivePrincipal(username, HivePrincipalType.USER);
+  }
+  
+  /**
+   * @return current role that has been set using 'set role'
+   */
+  private HivePrincipal getCurrentRole(){
+    //TODO: this changes to return user set by current role (if set), 
+    // when 'set role' is implemented (HIVE-5930)
+    return null;
   }
 
   private int alterDatabase(AlterDatabaseDesc alterDbDesc) throws HiveException {
