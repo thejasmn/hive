@@ -157,7 +157,6 @@ import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveCurrentAuthorizationID;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -547,6 +546,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       PrivilegeObjectDesc hiveObjectDesc = showGrantDesc.getHiveObj();
       String principalName = principalDesc.getName();
       if (hiveObjectDesc == null) {
+        //show all privileges for this user
         List<HiveObjectPrivilege> users = db.showPrivilegeGrant(
             HiveObjectType.GLOBAL, principalName, principalDesc.getType(),
             null, null, null, null);
@@ -964,24 +964,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       sb.append(terminator);
     }
     writeToFile(sb.toString(), resFile);
-  }
-
-  private HiveCurrentAuthorizationID getCurrentAuthorizationID (){
-    return new HiveCurrentAuthorizationID(getAuthenticatedUser(), getCurrentRole());
-  }
-  
-  private HivePrincipal getAuthenticatedUser() {
-    String username = SessionState.get().getAuthenticator().getUserName();
-    return new HivePrincipal(username, HivePrincipalType.USER);
-  }
-  
-  /**
-   * @return current role that has been set using 'set role'
-   */
-  private HivePrincipal getCurrentRole(){
-    //TODO: this changes to return user set by current role (if set), 
-    // when 'set role' is implemented (HIVE-5930)
-    return null;
   }
 
   private int alterDatabase(AlterDatabaseDesc alterDbDesc) throws HiveException {
