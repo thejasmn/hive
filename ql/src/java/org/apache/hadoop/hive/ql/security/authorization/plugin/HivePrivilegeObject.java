@@ -1,11 +1,16 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
+import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
+
 /**
  * Represents the object on which privilege is being granted/revoked 
  */
+@Public
+@Unstable
 public class HivePrivilegeObject {
 
-  public enum HivePrivilegeObjectType { DATABASE, TABLE, VIEW};
+  public enum HivePrivilegeObjectType { DATABASE, TABLE, VIEW, PARTITION, URI};
   private final HivePrivilegeObjectType type;
   private final String dbname;
   private final String tableviewname;

@@ -67,6 +67,12 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
     accessController.revokeRole(hivePrincipals, roles, grantOption, grantorPrinc);
   }
 
+  @Override
+  public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
+      List<HivePrivilegeObject> outputHObjs) {
+    authValidator.checkPrivileges(hiveOpType, inputHObjs, outputHObjs);
+  }
+
 
  // other access control functions
 

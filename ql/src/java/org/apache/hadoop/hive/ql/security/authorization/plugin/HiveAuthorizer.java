@@ -79,18 +79,22 @@ public interface HiveAuthorizer {
   void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc);
 
+  /**
+   * Check if user has privileges to do this action on these objects
+   * @param hiveOpType
+   * @param inputsHObjs
+   * @param outputHObjs
+   */
+  void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputsHObjs,
+      List<HivePrivilegeObject> outputHObjs);
 
-  
-  
-//grantPrivileges(..)
-//revokePrivileges(..)
-//grantRole(..)
-//revokeRole(..)
-//showAllRoles(..)
-//showRolesForUser(..)
-//// other access control functions
-//
-//validateAuthority(HiveAction, inputs, outputs)
+
+  //other functions to be added -
+  //showAllRoles()
+  //showUsersInRole(rolename)
+  //showgrants(username)
+  //isSuperuser(username)
+
 
 }
 

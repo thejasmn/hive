@@ -2,7 +2,6 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.ql.metadata.Hive;
 
 @Private
 public class DefaultHiveAuthorizerFactory implements HiveAuthorizerFactory{
