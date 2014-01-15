@@ -88,6 +88,11 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
     authValidator.checkPrivileges(hiveOpType, inputHObjs, outputHObjs);
   }
 
+  @Override
+  public List<String> getAllRoles() {
+    return accessController.getAllRoles();
+  }
+
 
  // other access control functions
 

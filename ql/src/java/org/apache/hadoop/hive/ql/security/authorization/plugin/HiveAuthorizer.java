@@ -102,6 +102,11 @@ public interface HiveAuthorizer {
   void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputsHObjs,
       List<HivePrivilegeObject> outputHObjs);
 
+  /**
+   * @return all existing roles
+   */
+  List<String> getAllRoles();
+
 
   //other functions to be added -
   //showAllRoles()

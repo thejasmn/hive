@@ -884,7 +884,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return roleDDLV2(roleDDLDesc);
     }
 
-    DataOutput outStream = null;
+    DataOutputStream outStream = null;
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     try {
       if (operation.equals(RoleDDLDesc.RoleOperation.CREATE_ROLE)) {
@@ -950,6 +950,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       List<String> roles = authorizer.getRoles(new HivePrincipal(roleDDLDesc.getName(),
           getHivePrincipalType(roleDDLDesc.getPrincipalType())));
       writeListToFile(roles, roleDDLDesc.getResFile());
+      break;
+    case SHOW_ROLES:
+      List<String> allRoles = authorizer.getAllRoles();
+      writeListToFile(allRoles, roleDDLDesc.getResFile());
       break;
     default:
       throw new HiveException("Unkown role operation "

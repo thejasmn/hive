@@ -44,4 +44,6 @@ public interface HiveAccessController {
   void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc);
 
+  List<String> getAllRoles();
+
 }
