@@ -34,7 +34,7 @@ public class HiveMetastoreClientFactoryImpl implements HiveMetastoreClientFactor
   @Override
   public IMetaStoreClient getHiveMetastoreClient() throws IOException {
     try {
-      return Hive.get().getMSC();  
+      return Hive.get().getMSC();
     } catch (MetaException e) {
       throw new IOException(e);
     } catch (HiveException e) {

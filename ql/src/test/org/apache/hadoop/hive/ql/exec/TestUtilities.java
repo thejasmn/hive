@@ -77,7 +77,7 @@ public class TestUtilities extends TestCase {
     assertEquals(desc.getExprString(), Utilities.deserializeExpression(
       Utilities.serializeExpression(desc)).getExprString());
   }
-  
+
   public void testgetDbTableName() throws HiveException{
     String tablename;
     String [] dbtab;
@@ -89,13 +89,13 @@ public class TestUtilities extends TestCase {
     dbtab = Utilities.getDbTableName(tablename);
     assertEquals("db name", curDefaultdb, dbtab[0]);
     assertEquals("table name", tablename, dbtab[1]);
-    
+
     //test table with db portion
     tablename = "dab1.tab1";
     dbtab = Utilities.getDbTableName(tablename);
     assertEquals("db name", "dab1", dbtab[0]);
     assertEquals("table name", "tab1", dbtab[1]);
-    
+
     //test invalid table name
     tablename = "dab1.tab1.x1";
     try {

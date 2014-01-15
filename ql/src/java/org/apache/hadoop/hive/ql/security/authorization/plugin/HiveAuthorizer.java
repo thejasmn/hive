@@ -24,14 +24,14 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 
 /**
- * Interface for hive authorization plugins. 
+ * Interface for hive authorization plugins.
  * Used by the DDLTasks for access control statement,
  * and for checking authorization from Driver.doAuthorization()
- * 
- * This a more generic version of 
- *  {@link HiveAuthorizationProvider} that lets you define the behavior of access control 
+ *
+ * This a more generic version of
+ *  {@link HiveAuthorizationProvider} that lets you define the behavior of access control
  *  statements and does not make assumptions about the privileges needed for a hive operation.
- * This is referred to as V2 authorizer in other parts of the code. 
+ * This is referred to as V2 authorizer in other parts of the code.
  */
 @Public
 @Evolving

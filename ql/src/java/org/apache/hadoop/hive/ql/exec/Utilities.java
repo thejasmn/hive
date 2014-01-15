@@ -2013,13 +2013,13 @@ public final class Utilities {
     }
     return names;
   }
-  
+
   /**
    * Extract db and table name from dbtable string, where db and table are separated by "."
    * If there is no db name part, set the current sessions default db
    * @param dbtable
    * @return String array with two elements, first is db name, second is table name
-   * @throws HiveException 
+   * @throws HiveException
    */
   public static String[] getDbTableName(String dbtable) throws HiveException{
     String[] names =  dbtable.split("\\.");
@@ -2032,7 +2032,7 @@ public final class Utilities {
       throw new HiveException(ErrorMsg.INVALID_TABLE_NAME, dbtable);
     }
   }
-  
+
   public static void validateColumnNames(List<String> colNames, List<String> checkCols)
       throws SemanticException {
     Iterator<String> checkColsIter = checkCols.iterator();
