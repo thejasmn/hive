@@ -531,7 +531,7 @@ public class Driver implements CommandProcessor {
       doAuthorizationV2(ss, op, inputs, outputs);
       return;
     }
-    
+
     if (op != null) {
       if (op.equals(HiveOperation.CREATEDATABASE)) {
         ss.getAuthorizer().authorize(
@@ -716,6 +716,7 @@ public class Driver implements CommandProcessor {
     List<HivePrivilegeObject> hivePrivobjs = new ArrayList<HivePrivilegeObject>();
     for(Entity input : inputs){
       HivePrivilegeObjectType privObjType = getHivePrivilegeObjectType(input.getType());
+      //support for authorization on partitions or uri needs to be added
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType,
           input.getDatabase().getName(),
           input.getTable().getTableName());

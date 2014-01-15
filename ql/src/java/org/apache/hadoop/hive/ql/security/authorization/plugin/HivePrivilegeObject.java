@@ -21,7 +21,7 @@ import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
 
 /**
- * Represents the object on which privilege is being granted/revoked 
+ * Represents the object on which privilege is being granted/revoked
  */
 @Public
 @Unstable
@@ -31,7 +31,7 @@ public class HivePrivilegeObject {
   private final HivePrivilegeObjectType type;
   private final String dbname;
   private final String tableviewname;
-  
+
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableviewname){
     this.type = type;
     this.dbname = dbname;
@@ -48,5 +48,5 @@ public class HivePrivilegeObject {
 
   public String getTableviewname() {
     return tableviewname;
-  } 
+  }
 }

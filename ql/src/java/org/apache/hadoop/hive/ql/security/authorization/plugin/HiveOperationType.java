@@ -19,6 +19,9 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 
+/**
+ * List of hive operations types.
+ */
 @Public
 public enum HiveOperationType {
   EXPLAIN,

@@ -373,7 +373,7 @@ public enum ErrorMsg {
   "Please update hive.jar.directory or hive.user.install.directory with a valid location", false),
   UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP(10254,
       "Principal type GROUP is not supported in this authorization setting", "28000"),
-    
+
   //========================== 20000 range starts here ========================//
   SCRIPT_INIT_ERROR(20000, "Unable to initialize custom script."),
   SCRIPT_IO_ERROR(20001, "An error occurred while reading or writing to your custom script. "
@@ -386,7 +386,7 @@ public enum ErrorMsg {
       "tried to create too many dynamic partitions. The maximum number of dynamic partitions " +
       "is controlled by hive.exec.max.dynamic.partitions and hive.exec.max.dynamic.partitions.pernode. "),
 
-  //========================== 30000 range starts here ========================//     
+  //========================== 30000 range starts here ========================//
   STATSPUBLISHER_NOT_OBTAINED(30000, "StatsPublisher cannot be obtained. " +
     "There was a error to retrieve the StatsPublisher, and retrying " +
     "might help. If you dont want the query to fail because accurate statistics " +

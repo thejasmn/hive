@@ -495,11 +495,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       boolean grantRole = grantOrRevokeRoleDDL.getGrant();
       List<PrincipalDesc> principals = grantOrRevokeRoleDDL.getPrincipalDesc();
       List<String> roles = grantOrRevokeRoleDDL.getRoles();
-      
+
       if(SessionState.get().isAuthorizationModeV2()){
         return grantOrRevokeRoleV2(grantOrRevokeRoleDDL);
       }
-      
+
       for (PrincipalDesc principal : principals) {
         String userName = principal.getName();
         for (String roleName : roles) {
@@ -520,6 +520,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
   private int grantOrRevokeRoleV2(GrantRevokeRoleDDL grantOrRevokeRoleDDL) throws HiveException {
     HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
+    //convert to the types needed for plugin api
     HivePrincipal grantorPrinc = null;
     if(grantOrRevokeRoleDDL.getGrantor() != null){
       grantorPrinc = new HivePrincipal(grantOrRevokeRoleDDL.getGrantor(),
@@ -527,7 +528,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     }
     List<HivePrincipal> hivePrincipals = getHivePrincipals(grantOrRevokeRoleDDL.getPrincipalDesc());
     List<String> roles = grantOrRevokeRoleDDL.getRoles();
-    
+
     if(grantOrRevokeRoleDDL.getGrant()){
       authorizer.grantRole(hivePrincipals, roles,
           grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
@@ -654,7 +655,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       List<PrivilegeDesc> privileges, PrivilegeObjectDesc privSubjectDesc,
       String grantor, PrincipalType grantorType, boolean grantOption, boolean isGrant)
           throws HiveException {
-    
+
     if(SessionState.get().isAuthorizationModeV2()){
       return grantOrRevokePrivilegesV2(principals, privileges, privSubjectDesc, grantor,
           grantorType, grantOption, isGrant);
@@ -798,7 +799,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       List<PrivilegeDesc> privileges, PrivilegeObjectDesc privSubjectDesc, String grantor,
       PrincipalType grantorType, boolean grantOption, boolean isGrant) throws HiveException {
     HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
-    
+
     //Convert to object types used by the authorization plugin interface
     List<HivePrincipal> hivePrincipals = getHivePrincipals(principals);
     List<HivePrivilege> hivePrivileges = getHivePrivileges(privileges);
@@ -837,10 +838,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private HivePrivilegeObjectType getPrivObjectType(PrivilegeObjectDesc privSubjectDesc) {
-    //TODO: This needs to change to support view once view grant/revoke is supported as 
+    //TODO: This needs to change to support view once view grant/revoke is supported as
     // part of HIVE-6181
     return privSubjectDesc.getTable() ? HivePrivilegeObjectType.TABLE : HivePrivilegeObjectType.DATABASE;
-    
   }
 
   private List<HivePrivilege> getHivePrivileges(List<PrivilegeDesc> privileges) {
@@ -883,7 +883,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     if(SessionState.get().isAuthorizationModeV2()){
       return roleDDLV2(roleDDLDesc);
     }
-    
+
     DataOutput outStream = null;
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     try {
@@ -938,6 +938,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private int roleDDLV2(RoleDDLDesc roleDDLDesc) throws HiveException, IOException {
     HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
+    //call the appropriate hive authorizer function
     switch(operation){
     case CREATE_ROLE:
       authorizer.createRole(roleDDLDesc.getName(), null);
@@ -957,10 +958,16 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
-  private void writeListToFile(List<String> roles, String resFile) throws IOException {
-    StringBuilder sb = new StringBuilder(roles.size()*2);
-    for(String role : roles){
-      sb.append(role);
+  /**
+   * Write list of string entries into given file
+   * @param entries
+   * @param resFile
+   * @throws IOException
+   */
+  private void writeListToFile(List<String> entries, String resFile) throws IOException {
+    StringBuilder sb = new StringBuilder(entries.size()*2);
+    for(String entry : entries){
+      sb.append(entry);
       sb.append(terminator);
     }
     writeToFile(sb.toString(), resFile);

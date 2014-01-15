@@ -24,7 +24,7 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 
 /**
  * Convenience implementation of HiveAuthorizer.
- * You can customize the behavior by passing different implementations of 
+ * You can customize the behavior by passing different implementations of
  * {@link HiveAccessController} and {@link HiveAuthorizationValidator} to constructor.
  *
  */
@@ -43,18 +43,16 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
   public void grantPrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
       HivePrincipal grantorPrincipal, boolean grantOption) {
-    accessController.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject, 
+    accessController.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
         grantorPrincipal, grantOption);
-    
   }
 
   @Override
   public void revokePrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
       HivePrincipal grantorPrincipal, boolean grantOption) {
-    accessController.revokePrivileges(hivePrincipals, hivePrivileges, hivePrivObject, 
+    accessController.revokePrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
         grantorPrincipal, grantOption);
-    
   }
 
   @Override

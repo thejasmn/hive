@@ -22,13 +22,22 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.conf.HiveConf;
 
 /**
- * Implementation of this interface specified through hive configuration will be used to 
+ * Implementation of this interface specified through hive configuration will be used to
  * create  {@link HiveAuthorizer} instance used for hive authorization.
  *
  */
 @Public
 @Evolving
 public interface HiveAuthorizerFactory {
+  /**
+   * Create a new instance of HiveAuthorizer, initialized with the given objects.
+   * @param metastoreClientFactory - Use this to get the valid meta store client (IMetaStoreClient)
+   *  for the current thread. Each invocation of method in HiveAuthorizer can happen in
+   *  different thread, so get the current instance in each method invocation.
+   * @param conf - current HiveConf
+   * @param hiveCurrentUser - user for current session
+   * @return new instance of HiveAuthorizer
+   */
   HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, String hiveCurrentUser);
 }

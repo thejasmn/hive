@@ -19,18 +19,16 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import java.util.List;
 
+/**
+ * Interface that is invoked by access control commands, including grant/revoke role/privileges,
+ * create/drop roles, and commands to read the state of authorization rules.
+ * Methods here have corresponding methods in HiveAuthorizer, check method documentation there.
+ */
 public interface HiveAccessController {
-
-//  grantPrivileges();
-//  revokePrivileges(); 
-//  grantRole()
-//  revokeRole()
-//  showAllRoles()
-//// other access control functions
 
   void grantPrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption);
-  
+
   void revokePrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption);
 
@@ -45,5 +43,5 @@ public interface HiveAccessController {
 
   void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc);
-  
+
 }

@@ -23,6 +23,9 @@ import java.io.IOException;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.metadata.Hive;
+/**
+ * Private implementaiton that returns instance of IMetaStoreClient
+ */
 @Private
 public class HiveMetastoreClientFactoryImpl implements HiveMetastoreClientFactory{
 

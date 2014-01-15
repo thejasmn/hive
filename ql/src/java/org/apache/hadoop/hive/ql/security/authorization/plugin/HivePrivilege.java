@@ -25,7 +25,7 @@ import java.util.List;
 public class HivePrivilege {
   private final String name;
   private final List<String> columns;
- 
+
   public HivePrivilege(String name, List<String> columns){
     this.name = name;
     this.columns = columns;
@@ -38,5 +38,5 @@ public class HivePrivilege {
   public List<String> getColumns() {
     return columns;
   }
-  
+
 }

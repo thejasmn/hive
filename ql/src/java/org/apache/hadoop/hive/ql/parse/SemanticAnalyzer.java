@@ -182,7 +182,7 @@ import org.apache.hadoop.mapred.InputFormat;
 
 /**
  * Implementation of the semantic analyzer. It generates the query plan.
- * There are other specific semantic analyzers for some hive operations such as 
+ * There are other specific semantic analyzers for some hive operations such as
  * DDLSemanticAnalyzer for ddl operations.
  */
 

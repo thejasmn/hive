@@ -23,14 +23,12 @@ import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.junit.Test;
 
 /**
- * Test SessionState
+ * Test HiveOperationType
  */
 public class TestHiveOperationType {
 
-
-  
   /**
-   * test that all enums in {@link HiveOperation} match one in @{link HiveOperationType} 
+   * test that all enums in {@link HiveOperation} match one in @{link HiveOperationType}
    */
   @Test
   public void checkHiveOperationTypeMatch(){
@@ -42,10 +40,8 @@ public class TestHiveOperationType {
         fail("Unable to find corresponding type in HiveOperationType for " + op);
       }
     }
-    assertEquals("Check if HiveOperation, HiveOperationType have same number of instances", 
+    assertEquals("Check if HiveOperation, HiveOperationType have same number of instances",
         HiveOperation.values().length, HiveOperationType.values().length);
   }
-
-
 
 }

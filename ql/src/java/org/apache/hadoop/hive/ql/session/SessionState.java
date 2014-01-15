@@ -123,9 +123,9 @@ public class SessionState {
   private HiveAuthorizationProvider authorizer;
 
   private HiveAuthorizer authorizerV2;
-  
+
   public enum AuthorizationMode{V1, V2};
-  
+
   private HiveAuthenticationProvider authenticator;
 
   private CreateTableAutomaticGrant createTableGrants;
@@ -320,7 +320,7 @@ public class SessionState {
       startSs.authorizer = HiveUtils.getAuthorizeProviderManager(
           startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER,
           startSs.authenticator, true);
-      
+
       if(startSs.authorizer == null){
         //if it was null, the new authorization plugin must be specified in config
         HiveAuthorizerFactory authorizerFactory =
@@ -349,9 +349,7 @@ public class SessionState {
     } else {
        LOG.info("No Tez session required at this point. hive.execution.engine=mr.");
     }
-
-    return startSs;
-
+    return;
   }
 
   /**
@@ -779,7 +777,7 @@ public class SessionState {
   public HiveAuthorizer getAuthorizerV2() {
     return authorizerV2;
   }
-  
+
   public HiveAuthenticationProvider getAuthenticator() {
     return authenticator;
   }
@@ -872,7 +870,7 @@ public class SessionState {
       tezSessionState = null;
     }
   }
-  
+
   public AuthorizationMode getAuthorizationMode(){
     if(authorizer != null){
       return AuthorizationMode.V1;
@@ -884,11 +882,10 @@ public class SessionState {
       throw new RuntimeException("Authorization plugins not initialized!");
     }
   }
-  
+
   public boolean isAuthorizationModeV2(){
     return getAuthorizationMode() == AuthorizationMode.V2;
   }
-  
 
   /**
    * @param resetPerfLogger

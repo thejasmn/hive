@@ -22,9 +22,20 @@ import java.util.List;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 
+/**
+ * Interface used to check if user has privileges to perform certain action.
+ * Methods here have corresponding methods in HiveAuthorizer, check method documentation there.
+ */
 @Public
 @Evolving
 public interface HiveAuthorizationValidator {
+  /**
+   * Check if current user has privileges to perform given operation type hiveOpType on the given
+   * input and output objects
+   * @param hiveOpType
+   * @param inputHObjs
+   * @param outputHObjs
+   */
   void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
       List<HivePrivilegeObject> outputHObjs);
 
