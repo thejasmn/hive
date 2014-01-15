@@ -877,10 +877,8 @@ public class SessionState {
     }else if(authorizerV2 != null){
       return AuthorizationMode.V2;
     }
-    else {
-      //should not happen - this should not get called before this.start() is called
-      throw new RuntimeException("Authorization plugins not initialized!");
-    }
+    //should not happen - this should not get called before this.start() is called
+    throw new AssertionError("Authorization plugins not initialized!");
   }
 
   public boolean isAuthorizationModeV2(){

@@ -373,6 +373,7 @@ public enum ErrorMsg {
   "Please update hive.jar.directory or hive.user.install.directory with a valid location", false),
   UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP(10254,
       "Principal type GROUP is not supported in this authorization setting", "28000"),
+  INVALID_TABLE_NAME(10255, "Invalid table name {0}", true),
 
   //========================== 20000 range starts here ========================//
   SCRIPT_INIT_ERROR(20000, "Unable to initialize custom script."),

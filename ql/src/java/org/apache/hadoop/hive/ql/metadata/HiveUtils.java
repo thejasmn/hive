@@ -385,7 +385,7 @@ public final class HiveUtils {
    * @param conf
    * @param authorizationProviderConfKey
    * @return
-   * @throws HiveException if HiveAuthorizerFactory specified in configuration could not 
+   * @throws HiveException if HiveAuthorizerFactory specified in configuration could not
    */
   public static HiveAuthorizerFactory getAuthorizerFactory(
       Configuration conf, HiveConf.ConfVars authorizationProviderConfKey)

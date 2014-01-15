@@ -32,12 +32,12 @@ public class TestHiveOperationType {
    */
   @Test
   public void checkHiveOperationTypeMatch(){
-    for(HiveOperation op : HiveOperation.values()){
+    for (HiveOperation op : HiveOperation.values()) {
       try {
         HiveOperationType.valueOf(op.name());
-      }catch(Exception ex){
-        //if value is null or not found, exception would get thrown
-        fail("Unable to find corresponding type in HiveOperationType for " + op);
+      } catch(IllegalArgumentException ex) {
+        // if value is null or not found, exception would get thrown
+        fail("Unable to find corresponding type in HiveOperationType for " + op + " : " +  ex );
       }
     }
     assertEquals("Check if HiveOperation, HiveOperationType have same number of instances",

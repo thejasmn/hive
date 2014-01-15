@@ -22,7 +22,9 @@ import java.io.IOException;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.ql.metadata.Hive;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 /**
  * Private implementaiton that returns instance of IMetaStoreClient
  */
@@ -32,8 +34,10 @@ public class HiveMetastoreClientFactoryImpl implements HiveMetastoreClientFactor
   @Override
   public IMetaStoreClient getHiveMetastoreClient() throws IOException {
     try {
-      return Hive.get().getMSC();
-    } catch (Exception e) {
+      return Hive.get().getMSC();  
+    } catch (MetaException e) {
+      throw new IOException(e);
+    } catch (HiveException e) {
       throw new IOException(e);
     }
   }

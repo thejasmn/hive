@@ -681,7 +681,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
         //get the db, table objects
         if (privSubjectDesc.getTable()) {
-          String[] dbTable = getDbTableName(obj);
+          String[] dbTable = Utilities.getDbTableName(obj);
           dbName = dbTable[0];
           tableName = dbTable[1];
 
@@ -817,23 +817,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
-  /**
-   * @param obj table name that might contain db name (eg "db1.tabl1")
-   * @return string array with db name, table name
-   */
-  private String[] getDbTableName(String obj) {
-    String[] dbTab = obj.split("\\.");
-    if (dbTab.length != 2) {
-      //no db part in tablename, use default db for current session
-      dbTab = new String [2];
-      dbTab[0] = SessionState.get().getCurrentDatabase();
-      dbTab[1] = obj;
-    }
-    return dbTab;
-  }
-
-  private HivePrivilegeObject getHivePrivilegeObject(PrivilegeObjectDesc privSubjectDesc) {
-    String [] dbTable = getDbTableName(privSubjectDesc.getObject());
+  private HivePrivilegeObject getHivePrivilegeObject(PrivilegeObjectDesc privSubjectDesc)
+      throws HiveException {
+    String [] dbTable = Utilities.getDbTableName(privSubjectDesc.getObject());
     return new HivePrivilegeObject(getPrivObjectType(privSubjectDesc), dbTable[0], dbTable[1]);
   }
 
