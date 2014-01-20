@@ -34,7 +34,7 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
   HiveAccessController accessController;
   HiveAuthorizationValidator authValidator;
    
-   HiveAuthorizerImpl(HiveAccessController accessController, HiveAuthorizationValidator authValidator){
+   public HiveAuthorizerImpl(HiveAccessController accessController, HiveAuthorizationValidator authValidator){
      this.accessController = accessController;
      this.authValidator = authValidator;
    }
