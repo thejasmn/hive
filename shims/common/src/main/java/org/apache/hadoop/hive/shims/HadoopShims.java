@@ -354,7 +354,7 @@ public interface HadoopShims {
    */
   void setTotalOrderPartitionFile(JobConf jobConf, Path partition);
 
-  public Comparator<LongWritable> getLongComparator();
+  Comparator<LongWritable> getLongComparator();
 
   /**
    * InputSplitShim.

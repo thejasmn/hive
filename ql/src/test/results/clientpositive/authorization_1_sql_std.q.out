@@ -24,10 +24,6 @@ principalType	USER
 privilege	Select
 #### A masked pattern was here ####
 grantor	hive_test_user
-PREHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
 PREHOOK: query: -- select key from src_autho_test order by key limit 20;
 
 revoke select on table src_autho_test from user hive_test_user
@@ -42,64 +38,10 @@ PREHOOK: query: show grant user hive_test_user on table src_autho_test
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: show grant user hive_test_user on table src_autho_test
 POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: --column grant to user
-
-grant select(key) on table src_autho_test to user hive_test_user
-PREHOOK: type: GRANT_PRIVILEGE
-PREHOOK: Output: default@src_autho_test
-POSTHOOK: query: --column grant to user
-
-grant select(key) on table src_autho_test to user hive_test_user
-POSTHOOK: type: GRANT_PRIVILEGE
-POSTHOOK: Output: default@src_autho_test
-PREHOOK: query: show grant user hive_test_user on table src_autho_test
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test
-POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
-database	default
-table	src_autho_test
-columnName	key
-principalName	hive_test_user
-principalType	USER
-privilege	Select
-#### A masked pattern was here ####
-grantor	hive_test_user
-PREHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-revoke select(key) on table src_autho_test from user hive_test_user
-PREHOOK: type: REVOKE_PRIVILEGE
-PREHOOK: Output: default@src_autho_test
-POSTHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-revoke select(key) on table src_autho_test from user hive_test_user
-POSTHOOK: type: REVOKE_PRIVILEGE
-POSTHOOK: Output: default@src_autho_test
-PREHOOK: query: show grant user hive_test_user on table src_autho_test
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test
-POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant user hive_test_user on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-
---role
+PREHOOK: query: --role
 create role src_role
 PREHOOK: type: CREATEROLE
-POSTHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-
---role
+POSTHOOK: query: --role
 create role src_role
 POSTHOOK: type: CREATEROLE
 PREHOOK: query: grant role src_role to user hive_test_user
@@ -111,42 +53,7 @@ PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant user hive_test_user
 POSTHOOK: type: SHOW_ROLE_GRANT
 src_role
-PREHOOK: query: --column grant to role
 
-grant select(key) on table src_autho_test to role src_role
-PREHOOK: type: GRANT_PRIVILEGE
-PREHOOK: Output: default@src_autho_test
-POSTHOOK: query: --column grant to role
-
-grant select(key) on table src_autho_test to role src_role
-POSTHOOK: type: GRANT_PRIVILEGE
-POSTHOOK: Output: default@src_autho_test
-PREHOOK: query: show grant role src_role on table src_autho_test
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant role src_role on table src_autho_test
-POSTHOOK: type: SHOW_GRANT
-PREHOOK: query: show grant role src_role on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant role src_role on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
-database	default
-table	src_autho_test
-columnName	key
-principalName	src_role
-principalType	ROLE
-privilege	Select
-#### A masked pattern was here ####
-grantor	hive_test_user
-PREHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-revoke select(key) on table src_autho_test from role src_role
-PREHOOK: type: REVOKE_PRIVILEGE
-PREHOOK: Output: default@src_autho_test
-POSTHOOK: query: -- select key from src_autho_test order by key limit 20;
-
-revoke select(key) on table src_autho_test from role src_role
-POSTHOOK: type: REVOKE_PRIVILEGE
-POSTHOOK: Output: default@src_autho_test
 PREHOOK: query: --table grant to role
 
 grant select on table src_autho_test to role src_role
@@ -172,10 +79,6 @@ principalType	ROLE
 privilege	Select
 #### A masked pattern was here ####
 grantor	hive_test_user
-PREHOOK: query: show grant role src_role on table src_autho_test(key)
-PREHOOK: type: SHOW_GRANT
-POSTHOOK: query: show grant role src_role on table src_autho_test(key)
-POSTHOOK: type: SHOW_GRANT
 PREHOOK: query: revoke select on table src_autho_test from role src_role
 PREHOOK: type: REVOKE_PRIVILEGE
 PREHOOK: Output: default@src_autho_test

@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.ArrayList;
@@ -13,6 +30,7 @@ import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
@@ -71,6 +89,10 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     HiveObjectRef privObj = getThriftHiveObjectRef(hivePrivObject);
     PrivilegeBag privBag = new PrivilegeBag();
     for(HivePrivilege privilege : hivePrivileges){
+      if(privilege.getColumns() != null && privilege.getColumns().size() > 0){
+        throw new HiveAuthorizationPluginException("Privileges on columns not supported currently"
+            + "in sql standard authorization mode");
+      }
       PrivilegeGrantInfo grantInfo = getThriftPrivilegeGrantInfo(privilege, grantorPrincipal, grantOption);
       for(HivePrincipal principal : hivePrincipals){
         HiveObjectPrivilege objPriv = new HiveObjectPrivilege(privObj, principal.getName(),
@@ -81,25 +103,21 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     return privBag;
   }
 
+  private PrincipalType getThriftPrincipalType(HivePrincipalType type)
+      throws HiveAuthorizationPluginException {
+    try {
+      return  AuthorizationUtils.getThriftPrincipalType(type);
+    } catch (HiveException e) {
+      throw new HiveAuthorizationPluginException(e);
+    }
+  }
 
   private PrivilegeGrantInfo getThriftPrivilegeGrantInfo(HivePrivilege privilege,
       HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
-    return new PrivilegeGrantInfo(privilege.getName(), 0 /* time gets added by server */,
-        grantorPrincipal.getName(), getThriftPrincipalType(grantorPrincipal.getType()), grantOption);
-  }
-
-  private PrincipalType getThriftPrincipalType(HivePrincipalType type)
-      throws HiveAuthorizationPluginException {
-    if(type == null){
-      return null;
-    }
-    switch(type){
-    case USER:
-      return PrincipalType.USER;
-    case ROLE:
-      return PrincipalType.ROLE;
-    default:
-      throw new HiveAuthorizationPluginException("Invalid principal type");
+    try {
+      return  AuthorizationUtils.getThriftPrivilegeGrantInfo(privilege, grantorPrincipal, grantOption);
+    } catch (HiveException e) {
+      throw new HiveAuthorizationPluginException(e);
     }
   }
 
@@ -111,21 +129,10 @@ public class SQLStdHiveAccessController implements HiveAccessController {
    */
   private HiveObjectRef getThriftHiveObjectRef(HivePrivilegeObject privObj)
       throws HiveAuthorizationPluginException {
-    HiveObjectType objType = getThriftHiveObjType(privObj.getType());
-    return new HiveObjectRef(objType, privObj.getDbname(), privObj.getTableviewname(), null, null);
-  }
-
-  private HiveObjectType getThriftHiveObjType(HivePrivilegeObjectType type)
-      throws HiveAuthorizationPluginException {
-    switch(type){
-    case DATABASE:
-      return HiveObjectType.DATABASE;
-    case TABLE:
-      return HiveObjectType.TABLE;
-    case PARTITION:
-      return HiveObjectType.PARTITION;
-    default:
-      throw new HiveAuthorizationPluginException("Unsupported type");
+    try {
+      return  AuthorizationUtils.getThriftHiveObjectRef(privObj);
+    } catch (HiveException e) {
+      throw new HiveAuthorizationPluginException(e);
     }
   }
 
@@ -207,19 +214,21 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   @Override
   public void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roleNames,
       boolean grantOption, HivePrincipal grantorPrinc) throws HiveAuthorizationPluginException {
+    if(grantOption){
+      //removing grant privileges only is not supported in metastore api
+      throw new HiveAuthorizationPluginException("Revoking only the admin privileges on "
+          + "role is not currently supported");
+    }
     for(HivePrincipal hivePrincipal : hivePrincipals){
       for(String roleName : roleNames){
         try {
           IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
-          mClient.grant_role(roleName,
+          mClient.revoke_role(roleName,
               hivePrincipal.getName(),
-              getThriftPrincipalType(hivePrincipal.getType()),
-              grantorPrinc.getName(),
-              getThriftPrincipalType(grantorPrinc.getType()), 
-              grantOption
+              getThriftPrincipalType(hivePrincipal.getType())
               );
         }  catch (Exception e) {
-          String msg = "Error granting roles for " + hivePrincipal.getName() +  " to role " + roleName 
+          String msg = "Error revoking roles for " + hivePrincipal.getName() +  " to role " + roleName 
               + hivePrincipal.getName();
           throw new HiveAuthorizationPluginException(msg, e);
         }

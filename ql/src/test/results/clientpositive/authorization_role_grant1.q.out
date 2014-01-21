@@ -17,11 +17,13 @@ PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant user user2
 POSTHOOK: type: SHOW_ROLE_GRANT
 src_role2
+
 PREHOOK: query: show roles
 PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show roles
 POSTHOOK: type: SHOW_ROLES
 src_role2
+
 PREHOOK: query: -- revoke role without role keyword
 revoke src_role2 from user user2
 PREHOOK: type: REVOKE_ROLE
@@ -37,6 +39,7 @@ PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show roles
 POSTHOOK: type: SHOW_ROLES
 src_role2
+
 PREHOOK: query: ----------------------------------------
 -- role granting without role keyword, with admin option (syntax check)
 ----------------------------------------
@@ -58,6 +61,7 @@ PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant user user2
 POSTHOOK: type: SHOW_ROLE_GRANT
 src_role_wadmin
+
 PREHOOK: query: -- revoke role without role keyword
 revoke src_role_wadmin from user user2 with admin option
 PREHOOK: type: REVOKE_ROLE
@@ -76,6 +80,7 @@ show roles
 POSTHOOK: type: SHOW_ROLES
 src_role2
 src_role_wadmin
+
 PREHOOK: query: drop role src_role2
 PREHOOK: type: DROPROLE
 POSTHOOK: query: drop role src_role2
@@ -85,6 +90,7 @@ PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show roles
 POSTHOOK: type: SHOW_ROLES
 src_role_wadmin
+
 PREHOOK: query: drop role src_role_wadmin
 PREHOOK: type: DROPROLE
 POSTHOOK: query: drop role src_role_wadmin

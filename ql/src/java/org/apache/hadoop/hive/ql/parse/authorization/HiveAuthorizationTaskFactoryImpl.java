@@ -235,8 +235,12 @@ public class HiveAuthorizationTaskFactoryImpl implements HiveAuthorizationTaskFa
         && SessionState.get().getAuthenticator() != null) {
       roleOwnerName = SessionState.get().getAuthenticator().getUserName();
     }
+    
+    //until change is made to use the admin option. Default to false with V2 authorization
+    boolean isAdmin = SessionState.get().isAuthorizationModeV2() ? false : true;
+    
     GrantRevokeRoleDDL grantRevokeRoleDDL = new GrantRevokeRoleDDL(isGrant,
-        roles, principalDesc, roleOwnerName, PrincipalType.USER, true);
+        roles, principalDesc, roleOwnerName, PrincipalType.USER, isAdmin);
     return TaskFactory.get(new DDLWork(inputs, outputs, grantRevokeRoleDDL), conf);
   }
 
