@@ -139,6 +139,16 @@ public interface HiveAuthorizer {
    */
   List<String> getAllRoles()
       throws HiveAuthorizationPluginException;
+
+  /**
+   * Show privileges for given principal on given object 
+   * @param principal
+   * @param privObj
+   * @return
+   * @throws HiveAuthorizationPluginException
+   */
+  List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
+      throws HiveAuthorizationPluginException;
  
   
   //other functions to be added -
