@@ -54,7 +54,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
-import org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
@@ -307,37 +306,7 @@ public class SessionState {
       // that would cause ClassNoFoundException otherwise
       throw new RuntimeException(e);
     }
-    setupAuth(startSs);
-    return startSs;
-  }
-
-  /**
-   * Setup authentication and authorization plugins for this session.
-   * @param startSs
-   */
-  private static void setupAuth(SessionState startSs) {
-    try {
-      startSs.authenticator = HiveUtils.getAuthenticator(
-          startSs.getConf(),HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
-      startSs.authorizer = HiveUtils.getAuthorizeProviderManager(
-          startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER,
-          startSs.authenticator, true);
-
-      if(startSs.authorizer == null){
-        //if it was null, the new authorization plugin must be specified in config
-        HiveAuthorizerFactory authorizerFactory =
-            HiveUtils.getAuthorizerFactory(startSs.getConf(), HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
-        startSs.authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
-            startSs.getConf(), startSs.authenticator.getUserName());
-      }
-      else{
-        startSs.createTableGrants = CreateTableAutomaticGrant.create(startSs
-            .getConf());
-      }
-    } catch (HiveException e) {
-      throw new RuntimeException(e);
-    }
-
+    
     if (HiveConf.getVar(startSs.getConf(), HiveConf.ConfVars.HIVE_EXECUTION_ENGINE)
         .equals("tez")) {
       try {
@@ -350,6 +319,46 @@ public class SessionState {
       }
     } else {
        LOG.info("No Tez session required at this point. hive.execution.engine=mr.");
+    }
+    return startSs;
+  }
+
+  /**
+   * Setup authentication and authorization plugins for this session.
+   * @param startSs
+   */
+  private void setupAuth() {
+    
+    if(authenticator != null){
+      //auth has been initialized
+      return;
+    }
+    
+    try {
+        authenticator = HiveUtils.getAuthenticator(
+          getConf(),HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
+      authorizer = HiveUtils.getAuthorizeProviderManager(
+          getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER,
+          authenticator, true);
+
+      if(authorizer == null){
+        //if it was null, the new authorization plugin must be specified in config
+        HiveAuthorizerFactory authorizerFactory =
+            HiveUtils.getAuthorizerFactory(getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER);
+        authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
+            getConf(), authenticator.getUserName());
+      }
+      else{
+        createTableGrants = CreateTableAutomaticGrant.create(getConf());
+      }
+    } catch (HiveException e) {
+      throw new RuntimeException(e);
+    }
+    
+    if(LOG.isDebugEnabled()){
+      Object authorizationClass = getAuthorizationMode() == AuthorizationMode.V1 ?
+          getAuthorizer() : getAuthorizerV2();
+      LOG.debug("Session is using authorization class " + authorizationClass.getClass());
     }
     return;
   }
@@ -777,6 +786,7 @@ public class SessionState {
   }
 
   public HiveAuthorizationProvider getAuthorizer() {
+    setupAuth();
     return authorizer;
   }
 
@@ -785,10 +795,12 @@ public class SessionState {
   }
 
   public HiveAuthorizer getAuthorizerV2() {
+    setupAuth();
     return authorizerV2;
   }
 
   public HiveAuthenticationProvider getAuthenticator() {
+    setupAuth();
     return authenticator;
   }
 
@@ -882,6 +894,7 @@ public class SessionState {
   }
 
   public AuthorizationMode getAuthorizationMode(){
+    setupAuth();
     if(authorizer != null){
       return AuthorizationMode.V1;
     }else if(authorizerV2 != null){
