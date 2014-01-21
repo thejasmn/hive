@@ -977,10 +977,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
    * @throws IOException
    */
   private void writeListToFile(List<String> entries, String resFile) throws IOException {
-    StringBuilder sb = new StringBuilder(entries.size()*2);
+    StringBuilder sb = new StringBuilder();
     for(String entry : entries){
       sb.append(entry);
-      sb.append(terminator);
+      sb.append((char)terminator);
     }
     writeToFile(sb.toString(), resFile);
   }

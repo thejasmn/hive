@@ -145,8 +145,9 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public void createRole(String roleName, HivePrincipal adminGrantor)
       throws HiveAuthorizationPluginException {
     try {
+      String grantorName = adminGrantor == null ? null : adminGrantor.getName();
       metastoreClientFactory.getHiveMetastoreClient()
-        .create_role(new Role(roleName, 0, adminGrantor.getName()));
+        .create_role(new Role(roleName, 0, grantorName));
     } catch (Exception e) {
       throw new HiveAuthorizationPluginException("Error create role", e);
     } 
