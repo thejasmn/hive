@@ -15,16 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.hive.ql.security.authorization.plugin;
+package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerImpl;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 
 @Private
-public class DefaultHiveAuthorizerFactory implements HiveAuthorizerFactory{
+public class SQLStdHiveAuthorizerFactory implements HiveAuthorizerFactory{
   @Override
   public HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, String hiveCurrentUser) {
-    return null;
+    return new HiveAuthorizerImpl(
+        new SQLStdHiveAccessController(metastoreClientFactory, conf, hiveCurrentUser), 
+        new SQLStdHiveAuthorizationValidator()
+        );
   }
 }

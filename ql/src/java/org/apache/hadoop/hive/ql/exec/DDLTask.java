@@ -155,7 +155,9 @@ import org.apache.hadoop.hive.ql.plan.TruncateTableDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.UnlockTableDesc;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
+import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
@@ -530,12 +532,20 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     List<String> roles = grantOrRevokeRoleDDL.getRoles();
 
     if(grantOrRevokeRoleDDL.getGrant()){
-      authorizer.grantRole(hivePrincipals, roles,
-          grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
+      try {
+        authorizer.grantRole(hivePrincipals, roles,
+            grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
+      } catch (HiveAuthorizationPluginException e) {
+        throw new HiveException("Error running grant statement", e);
+      }
     }
     else{
-      authorizer.revokeRole(hivePrincipals, roles,
-          grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
+      try {
+        authorizer.revokeRole(hivePrincipals, roles,
+            grantOrRevokeRoleDDL.isGrantOption(), grantorPrinc);
+      } catch (HiveAuthorizationPluginException e) {
+        throw new HiveException("Error running revoke statement", e);
+      }
     }
     return 0;
   }
@@ -807,11 +817,19 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     HivePrincipal grantorPrincipal = new HivePrincipal(grantor, getHivePrincipalType(grantorType));
 
     if(isGrant){
-      authorizer.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
-          grantorPrincipal, grantOption);
+      try {
+        authorizer.grantPrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
+            grantorPrincipal, grantOption);
+      } catch (HiveAuthorizationPluginException e) {
+        throw new HiveException("Error running grant statement", e);
+      }
     }else {
-      authorizer.revokePrivileges(hivePrincipals, hivePrivileges,
-          hivePrivObject, grantorPrincipal, grantOption);
+      try {
+        authorizer.revokePrivileges(hivePrincipals, hivePrivileges,
+            hivePrivObject, grantorPrincipal, grantOption);
+      } catch (HiveAuthorizationPluginException e) {
+        throw new HiveException("Error running revoke statement", e);
+      }
     }
     //no exception thrown, so looks good
     return 0;
@@ -821,6 +839,24 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       throws HiveException {
     String [] dbTable = Utilities.getDbTableName(privSubjectDesc.getObject());
     return new HivePrivilegeObject(getPrivObjectType(privSubjectDesc), dbTable[0], dbTable[1]);
+  }
+
+  private HivePrincipalType getHivePrincipalType(PrincipalType type) throws HiveException {
+    if(type == null){
+      return null;
+    }
+      
+    switch(type){
+    case USER:
+      return HivePrincipalType.USER;
+    case ROLE:
+      return HivePrincipalType.ROLE;
+    case GROUP:
+      throw new HiveException(ErrorMsg.UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP);
+    default:
+      //should not happen as we take care of all existing types
+      throw new HiveException("Unsupported authorization type specified");
+    }
   }
 
   private HivePrivilegeObjectType getPrivObjectType(PrivilegeObjectDesc privSubjectDesc) {
@@ -842,23 +878,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     ArrayList<HivePrincipal> hivePrincipals = new ArrayList<HivePrincipal>();
     for(PrincipalDesc principal : principals){
       hivePrincipals.add(
-          new HivePrincipal(principal.getName(), getHivePrincipalType(principal.getType())));
+          new HivePrincipal(principal.getName(), AuthorizationUtils.getHivePrincipalType(principal.getType())));
     }
     return hivePrincipals;
-  }
-
-  private HivePrincipalType getHivePrincipalType(PrincipalType type) throws HiveException {
-    switch(type){
-    case USER:
-      return HivePrincipalType.USER;
-    case ROLE:
-      return HivePrincipalType.ROLE;
-    case GROUP:
-      throw new HiveException(ErrorMsg.UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP);
-    default:
-      //should not happen as we take care of all existing types
-      throw new HiveException("Unsupported authorization type specified");
-    }
   }
 
   private void throwNotFound(String objType, String objName) throws HiveException {
@@ -925,25 +947,29 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     //call the appropriate hive authorizer function
-    switch(operation){
-    case CREATE_ROLE:
-      authorizer.createRole(roleDDLDesc.getName(), null);
-      break;
-    case DROP_ROLE:
-      authorizer.dropRole(roleDDLDesc.getName());
-      break;
-    case SHOW_ROLE_GRANT:
-      List<String> roles = authorizer.getRoles(new HivePrincipal(roleDDLDesc.getName(),
-          getHivePrincipalType(roleDDLDesc.getPrincipalType())));
-      writeListToFile(roles, roleDDLDesc.getResFile());
-      break;
-    case SHOW_ROLES:
-      List<String> allRoles = authorizer.getAllRoles();
-      writeListToFile(allRoles, roleDDLDesc.getResFile());
-      break;
-    default:
-      throw new HiveException("Unkown role operation "
-          + operation.getOperationName());
+    try{ 
+      switch(operation){
+      case CREATE_ROLE:
+        authorizer.createRole(roleDDLDesc.getName(), null);
+        break;
+      case DROP_ROLE:
+        authorizer.dropRole(roleDDLDesc.getName());
+        break;
+      case SHOW_ROLE_GRANT:
+        List<String> roles = authorizer.getRoles(new HivePrincipal(roleDDLDesc.getName(),
+            getHivePrincipalType(roleDDLDesc.getPrincipalType())));
+        writeListToFile(roles, roleDDLDesc.getResFile());
+        break;
+      case SHOW_ROLES:
+        List<String> allRoles = authorizer.getAllRoles();
+        writeListToFile(allRoles, roleDDLDesc.getResFile());
+        break;
+      default:
+        throw new HiveException("Unkown role operation "
+            + operation.getOperationName());
+      }
+    } catch (HiveAuthorizationPluginException e) {
+      throw new HiveException("Error running role command ", e);
     }
     return 0;
   }
@@ -955,10 +981,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
    * @throws IOException
    */
   private void writeListToFile(List<String> entries, String resFile) throws IOException {
-    StringBuilder sb = new StringBuilder(entries.size()*2);
+    StringBuilder sb = new StringBuilder();
     for(String entry : entries){
       sb.append(entry);
-      sb.append(terminator);
+      sb.append((char)terminator);
     }
     writeToFile(sb.toString(), resFile);
   }
