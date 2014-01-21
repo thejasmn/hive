@@ -90,6 +90,9 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   private PrincipalType getThriftPrincipalType(HivePrincipalType type)
       throws HiveAuthorizationPluginException {
+    if(type == null){
+      return null;
+    }
     switch(type){
     case USER:
       return PrincipalType.USER;

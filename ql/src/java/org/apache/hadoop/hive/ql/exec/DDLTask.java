@@ -842,6 +842,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private HivePrincipalType getHivePrincipalType(PrincipalType type) throws HiveException {
+    if(type == null){
+      return null;
+    }
+      
     switch(type){
     case USER:
       return HivePrincipalType.USER;

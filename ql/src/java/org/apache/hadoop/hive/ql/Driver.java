@@ -717,16 +717,19 @@ public class Driver implements CommandProcessor {
     return;
   }
 
-  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> inputs) {
+  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects) {
     List<HivePrivilegeObject> hivePrivobjs = new ArrayList<HivePrivilegeObject>();
-    for(Entity input : inputs){
+    if(privObjects == null){
+      return hivePrivobjs;
+    }
+    for(Entity privObject : privObjects){
       HivePrivilegeObjectType privObjType =
-          AuthorizationUtils.getHivePrivilegeObjectType(input.getType());
+          AuthorizationUtils.getHivePrivilegeObjectType(privObject.getType());
       
       //support for authorization on partitions or uri needs to be added
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType,
-          input.getDatabase().getName(),
-          input.getTable().getTableName());
+          privObject.getDatabase() == null ? null : privObject.getDatabase().getName(),
+          privObject.getTable() == null ? null : privObject.getTable().getTableName());
       hivePrivobjs.add(hPrivObject);
     }
     return hivePrivobjs;        
