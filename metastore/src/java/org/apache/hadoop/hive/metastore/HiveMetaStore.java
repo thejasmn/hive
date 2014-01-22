@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -2354,7 +2353,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         for (Partition tmpPart : new_parts) {
           Partition oldTmpPart = null;
           if (olditr.hasNext()) {
-            oldTmpPart = (Partition) olditr.next();
+            oldTmpPart = olditr.next();
           }
           else {
             throw new InvalidOperationException("failed to alterpartitions");
@@ -3538,7 +3537,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     @Override
     public boolean grant_role(final String roleName,
-        final String userName, final PrincipalType principalType,
+        final String principalName, final PrincipalType principalType,
         final String grantor, final PrincipalType grantorType, final boolean grantOption)
         throws MetaException, TException {
       incrementCounter("add_role_member");
@@ -3547,13 +3546,44 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         RawStore ms = getMS();
         Role role = ms.getRole(roleName);
-        ret = ms.grantRole(role, userName, principalType, grantor, grantorType, grantOption);
+        if(principalType == PrincipalType.ROLE){
+          //check if this grant statement will end up creating a cycle
+          if(isNewRoleAParent(principalName, roleName)){
+            throw new MetaException("Cannot grant role " + principalName + " to " + roleName +
+                " as " + roleName + " already  belongs to the role " + principalName +
+                ". (no cycles allowed)");
+          }
+        }
+        ret = ms.grantRole(role, principalName, principalType, grantor, grantorType, grantOption);
       } catch (MetaException e) {
         throw e;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
       return ret;
+    }
+
+
+
+    /**
+     * Check if newRole is in parent hierarchy of curRole
+     * @param newRole
+     * @param curRole
+     * @return true if newRole is curRole or present in its hierarchy
+     * @throws MetaException
+     */
+    private boolean isNewRoleAParent(String newRole, String curRole) throws MetaException {
+      if(newRole.equals(curRole)){
+        return true;
+      }
+      //do this check recursively on all the parent roles of curRole
+      List<MRoleMap> parentRoleMaps = getMS().listRoles(curRole, PrincipalType.ROLE);
+      for(MRoleMap parentRole : parentRoleMaps){
+        if(isNewRoleAParent(newRole, parentRole.getRole().getRoleName())){
+          return true;
+        }
+      }
+      return false;
     }
 
     public List<Role> list_roles(final String principalName,
