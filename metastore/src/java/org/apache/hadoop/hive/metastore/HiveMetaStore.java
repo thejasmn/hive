@@ -3550,7 +3550,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           //check if this grant statement will end up creating a cycle
           if(isNewRoleAParent(principalName, roleName)){
             throw new MetaException("Cannot grant role " + principalName + " to " + roleName +
-                " as " + roleName + " already  belongs to the role " + principalName +
+                " as " + roleName + " already belongs to the role " + principalName +
                 ". (no cycles allowed)");
           }
         }
