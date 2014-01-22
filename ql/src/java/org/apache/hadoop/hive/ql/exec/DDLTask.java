@@ -552,7 +552,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int showGrants(ShowGrantDesc showGrantDesc) throws HiveException {
-    
+
     if(SessionState.get().isAuthorizationModeV2()){
       return showGrantsV2(showGrantDesc);
     }
@@ -666,21 +666,21 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         HivePrincipal principal = privInfo.getPrincipal();
         HivePrivilegeObject privObj = privInfo.getObject();
         HivePrivilege priv = privInfo.getPrivilege();
-        
+
         HiveObjectRef objRef = AuthorizationUtils.getThriftHiveObjectRef(privObj);
-        PrivilegeGrantInfo grantInfo = 
+        PrivilegeGrantInfo grantInfo =
             AuthorizationUtils.getThriftPrivilegeGrantInfo(priv, privInfo.getGrantorPrincipal(),
                 privInfo.isGrantOption());
 
         //only grantInfo is used
-        HiveObjectPrivilege thriftObjectPriv = new HiveObjectPrivilege(null, null, null, grantInfo);  
+        HiveObjectPrivilege thriftObjectPriv = new HiveObjectPrivilege(null, null, null, grantInfo);
         List<HiveObjectPrivilege> privList = new ArrayList<HiveObjectPrivilege>();
         privList.add(thriftObjectPriv);
-        writeGrantInfo(builder, 
-            AuthorizationUtils.getThriftPrincipalType(principal.getType()), 
+        writeGrantInfo(builder,
+            AuthorizationUtils.getThriftPrincipalType(principal.getType()),
             principal.getName(),
-            privObj.getDbname(), 
-            privObj.getTableviewname(), 
+            privObj.getDbname(),
+            privObj.getTableviewname(),
             null,
             null,
             privList
@@ -893,7 +893,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     if(type == null){
       return null;
     }
-      
+
     switch(type){
     case USER:
       return HivePrincipalType.USER;
@@ -989,7 +989,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       LOG.info("role ddl exception: " + stringifyException(e));
       return 1;
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
 
     return 0;
@@ -999,7 +999,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     HiveAuthorizer authorizer = SessionState.get().getAuthorizerV2();
     RoleDDLDesc.RoleOperation operation = roleDDLDesc.getOperation();
     //call the appropriate hive authorizer function
-    try{ 
+    try{
       switch(operation){
       case CREATE_ROLE:
         authorizer.createRole(roleDDLDesc.getName(), null);
@@ -2269,7 +2269,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (Exception e) {
       throw new HiveException(e);
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
 
     return 0;
@@ -2327,7 +2327,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (Exception e) {
       throw new HiveException(e.toString());
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
 
     return 0;
@@ -2446,7 +2446,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (IOException e) {
       throw new HiveException(e, ErrorMsg.GENERIC_ERROR);
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
     return 0;
   }
@@ -2498,7 +2498,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (Exception e) {
       throw new HiveException(e);
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
     return 0;
   }
@@ -2590,7 +2590,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (Exception e) {
       throw new HiveException(e.toString());
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
     return 0;
   }
@@ -2831,7 +2831,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     } catch (Exception e) {
       throw new HiveException(e);
     } finally {
-      IOUtils.closeStream((FSDataOutputStream) outStream);
+      IOUtils.closeStream(outStream);
     }
     return 0;
   }

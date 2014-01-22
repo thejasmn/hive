@@ -30,7 +30,7 @@ public class SQLStdHiveAuthorizerFactory implements HiveAuthorizerFactory{
   public HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, String hiveCurrentUser) {
     return new HiveAuthorizerImpl(
-        new SQLStdHiveAccessController(metastoreClientFactory, conf, hiveCurrentUser), 
+        new SQLStdHiveAccessController(metastoreClientFactory, conf, hiveCurrentUser),
         new SQLStdHiveAuthorizationValidator()
         );
   }

@@ -306,7 +306,7 @@ public class SessionState {
       // that would cause ClassNoFoundException otherwise
       throw new RuntimeException(e);
     }
-    
+
     if (HiveConf.getVar(startSs.getConf(), HiveConf.ConfVars.HIVE_EXECUTION_ENGINE)
         .equals("tez")) {
       try {
@@ -328,12 +328,12 @@ public class SessionState {
    * @param startSs
    */
   private void setupAuth() {
-    
+
     if(authenticator != null){
       //auth has been initialized
       return;
     }
-    
+
     try {
         authenticator = HiveUtils.getAuthenticator(
           getConf(),HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
@@ -354,7 +354,7 @@ public class SessionState {
     } catch (HiveException e) {
       throw new RuntimeException(e);
     }
-    
+
     if(LOG.isDebugEnabled()){
       Object authorizationClass = getAuthorizationMode() == AuthorizationMode.V1 ?
           getAuthorizer() : getAuthorizerV2();
