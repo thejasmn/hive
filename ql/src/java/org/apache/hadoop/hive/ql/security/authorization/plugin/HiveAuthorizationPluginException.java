@@ -19,12 +19,13 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
 
 /**
  * Exception thrown by the Authorization plugin api (v2)
  */
 @Public
-public class HiveAuthorizationPluginException extends Exception{
+public class HiveAuthorizationPluginException extends HiveException{
 
   private static final long serialVersionUID = 1L;
 

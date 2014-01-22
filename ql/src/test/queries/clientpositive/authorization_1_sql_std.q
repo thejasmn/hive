@@ -10,7 +10,6 @@ grant select on table src_autho_test to user hive_test_user;
 
 show grant user hive_test_user on table src_autho_test;
 
--- select key from src_autho_test order by key limit 20;
 
 revoke select on table src_autho_test from user hive_test_user;
 show grant user hive_test_user on table src_autho_test;
@@ -23,8 +22,6 @@ show role grant user hive_test_user;
 --table grant to role
 
 grant select on table src_autho_test to role src_role;
-
--- select key from src_autho_test order by key limit 20;
 
 show grant role src_role on table src_autho_test;
 revoke select on table src_autho_test from role src_role;
