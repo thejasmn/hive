@@ -29,8 +29,6 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
       List<HivePrivilegeObject> outputHObjs) throws HiveAuthorizationPluginException {
-    // TODO Auto-generated method stub
-
   }
 
 }
