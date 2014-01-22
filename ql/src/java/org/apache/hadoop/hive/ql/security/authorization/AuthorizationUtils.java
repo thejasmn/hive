@@ -56,8 +56,8 @@ public class AuthorizationUtils {
       throw new HiveException("Unsupported authorization type specified");
     }
   }
-  
-  
+
+
   /**
    * Convert thrift object type to hive authorization plugin object type
    * @param type - thrift object type
@@ -148,6 +148,6 @@ public class AuthorizationUtils {
     HiveObjectType objType = getThriftHiveObjType(privObj.getType());
     return new HiveObjectRef(objType, privObj.getDbname(), privObj.getTableviewname(), null, null);
   }
-  
-  
+
+
 }

@@ -30,17 +30,17 @@ public class HiveAuthorizationPluginException extends Exception{
 
   public HiveAuthorizationPluginException(){
   }
-  
+
   public HiveAuthorizationPluginException(String msg){
     super(msg);
   }
-  
+
   public HiveAuthorizationPluginException(String msg, Throwable cause){
     super(msg, cause);
   }
-  
+
   public HiveAuthorizationPluginException(Throwable cause){
     super(cause);
   }
-  
+
 }

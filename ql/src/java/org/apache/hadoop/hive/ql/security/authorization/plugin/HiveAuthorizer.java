@@ -38,12 +38,12 @@ import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvide
 public interface HiveAuthorizer {
 
   public enum VERSION { V1 };
-  
+
   /**
    * @return version of HiveAuthorizer interface that is implemented by this instance
    */
   public VERSION getVersion();
-  
+
   /**
    * Grant privileges for principals on the object
    * @param hivePrincipals
@@ -70,7 +70,7 @@ public interface HiveAuthorizer {
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption)
       throws HiveAuthorizationPluginException;
 
-  
+
   /**
    * Create role
    * @param roleName
@@ -108,8 +108,8 @@ public interface HiveAuthorizer {
   void grantRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc)
       throws HiveAuthorizationPluginException;
-  
-  
+
+
   /**
    * Revoke roles in given roles list to principals in given hivePrincipals list
    * @param hivePrincipals
@@ -141,7 +141,7 @@ public interface HiveAuthorizer {
       throws HiveAuthorizationPluginException;
 
   /**
-   * Show privileges for given principal on given object 
+   * Show privileges for given principal on given object
    * @param principal
    * @param privObj
    * @return
@@ -149,8 +149,8 @@ public interface HiveAuthorizer {
    */
   List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
       throws HiveAuthorizationPluginException;
- 
-  
+
+
   //other functions to be added -
   //showUsersInRole(rolename)
   //isSuperuser(username)

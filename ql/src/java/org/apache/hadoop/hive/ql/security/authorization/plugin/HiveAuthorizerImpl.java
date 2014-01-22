@@ -33,7 +33,7 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 public class HiveAuthorizerImpl implements HiveAuthorizer {
   HiveAccessController accessController;
   HiveAuthorizationValidator authValidator;
-   
+
    public HiveAuthorizerImpl(HiveAccessController accessController, HiveAuthorizationValidator authValidator){
      this.accessController = accessController;
      this.authValidator = authValidator;
@@ -92,18 +92,17 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
   public List<String> getAllRoles() throws HiveAuthorizationPluginException {
     return accessController.getAllRoles();
   }
-  
-  public List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, 
+
+  @Override
+  public List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal,
       HivePrivilegeObject privObj) throws HiveAuthorizationPluginException {
     return accessController.showPrivileges(principal, privObj);
   }
-  
+
   @Override
   public VERSION getVersion() {
     return VERSION.V1;
   }
-
-
 
 
  // other access control functions

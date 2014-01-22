@@ -724,14 +724,14 @@ public class Driver implements CommandProcessor {
     for(Entity privObject : privObjects){
       HivePrivilegeObjectType privObjType =
           AuthorizationUtils.getHivePrivilegeObjectType(privObject.getType());
-      
+
       //support for authorization on partitions or uri needs to be added
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType,
           privObject.getDatabase() == null ? null : privObject.getDatabase().getName(),
-          privObject.getTable() == null ? null : privObject.getTable().getTableName());
+              privObject.getTable() == null ? null : privObject.getTable().getTableName());
       hivePrivobjs.add(hPrivObject);
     }
-    return hivePrivobjs;        
+    return hivePrivobjs;
   }
 
 
