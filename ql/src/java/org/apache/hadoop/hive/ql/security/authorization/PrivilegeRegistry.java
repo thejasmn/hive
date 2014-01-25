@@ -20,7 +20,6 @@ package org.apache.hadoop.hive.ql.security.authorization;
 
 import java.util.HashMap;
 
-import org.apache.hadoop.hive.ql.security.authorization.Privilege.PrivilegeType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 
 /**
@@ -79,12 +78,12 @@ public class PrivilegeRegistry {
 
   public static Privilege getPrivilege(int privilegeToken) {
     initializeRegistry();
-    return Registry.get(Privilege.getPrivTypeByToken(privilegeToken));
+    return Registry.get(PrivilegeType.getPrivTypeByToken(privilegeToken));
   }
 
   public static Privilege getPrivilege(String privilegeName) {
     initializeRegistry();
-    return Registry.get(Privilege.getPrivTypeByName(privilegeName));
+    return Registry.get(PrivilegeType.getPrivTypeByName(privilegeName));
   }
 
 }

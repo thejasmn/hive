@@ -19,58 +19,12 @@
 package org.apache.hadoop.hive.ql.security.authorization;
 
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.hadoop.hive.ql.parse.HiveParser;
 
 /**
  * Privilege defines a privilege in Hive. Each privilege has a name and scope associated with it.
  * This class contains all of the predefined privileges in Hive.
  */
 public class Privilege {
-  private static Map<Integer, PrivilegeType> token2Type = new HashMap<Integer, PrivilegeType>();
-  private static Map<String, PrivilegeType> name2Type = new HashMap<String, PrivilegeType>();
-
-  public enum PrivilegeType {
-    ALL(HiveParser.TOK_PRIV_ALL, "All"),
-    ALTER_DATA(HiveParser.TOK_PRIV_ALTER_DATA, "Update"),
-    ALTER_METADATA(HiveParser.TOK_PRIV_ALTER_METADATA, "Alter"),
-    CREATE(HiveParser.TOK_PRIV_CREATE, "Create"),
-    DROP(HiveParser.TOK_PRIV_DROP, "Drop"),
-    INDEX(HiveParser.TOK_PRIV_INDEX, "Index"),
-    LOCK(HiveParser.TOK_PRIV_LOCK, "Lock"),
-    SELECT(HiveParser.TOK_PRIV_SELECT, "Select"),
-    SHOW_DATABASE(HiveParser.TOK_PRIV_SHOW_DATABASE, "Show_Database"),
-    INSERT(HiveParser.TOK_PRIV_INSERT, "Insert"),
-    DELETE(HiveParser.TOK_PRIV_DELETE, "Delete"),
-    UNKNOWN(null, null);
-
-    String name;
-    PrivilegeType(Integer token, String name){
-      this.name = name;
-      token2Type.put(token, this);
-      name2Type.put(name == null ? null : name.toLowerCase(), this);
-    }
-  }
-
-
-  public static PrivilegeType getPrivTypeByToken(int token) {
-    PrivilegeType privType = token2Type.get(token);
-    if(privType != null){
-      return privType;
-    }
-    return PrivilegeType.UNKNOWN;
-  }
-
-  public static PrivilegeType getPrivTypeByName(String privilegeName) {
-    String canonicalizedName = privilegeName.toLowerCase();
-    PrivilegeType privType = name2Type.get(canonicalizedName);
-    if(privType != null){
-      return privType;
-    }
-    return PrivilegeType.UNKNOWN;
-  }
 
   private PrivilegeType priv;
 
