@@ -298,7 +298,10 @@ public class SessionState {
     // Get the following out of the way when you start the session these take a
     // while and should be done when we start up.
     try {
-      Hive.get(startSs.conf).getMSC();
+      //Hive object instance should be created with a copy of the conf object. If the conf is
+      // shared with SessionState, other parts of the code might update the config, but
+      // Hive.get(HiveConf) would not recognize the case when it needs refreshing
+      Hive.get(new HiveConf(startSs.conf)).getMSC();
       ShimLoader.getHadoopShims().getUGIForConf(startSs.conf);
       FileSystem.get(startSs.conf);
     } catch (Exception e) {
