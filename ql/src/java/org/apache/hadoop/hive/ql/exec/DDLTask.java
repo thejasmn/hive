@@ -881,7 +881,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       throw new HiveException(ErrorMsg.UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP);
     default:
       //should not happen as we take care of all existing types
-      throw new HiveException("Unsupported authorization type specified");
+      throw new AssertionError("Unsupported authorization type specified");
     }
   }
 

@@ -53,7 +53,7 @@ public class AuthorizationUtils {
       throw new HiveException(ErrorMsg.UNNSUPPORTED_AUTHORIZATION_PRINCIPAL_TYPE_GROUP);
     default:
       //should not happen as we take care of all existing types
-      throw new HiveException("Unsupported authorization type specified");
+      throw new AssertionError("Unsupported authorization type specified");
     }
   }
 
@@ -87,8 +87,7 @@ public class AuthorizationUtils {
    * @return
    * @throws HiveException
    */
-  public static PrincipalType getThriftPrincipalType(HivePrincipalType type)
-      throws HiveException {
+  public static PrincipalType getThriftPrincipalType(HivePrincipalType type) {
     if(type == null){
       return null;
     }
@@ -98,7 +97,7 @@ public class AuthorizationUtils {
     case ROLE:
       return PrincipalType.ROLE;
     default:
-      throw new HiveException("Invalid principal type");
+      throw new AssertionError("Invalid principal type " + type);
     }
   }
 
@@ -132,8 +131,12 @@ public class AuthorizationUtils {
       return HiveObjectType.TABLE;
     case PARTITION:
       return HiveObjectType.PARTITION;
+    case URI:
+    case VIEW:
+      throw new HiveException("Unsupported type " + type);
     default:
-      throw new HiveException("Unsupported type");
+      //should not happen as we have accounted for all types
+      throw new AssertionError("Unsupported type " + type);
     }
   }
 

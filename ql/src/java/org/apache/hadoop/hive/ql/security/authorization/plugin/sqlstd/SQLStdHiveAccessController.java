@@ -26,7 +26,6 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
-import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
@@ -36,7 +35,6 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControl
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeInfo;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
@@ -91,25 +89,16 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     for(HivePrivilege privilege : hivePrivileges){
       if(privilege.getColumns() != null && privilege.getColumns().size() > 0){
         throw new HiveAuthorizationPluginException("Privileges on columns not supported currently"
-            + "in sql standard authorization mode");
+            + " in sql standard authorization mode");
       }
       PrivilegeGrantInfo grantInfo = getThriftPrivilegeGrantInfo(privilege, grantorPrincipal, grantOption);
       for(HivePrincipal principal : hivePrincipals){
         HiveObjectPrivilege objPriv = new HiveObjectPrivilege(privObj, principal.getName(),
-            getThriftPrincipalType(principal.getType()), grantInfo);
+            AuthorizationUtils.getThriftPrincipalType(principal.getType()), grantInfo);
         privBag.addToPrivileges(objPriv);
       }
     }
     return privBag;
-  }
-
-  private PrincipalType getThriftPrincipalType(HivePrincipalType type)
-      throws HiveAuthorizationPluginException {
-    try {
-      return  AuthorizationUtils.getThriftPrincipalType(type);
-    } catch (HiveException e) {
-      throw new HiveAuthorizationPluginException(e);
-    }
   }
 
   private PrivilegeGrantInfo getThriftPrivilegeGrantInfo(HivePrivilege privilege,
@@ -176,7 +165,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public List<String> getRoles(HivePrincipal hivePrincipal) throws HiveAuthorizationPluginException {
     try {
       List<Role> roles = metastoreClientFactory.getHiveMetastoreClient().list_roles(
-          hivePrincipal.getName(), getThriftPrincipalType(hivePrincipal.getType()));
+          hivePrincipal.getName(), AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType()));
       List<String> roleNames = new ArrayList<String>(roles.size());
       for(Role role : roles){
         roleNames.add(role.getRoleName());
@@ -197,9 +186,9 @@ public class SQLStdHiveAccessController implements HiveAccessController {
           IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
           mClient.grant_role(roleName,
               hivePrincipal.getName(),
-              getThriftPrincipalType(hivePrincipal.getType()),
+              AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType()),
               grantorPrinc.getName(),
-              getThriftPrincipalType(grantorPrinc.getType()),
+              AuthorizationUtils.getThriftPrincipalType(grantorPrinc.getType()),
               grantOption
               );
         }  catch (Exception e) {
@@ -225,7 +214,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
           IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
           mClient.revoke_role(roleName,
               hivePrincipal.getName(),
-              getThriftPrincipalType(hivePrincipal.getType())
+              AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType())
               );
         }  catch (Exception e) {
           String msg = "Error revoking roles for " + hivePrincipal.getName() +  " to role " + roleName
@@ -256,7 +245,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
       //get metastore/thrift privilege object using metastore api
       List<HiveObjectPrivilege> msObjPrivs
-        = mClient.list_privileges(principal.getName(), getThriftPrincipalType(principal.getType()),
+        = mClient.list_privileges(principal.getName(),
+            AuthorizationUtils.getThriftPrincipalType(principal.getType()),
             getThriftHiveObjectRef(privObj));
 
       //convert the metastore thrift objects to result objects
@@ -305,8 +295,12 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       return HivePrivilegeObjectType.DATABASE;
     case TABLE:
       return HivePrivilegeObjectType.TABLE;
-    default:
+    case COLUMN:
+    case GLOBAL:
+    case PARTITION:
       throw new HiveAuthorizationPluginException("Unsupported object type " + objectType);
+    default:
+      throw new AssertionError("Unexpected object type " + objectType);
     }
   }
 
