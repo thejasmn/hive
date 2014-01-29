@@ -19,6 +19,7 @@
 package org.apache.hadoop.hive.ql.security.authorization;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.hive.ql.session.SessionState;
 
@@ -28,7 +29,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
  */
 public class PrivilegeRegistry {
 
-  protected static HashMap<PrivilegeType, Privilege> Registry = null;
+  protected static Map<PrivilegeType, Privilege> Registry = null;
 
   public static Privilege getPrivilege(PrivilegeType privilegeType) {
     initializeRegistry();

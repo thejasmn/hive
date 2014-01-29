@@ -33,8 +33,19 @@ import org.apache.hadoop.hive.ql.parse.ParseUtils;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.session.SessionState;
 
+/**
+ * Util function for authorization tests
+ */
 public class AuthorizationTestUtil {
 
+  /**
+   * Create DDLWork from given ast
+   * @param ast
+   * @param conf
+   * @param db
+   * @return
+   * @throws Exception
+   */
   public static DDLWork analyze(ASTNode ast, HiveConf conf, Hive db) throws Exception {
     DDLSemanticAnalyzer analyzer = new DDLSemanticAnalyzer(conf, db);
     SessionState.start(conf);
@@ -43,8 +54,15 @@ public class AuthorizationTestUtil {
     return (DDLWork) inList(rootTasks).ofSize(1).get(0).getWork();
   }
 
+  /**
+   * Create DDLWork from given command string
+   * @param command
+   * @param conf
+   * @param db
+   * @return
+   * @throws Exception
+   */
   public static DDLWork analyze(String command, HiveConf conf, Hive db) throws Exception {
-    System.err.println("XXXXXXXXXXX 3 " + conf.getVar(HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER));
     return analyze(parse(command), conf, db);
   }
 
@@ -52,6 +70,11 @@ public class AuthorizationTestUtil {
     return ParseUtils.findRootNonNullToken((new ParseDriver()).parse(command));
   }
 
+  /**
+   * Helper class that lets you check the size and return the list in one line.
+   *
+   * @param <E>
+   */
   public static class ListSizeMatcher<E> {
     private final List<E> list;
     private ListSizeMatcher(List<E> list) {

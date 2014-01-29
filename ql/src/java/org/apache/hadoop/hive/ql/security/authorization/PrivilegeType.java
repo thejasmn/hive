@@ -71,7 +71,6 @@ public enum PrivilegeType {
       populateToken2Type();
     }
     PrivilegeType privType = token2Type.get(token);
-    System.err.println("XXXXXXXXXXX 7" + privType);
     if(privType != null){
       return privType;
     }
