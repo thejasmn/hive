@@ -19,6 +19,7 @@
 package org.apache.hadoop.hive.ql.security.authorization;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hadoop.hive.ql.parse.HiveParser;
@@ -96,7 +97,7 @@ public enum PrivilegeType {
     if(name2Type == null){
       populateName2Type();
     }
-    String canonicalizedName = privilegeName.toLowerCase();
+    String canonicalizedName = privilegeName.toLowerCase(Locale.US);
     PrivilegeType privType = name2Type.get(canonicalizedName);
     if(privType != null){
       return privType;

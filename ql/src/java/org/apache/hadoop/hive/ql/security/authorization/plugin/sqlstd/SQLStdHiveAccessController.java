@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -97,7 +98,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
         throw new HiveAuthorizationPluginException("Privileges on columns not supported currently"
             + " in sql standard authorization mode");
       }
-      if(!SUPPORTED_PRIVS_SET.contains(privilege.getName())){
+      if(!SUPPORTED_PRIVS_SET.contains(privilege.getName().toUpperCase(Locale.US))){
         throw new HiveAuthorizationPluginException("Privilege: " + privilege.getName() +
             " is not supported in sql standard authorization mode");
       }
