@@ -359,10 +359,12 @@ public class SessionState {
         String authUser = userName == null ? authenticator.getUserName() : userName;
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
             getConf(), authUser);
+        //grant all privileges for table to its owner
+        getConf().setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "all");
       }
-      else{
-        createTableGrants = CreateTableAutomaticGrant.create(getConf());
-      }
+
+      createTableGrants = CreateTableAutomaticGrant.create(getConf());
+
     } catch (HiveException e) {
       throw new RuntimeException(e);
     }
@@ -821,6 +823,7 @@ public class SessionState {
   }
 
   public CreateTableAutomaticGrant getCreateTableGrants() {
+    setupAuth();
     return createTableGrants;
   }
 
