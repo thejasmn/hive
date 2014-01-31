@@ -54,6 +54,9 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRole;
 public class SQLStdHiveAccessController implements HiveAccessController {
 
   private final HiveMetastoreClientFactory metastoreClientFactory;
+  private final HiveConf conf;
+  private final String userName;
+
   private static final String [] SUPPORTED_PRIVS = {"INSERT", "UPDATE", "DELETE", "SELECT", "ALL"};
   private static final Set<String> SUPPORTED_PRIVS_SET
     = new HashSet<String>(Arrays.asList(SUPPORTED_PRIVS));
@@ -61,11 +64,13 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   private final String currentUserName;
   private HiveRole adminRole;
 
+
   SQLStdHiveAccessController(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, String hiveCurrentUser) throws HiveAuthorizationPluginException {
     this.currentUserName = hiveCurrentUser;
     try {
       this.metastoreClientFactory = metastoreClientFactory;
+      this.conf = conf;
       this.currentRoles = getRolesFromMS();
     } catch (HiveAuthorizationPluginException e) {
       throw e;
@@ -94,14 +99,15 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   @Override
   public void grantPrivileges(List<HivePrincipal> hivePrincipals,
-    List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
-    HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
-
+      List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
+      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+    IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
+    GrantPrivilegeAuthorizer.authorizeGrantPrivilege(hivePrincipals, hivePrivObject, grantorPrincipal, grantOption, metastoreClient, currentUserName);
     PrivilegeBag privBag =
         getThriftPrivilegesBag(hivePrincipals, hivePrivileges, hivePrivObject, grantorPrincipal,
             grantOption);
     try {
-      metastoreClientFactory.getHiveMetastoreClient().grant_privileges(privBag);
+      metastoreClient.grant_privileges(privBag);
     } catch (Exception e) {
       throw new HiveAuthorizationPluginException("Error granting privileges", e);
     }

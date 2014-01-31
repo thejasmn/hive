@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
-import java.io.IOException;
-
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 /**
@@ -26,5 +24,5 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
  */
 @Public
 public interface HiveMetastoreClientFactory {
-  IMetaStoreClient getHiveMetastoreClient() throws IOException;
+  IMetaStoreClient getHiveMetastoreClient() throws HiveAuthorizationPluginException;
 }
