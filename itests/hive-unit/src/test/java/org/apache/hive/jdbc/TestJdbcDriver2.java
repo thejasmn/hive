@@ -1301,16 +1301,34 @@ public class TestJdbcDriver2 {
     ResultSet res = stmt.executeQuery("describe " + tableName);
 
     res.next();
-    assertEquals("Column name 'under_col' not found", "under_col", res.getString(1).trim());
+    assertEquals("Column name 'under_col' not found", "under_col", res.getString(1));
     assertEquals("Column type 'under_col' for column under_col not found", "int", res
-        .getString(2).trim());
+        .getString(2));
     res.next();
-    assertEquals("Column name 'value' not found", "value", res.getString(1).trim());
+    assertEquals("Column name 'value' not found", "value", res.getString(1));
     assertEquals("Column type 'string' for column key not found", "string", res
-        .getString(2).trim());
+        .getString(2));
 
     assertFalse("More results found than expected", res.next());
   }
+
+
+  public void testShowColumns() throws SQLException {
+    Statement stmt = con.createStatement();
+    assertNotNull("Statement is null", stmt);
+
+    ResultSet res = stmt.executeQuery("show columns in " + tableName);
+    res.next();
+    assertEquals("Column name 'under_col' not found",
+        "under_col", res.getString(1));
+
+    res.next();
+    assertEquals("Column name 'value' not found",
+        "value", res.getString(1));
+    assertFalse("More results found than expected", res.next());
+  }
+
+
 
   @Test
   public void testDatabaseMetaData() throws SQLException {
