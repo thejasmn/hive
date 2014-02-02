@@ -102,7 +102,9 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
       HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
-    GrantPrivilegeAuthorizer.authorizeGrantPrivilege(hivePrincipals, hivePrivObject, grantorPrincipal, grantOption, metastoreClient, currentUserName);
+    GrantPrivilegeAuthorizer.authorizeGrantPrivilege(hivePrincipals, hivePrivileges, hivePrivObject,
+        grantOption, metastoreClient, currentUserName);
+
     PrivilegeBag privBag =
         getThriftPrivilegesBag(hivePrincipals, hivePrivileges, hivePrivObject, grantorPrincipal,
             grantOption);
