@@ -51,10 +51,10 @@ public class RequiredPrivileges {
       return true;
     }
 
-    final SQL_PRIVILEGE_TYPES privilege;
+    final SQLPrivilegeTypes privilege;
     final boolean withGrant;
 
-    public PrivilegeWithGrant(SQL_PRIVILEGE_TYPES priv, boolean withGrant) {
+    public PrivilegeWithGrant(SQLPrivilegeTypes priv, boolean withGrant) {
       this.privilege = priv;
       this.withGrant = withGrant;
     }
@@ -65,12 +65,12 @@ public class RequiredPrivileges {
       this.withGrant = withGrant;
     }
 
-    private SQL_PRIVILEGE_TYPES getRequirePrivilege(String priv)
+    private SQLPrivilegeTypes getRequirePrivilege(String priv)
         throws HiveAuthorizationPluginException {
 
-      SQL_PRIVILEGE_TYPES reqPriv;
+      SQLPrivilegeTypes reqPriv;
       try {
-        reqPriv = SQL_PRIVILEGE_TYPES.valueOf(priv.toUpperCase(Locale.US));
+        reqPriv = SQLPrivilegeTypes.valueOf(priv.toUpperCase(Locale.US));
       } catch (IllegalArgumentException e) {
         throw new HiveAuthorizationPluginException("Invalid privilege " + priv, e);
       } catch (NullPointerException e) {

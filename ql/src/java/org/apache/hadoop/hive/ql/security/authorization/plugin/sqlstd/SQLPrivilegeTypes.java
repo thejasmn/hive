@@ -17,6 +17,6 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
-public enum SQL_PRIVILEGE_TYPES {
+public enum SQLPrivilegeTypes {
   ALL, SELECT, INSERT, UPDATE, DELETE
 };
