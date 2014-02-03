@@ -54,6 +54,8 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
+import org.apache.hadoop.hive.ql.security.SessionStateAuthenticator;
+import org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
@@ -340,26 +342,38 @@ public class SessionState {
    */
   private void setupAuth() {
 
-    if(authenticator != null){
-      //auth has been initialized
+    if (authenticator != null) {
+      // auth has been initialized
       return;
     }
 
     try {
-      authenticator = HiveUtils.getAuthenticator(
-          getConf(),HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
-      authorizer = HiveUtils.getAuthorizeProviderManager(
-          getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER,
-          authenticator, true);
+      authenticator = HiveUtils.getAuthenticator(getConf(),
+          HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
 
-      if(authorizer == null){
-        //if it was null, the new authorization plugin must be specified in config
-        HiveAuthorizerFactory authorizerFactory =
-            HiveUtils.getAuthorizerFactory(getConf(), HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER);
-        String authUser = userName == null ? authenticator.getUserName() : userName;
+      if (userName != null) {
+        // if username is set through the session, use an authenticator that
+        // just returns the
+        // sessionstate user
+        authenticator = new SessionStateUserAuthenticator(this);
+      }
+
+      if(authenticator instanceof SessionStateAuthenticator){
+        ((SessionStateAuthenticator)authenticator).setSessionState(this);
+      }
+
+      authorizer = HiveUtils.getAuthorizeProviderManager(getConf(),
+          HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER, authenticator, true);
+
+      if (authorizer == null) {
+        // if it was null, the new authorization plugin must be specified in
+        // config
+        HiveAuthorizerFactory authorizerFactory = HiveUtils.getAuthorizerFactory(getConf(),
+            HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER);
+
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
-            getConf(), authUser);
-        //grant all privileges for table to its owner
+            getConf(), authenticator);
+        // grant all privileges for table to its owner
         getConf().setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "all");
       }
 
@@ -950,4 +964,9 @@ public class SessionState {
   public void setTezSession(TezSessionState session) {
     this.tezSessionState = session;
   }
+
+  public String getUserName() {
+    return userName;
+  }
+
 }

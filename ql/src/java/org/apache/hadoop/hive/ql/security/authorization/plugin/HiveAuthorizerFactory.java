@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 
 /**
  * Implementation of this interface specified through hive configuration will be used to
@@ -35,9 +36,9 @@ public interface HiveAuthorizerFactory {
    *  for the current thread. Each invocation of method in HiveAuthorizer can happen in
    *  different thread, so get the current instance in each method invocation.
    * @param conf - current HiveConf
-   * @param hiveCurrentUser - user for current session
+   * @param hiveAuthenticator - authenticator, provides user name
    * @return new instance of HiveAuthorizer
    */
   HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
-      HiveConf conf, String hiveCurrentUser) throws HiveAuthorizationPluginException;
+      HiveConf conf, HiveAuthenticationProvider hiveAuthenticator);
 }

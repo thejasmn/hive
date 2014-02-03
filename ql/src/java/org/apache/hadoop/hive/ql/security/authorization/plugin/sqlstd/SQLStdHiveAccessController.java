@@ -36,6 +36,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
@@ -55,7 +56,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   private final HiveMetastoreClientFactory metastoreClientFactory;
   private final HiveConf conf;
-  private final String userName;
+  private final HiveAuthenticationProvider authenticator;
 
   private static final String [] SUPPORTED_PRIVS = {"INSERT", "UPDATE", "DELETE", "SELECT", "ALL"};
   private static final Set<String> SUPPORTED_PRIVS_SET
@@ -71,7 +72,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     try {
       this.metastoreClientFactory = metastoreClientFactory;
       this.conf = conf;
-      this.currentRoles = getRolesFromMS();
+      this.authenticator = authenticator;
     } catch (HiveAuthorizationPluginException e) {
       throw e;
     }
@@ -103,7 +104,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
     GrantPrivilegeAuthorizer.authorizeGrantPrivilege(hivePrincipals, hivePrivileges, hivePrivObject,
-        grantOption, metastoreClient, currentUserName);
+        grantOption, metastoreClient, authenticator.getUserName());
 
     PrivilegeBag privBag =
         getThriftPrivilegesBag(hivePrincipals, hivePrivileges, hivePrivObject, grantorPrincipal,
