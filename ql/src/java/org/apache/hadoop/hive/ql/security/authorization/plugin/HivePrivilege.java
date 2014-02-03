@@ -24,6 +24,11 @@ import java.util.Locale;
  * Represents the hive privilege being granted/revoked
  */
 public class HivePrivilege {
+  @Override
+  public String toString() {
+    return "Privilege [name=" + name + ", columns=" + columns + "]";
+  }
+
   private final String name;
   private final List<String> columns;
 

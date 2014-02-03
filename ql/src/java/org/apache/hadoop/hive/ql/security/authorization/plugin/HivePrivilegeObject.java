@@ -27,6 +27,12 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
 @Unstable
 public class HivePrivilegeObject {
 
+  @Override
+  public String toString() {
+    return "Hive Object [type=" + type + ", dbname=" + dbname + ", table/viewname="
+        + tableviewname + "]";
+  }
+
   public enum HivePrivilegeObjectType { DATABASE, TABLE, VIEW, PARTITION, URI};
   private final HivePrivilegeObjectType type;
   private final String dbname;

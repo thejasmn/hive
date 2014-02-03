@@ -353,8 +353,7 @@ public class SessionState {
 
       if (userName != null) {
         // if username is set through the session, use an authenticator that
-        // just returns the
-        // sessionstate user
+        // just returns the sessionstate user
         authenticator = new SessionStateUserAuthenticator(this);
       }
 

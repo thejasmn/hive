@@ -27,7 +27,8 @@ import org.apache.hadoop.hive.ql.session.SessionState;
 
 /**
  * Authenticator to be used for testing and debugging. This picks the user.name
- * set in SessionState config
+ * set in SessionState config, if that is null, it returns value of
+ * System property user.name
  */
 public class SessionStateConfigUserAuthenticator implements SessionStateAuthenticator {
 
@@ -43,7 +44,8 @@ public class SessionStateConfigUserAuthenticator implements SessionStateAuthenti
 
   @Override
   public String getUserName() {
-    return sessionState.getConf().get("user.name");
+    String newUserName = sessionState.getConf().get("user.name");
+    return newUserName != null ? newUserName : System.getProperty("user.name");
   }
 
   @Override

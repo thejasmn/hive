@@ -26,6 +26,11 @@ public class HivePrincipal {
     USER, ROLE, UNKNOWN
   }
 
+  @Override
+  public String toString() {
+    return "Principal [name=" + name + ", type=" + type + "]";
+  }
+
   private final String name;
   private final HivePrincipalType type;
 
