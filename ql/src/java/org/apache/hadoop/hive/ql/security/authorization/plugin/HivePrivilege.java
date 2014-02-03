@@ -18,6 +18,7 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Represents the hive privilege being granted/revoked
@@ -27,7 +28,7 @@ public class HivePrivilege {
   private final List<String> columns;
 
   public HivePrivilege(String name, List<String> columns){
-    this.name = name;
+    this.name = name.toUpperCase(Locale.US);
     this.columns = columns;
   }
 
@@ -38,5 +39,38 @@ public class HivePrivilege {
   public List<String> getColumns() {
     return columns;
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((columns == null) ? 0 : columns.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    HivePrivilege other = (HivePrivilege) obj;
+    if (columns == null) {
+      if (other.columns != null)
+        return false;
+    } else if (!columns.equals(other.columns))
+      return false;
+    if (name == null) {
+      if (other.name != null)
+        return false;
+    } else if (!name.equals(other.name))
+      return false;
+    return true;
+  }
+
+
 
 }

@@ -374,7 +374,7 @@ public class SessionState {
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
             getConf(), authenticator);
         // grant all privileges for table to its owner
-        getConf().setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "all");
+        getConf().setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "insert,select,update,delete");
       }
 
       createTableGrants = CreateTableAutomaticGrant.create(getConf());

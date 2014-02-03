@@ -33,9 +33,12 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 import org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.RequiredPrivileges.PrivilegeWithGrant;
 import org.apache.thrift.TException;
 
+/**
+ * Utility class to authorize grant/revoke privileges
+ */
 public class GrantPrivilegeAuthorizer {
 
-  static void authorizeGrantPrivilege(List<HivePrincipal> hivePrincipals,
+  static void authorize(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject, boolean grantOption,
       IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
 
@@ -106,7 +109,7 @@ public class GrantPrivilegeAuthorizer {
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
     // add user privileges
     Map<String, List<PrivilegeGrantInfo>> userPrivs = thrifPrivs.getUserPrivileges();
-    if (userPrivs.size() != 1) {
+    if (userPrivs != null && userPrivs.size() != 1) {
       throw new HiveAuthorizationPluginException("Invalid number of user privilege objects: "
           + userPrivs.size());
     }
