@@ -24,9 +24,6 @@ import java.util.Set;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 
 public class RequiredPrivileges {
-  enum SQL_PRIVILEGE_TYPES {
-    ALL, SELECT, INSERT, UPDATE, DELETE
-  };
 
   static class PrivilegeWithGrant {
     @Override
@@ -104,41 +101,12 @@ public class RequiredPrivileges {
   public RequiredPrivileges findMissingPrivs(RequiredPrivileges availPrivs) {
     RequiredPrivileges missingPrivileges = new RequiredPrivileges();
 
-    expandAllPrivileges(availPrivs);
-
     for (PrivilegeWithGrant requiredPriv : privilegeGrantSet) {
       if (!availPrivs.privilegeGrantSet.contains(requiredPriv)) {
         missingPrivileges.addPrivilege(requiredPriv);
       }
     }
     return missingPrivileges;
-  }
-
-  /**
-   * If there is an all privileges in the set, expand it
-   *
-   * @param privs
-   */
-  private void expandAllPrivileges(RequiredPrivileges privs) {
-    // check if it has all privileges with grant
-    PrivilegeWithGrant allPrivWithGrant = new PrivilegeWithGrant(SQL_PRIVILEGE_TYPES.ALL, true);
-    boolean withGrant;
-    if (privs.privilegeGrantSet.contains(allPrivWithGrant)) {
-      withGrant = true;
-    } else {
-      PrivilegeWithGrant allWithoutGrant = new PrivilegeWithGrant(SQL_PRIVILEGE_TYPES.ALL, false);
-      if (privs.privilegeGrantSet.contains(allWithoutGrant)) {
-        withGrant = false;
-      } else {
-        // no ALL privilege, nothing to do
-        return;
-      }
-    }
-    // add all privilege types
-    for (SQL_PRIVILEGE_TYPES privType : SQL_PRIVILEGE_TYPES.values()) {
-      privs.addPrivilege(new PrivilegeWithGrant(privType, withGrant));
-    }
-
   }
 
   private void addPrivilege(PrivilegeWithGrant requiredPriv) {
