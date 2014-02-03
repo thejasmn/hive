@@ -35,34 +35,35 @@ import org.apache.thrift.TException;
 
 public class GrantPrivilegeAuthorizer {
 
-   static void authorizeGrantPrivilege(List<HivePrincipal> hivePrincipals,
+  static void authorizeGrantPrivilege(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject, boolean grantOption,
       IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
 
-     //check if this user has grant privileges for this privileges on this object
+    // check if this user has grant privileges for this privileges on this
+    // object
 
-     // map priv being granted to required privileges
-     RequiredPrivileges reqPrivs = getGrantRequiredPrivileges(hivePrivileges);
+    // map priv being granted to required privileges
+    RequiredPrivileges reqPrivs = getGrantRequiredPrivileges(hivePrivileges);
 
-     // api for checking required privileges for a user
-     checkRequiredPrivileges(hivePrincipals, reqPrivs, hivePrivObject, metastoreClient, userName);
-   }
+    // api for checking required privileges for a user
+    checkRequiredPrivileges(hivePrincipals, reqPrivs, hivePrivObject, metastoreClient, userName);
+  }
 
   private static void checkRequiredPrivileges(List<HivePrincipal> hivePrincipals,
       RequiredPrivileges reqPrivs, HivePrivilegeObject hivePrivObject,
       IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
-    for(HivePrincipal hivePrincipal : hivePrincipals){
-      checkRequiredPrivileges(hivePrincipal, reqPrivs, hivePrivObject, metastoreClient,
-          userName);
+    for (HivePrincipal hivePrincipal : hivePrincipals) {
+      checkRequiredPrivileges(hivePrincipal, reqPrivs, hivePrivObject, metastoreClient, userName);
     }
   }
 
   private static void checkRequiredPrivileges(HivePrincipal hivePrincipal,
       RequiredPrivileges reqPrivileges, HivePrivilegeObject hivePrivObject,
       IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
-    //keep track of the principals on which privileges have been checked for this object
+    // keep track of the principals on which privileges have been checked for
+    // this object
 
-    //get privileges for this user and its role on this object
+    // get privileges for this user and its role on this object
     PrincipalPrivilegeSet thrifPrivs = null;
     try {
       thrifPrivs = metastoreClient.get_privilege_set(
@@ -78,15 +79,15 @@ public class GrantPrivilegeAuthorizer {
       e.printStackTrace();
     }
 
-    //convert to RequiredPrivileges
+    // convert to RequiredPrivileges
     RequiredPrivileges availPrivs = getRequiredPrivsFromThrift(thrifPrivs);
 
-    //check if required privileges is subset of available privileges
+    // check if required privileges is subset of available privileges
     RequiredPrivileges missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
     if (missingPrivs.getRequiredPrivilegeSet().size() != 0) {
-      //there are some required privileges missing, create error message
-      StringBuilder errMsg = new StringBuilder("Permission denied. User " + userName +
-      " does not have following privileges: ");
+      // there are some required privileges missing, create error message
+      StringBuilder errMsg = new StringBuilder("Permission denied. User " + userName
+          + " does not have following privileges: ");
       for (PrivilegeWithGrant reqPriv : missingPrivs.getRequiredPrivilegeSet()) {
         errMsg.append(reqPriv.privilege).append(" ");
         if (reqPriv.withGrant) {
@@ -103,32 +104,35 @@ public class GrantPrivilegeAuthorizer {
       throws HiveAuthorizationPluginException {
 
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
-    //add user privileges
+    // add user privileges
     Map<String, List<PrivilegeGrantInfo>> userPrivs = thrifPrivs.getUserPrivileges();
-    if(userPrivs.size() != 1){
+    if (userPrivs.size() != 1) {
       throw new HiveAuthorizationPluginException("Invalid number of user privilege objects: "
           + userPrivs.size());
     }
     addRequiredPrivs(reqPrivs, userPrivs);
 
-    //add role privileges
+    // add role privileges
     Map<String, List<PrivilegeGrantInfo>> rolePrivs = thrifPrivs.getRolePrivileges();
     addRequiredPrivs(reqPrivs, rolePrivs);
     return reqPrivs;
   }
 
   /**
-   * Add privileges to RequiredPrivileges object reqPrivs from thrift userPrivs object
+   * Add privileges to RequiredPrivileges object reqPrivs from thrift availPrivs
+   * object
    * @param reqPrivs
-   * @param userPrivs
+   * @param availPrivs
    * @throws HiveAuthorizationPluginException
    */
   private static void addRequiredPrivs(RequiredPrivileges reqPrivs,
-      Map<String, List<PrivilegeGrantInfo>> userPrivs ) throws HiveAuthorizationPluginException {
-
-    for(Map.Entry<String, List<PrivilegeGrantInfo>> userPriv : userPrivs.entrySet()){
+      Map<String, List<PrivilegeGrantInfo>> availPrivs) throws HiveAuthorizationPluginException {
+    if(availPrivs == null){
+      return;
+    }
+    for (Map.Entry<String, List<PrivilegeGrantInfo>> userPriv : availPrivs.entrySet()) {
       List<PrivilegeGrantInfo> userPrivGInfos = userPriv.getValue();
-      for(PrivilegeGrantInfo userPrivGInfo : userPrivGInfos){
+      for (PrivilegeGrantInfo userPrivGInfo : userPrivGInfos) {
         reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), userPrivGInfo.isGrantOption());
       }
     }
@@ -137,13 +141,10 @@ public class GrantPrivilegeAuthorizer {
   private static RequiredPrivileges getGrantRequiredPrivileges(List<HivePrivilege> hivePrivileges)
       throws HiveAuthorizationPluginException {
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
-    for(HivePrivilege hivePriv : hivePrivileges){
-      reqPrivs.addPrivilege(hivePriv.getName(), true /*grant priv required*/);
+    for (HivePrivilege hivePriv : hivePrivileges) {
+      reqPrivs.addPrivilege(hivePriv.getName(), true /* grant priv required */);
     }
     return reqPrivs;
   }
-
-
-
 
 }

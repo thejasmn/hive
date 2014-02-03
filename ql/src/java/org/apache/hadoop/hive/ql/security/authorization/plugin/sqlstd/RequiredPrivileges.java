@@ -18,14 +18,17 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 
 public class RequiredPrivileges {
-  enum SQL_PRIVILEGE_TYPES{SELECT, INSERT, UPDATE, DELETE, ADMIN};
+  enum SQL_PRIVILEGE_TYPES {
+    ALL, SELECT, INSERT, UPDATE, DELETE
+  };
 
-  static class PrivilegeWithGrant{
+  static class PrivilegeWithGrant {
     @Override
     public int hashCode() {
       final int prime = 31;
@@ -53,12 +56,14 @@ public class RequiredPrivileges {
 
     final SQL_PRIVILEGE_TYPES privilege;
     final boolean withGrant;
+
     public PrivilegeWithGrant(SQL_PRIVILEGE_TYPES priv, boolean withGrant) {
       this.privilege = priv;
       this.withGrant = withGrant;
     }
 
-    public PrivilegeWithGrant(String priv, boolean withGrant) throws HiveAuthorizationPluginException {
+    public PrivilegeWithGrant(String priv, boolean withGrant)
+        throws HiveAuthorizationPluginException {
       this.privilege = getRequirePrivilege(priv);
       this.withGrant = withGrant;
     }
@@ -68,15 +73,16 @@ public class RequiredPrivileges {
 
       SQL_PRIVILEGE_TYPES reqPriv;
       try {
-        reqPriv = SQL_PRIVILEGE_TYPES.valueOf(priv);
-      } catch(IllegalArgumentException e) {
+        reqPriv = SQL_PRIVILEGE_TYPES.valueOf(priv.toUpperCase(Locale.US));
+      } catch (IllegalArgumentException e) {
         throw new HiveAuthorizationPluginException("Invalid privilege " + priv, e);
-      } catch(NullPointerException e) {
+      } catch (NullPointerException e) {
         throw new HiveAuthorizationPluginException("Null privilege obtained", e);
       }
       return reqPriv;
     }
   }
+
   private final Set<PrivilegeWithGrant> privilegeGrantSet = new HashSet<PrivilegeWithGrant>();
 
   public void addPrivilege(String priv, boolean withGrant) throws HiveAuthorizationPluginException {
@@ -90,11 +96,16 @@ public class RequiredPrivileges {
 
   /**
    * Find the missing privileges in availPrivs
-   * @param availPrivs - available privileges
+   *
+   * @param availPrivs
+   *          - available privileges
    * @return missing privileges as RequiredPrivileges object
    */
   public RequiredPrivileges findMissingPrivs(RequiredPrivileges availPrivs) {
     RequiredPrivileges missingPrivileges = new RequiredPrivileges();
+
+    expandAllPrivileges(availPrivs);
+
     for (PrivilegeWithGrant requiredPriv : privilegeGrantSet) {
       if (!availPrivs.privilegeGrantSet.contains(requiredPriv)) {
         missingPrivileges.addPrivilege(requiredPriv);
@@ -103,11 +114,38 @@ public class RequiredPrivileges {
     return missingPrivileges;
   }
 
+  /**
+   * If there is an all privileges in the set, expand it
+   *
+   * @param privs
+   */
+  private void expandAllPrivileges(RequiredPrivileges privs) {
+    // check if it has all privileges with grant
+    PrivilegeWithGrant allPrivWithGrant = new PrivilegeWithGrant(SQL_PRIVILEGE_TYPES.ALL, true);
+    boolean withGrant;
+    if (privs.privilegeGrantSet.contains(allPrivWithGrant)) {
+      withGrant = true;
+    } else {
+      PrivilegeWithGrant allWithoutGrant = new PrivilegeWithGrant(SQL_PRIVILEGE_TYPES.ALL, false);
+      if (privs.privilegeGrantSet.contains(allWithoutGrant)) {
+        withGrant = false;
+      } else {
+        // no ALL privilege, nothing to do
+        return;
+      }
+    }
+    // add all privilege types
+    for (SQL_PRIVILEGE_TYPES privType : SQL_PRIVILEGE_TYPES.values()) {
+      privs.addPrivilege(new PrivilegeWithGrant(privType, withGrant));
+    }
+
+  }
+
   private void addPrivilege(PrivilegeWithGrant requiredPriv) {
     privilegeGrantSet.add(requiredPriv);
   }
 
-  Set<PrivilegeWithGrant> getPrivilegeWithGrants(){
+  Set<PrivilegeWithGrant> getPrivilegeWithGrants() {
     return privilegeGrantSet;
   }
 
