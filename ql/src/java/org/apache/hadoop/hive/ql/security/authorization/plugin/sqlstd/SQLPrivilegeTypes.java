@@ -17,6 +17,25 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
+import java.util.Locale;
+
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+
 public enum SQLPrivilegeTypes {
-  ALL, SELECT, INSERT, UPDATE, DELETE
+  ALL, SELECT, INSERT, UPDATE, DELETE;
+
+  public static SQLPrivilegeTypes getRequirePrivilege(String priv)
+      throws HiveAuthorizationPluginException {
+    SQLPrivilegeTypes reqPriv;
+    try {
+      reqPriv = SQLPrivilegeTypes.valueOf(priv.toUpperCase(Locale.US));
+    } catch (IllegalArgumentException e) {
+      throw new HiveAuthorizationPluginException("Invalid privilege " + priv, e);
+    } catch (NullPointerException e) {
+      throw new HiveAuthorizationPluginException("Null privilege obtained", e);
+    }
+    return reqPriv;
+  }
+
+
 };
