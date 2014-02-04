@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,6 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorization
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.RequiredPrivileges.PrivilegeWithGrant;
 import org.apache.thrift.TException;
 
 /**
@@ -86,17 +86,13 @@ public class GrantPrivilegeAuthorizer {
     RequiredPrivileges availPrivs = getRequiredPrivsFromThrift(thrifPrivs);
 
     // check if required privileges is subset of available privileges
-    RequiredPrivileges missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
-    if (missingPrivs.getRequiredPrivilegeSet().size() != 0) {
+    Collection<SQLPrivilegeWithGrantTypes> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
+    if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       StringBuilder errMsg = new StringBuilder("Permission denied. User " + userName
           + " does not have following privileges: ");
-      for (PrivilegeWithGrant reqPriv : missingPrivs.getRequiredPrivilegeSet()) {
-        errMsg.append(reqPriv.privilege).append(" ");
-        if (reqPriv.withGrant) {
-          errMsg.append("with grant");
-        }
-        errMsg.append(", ");
+      for (SQLPrivilegeWithGrantTypes reqPriv : missingPrivs) {
+        errMsg.append(reqPriv.toInfoString()).append(", ");
       }
       throw new HiveAuthorizationPluginException(errMsg.toString());
     }
