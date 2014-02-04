@@ -134,14 +134,14 @@ database	default
 table	table_priv_rev
 principalName	user2
 principalType	USER
-privilege	INSERT
+privilege	DELETE
 #### A masked pattern was here ####
 grantor	user1
 database	default
 table	table_priv_rev
 principalName	user2
 principalType	USER
-privilege	DELETE
+privilege	INSERT
 #### A masked pattern was here ####
 grantor	user1
 database	default
@@ -176,14 +176,14 @@ database	default
 table	table_priv_rev
 principalName	user2
 principalType	USER
-privilege	INSERT
+privilege	DELETE
 #### A masked pattern was here ####
 grantor	user1
 database	default
 table	table_priv_rev
 principalName	user2
 principalType	USER
-privilege	DELETE
+privilege	INSERT
 #### A masked pattern was here ####
 grantor	user1
 database	default
