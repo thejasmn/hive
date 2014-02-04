@@ -99,7 +99,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     for (HivePrivilege hivePrivilege : hivePrivileges) {
       if (hivePrivilege.getName().equals("ALL")) {
         // expand to all supported privileges
-        for (SQLPrivilegeTypes privType : SQLPrivilegeTypes.values()) {
+        for (SQLPrivilegeType privType : SQLPrivilegeType.values()) {
           hivePrivSet.add(new HivePrivilege(privType.name(), hivePrivilege.getColumns()));
         }
       } else {
