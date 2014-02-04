@@ -21,14 +21,14 @@ import java.util.Locale;
 
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 
-public enum SQLPrivilegeTypes {
+public enum SQLPrivilegeType {
   ALL, SELECT, INSERT, UPDATE, DELETE;
 
-  public static SQLPrivilegeTypes getRequirePrivilege(String priv)
+  public static SQLPrivilegeType getRequirePrivilege(String priv)
       throws HiveAuthorizationPluginException {
-    SQLPrivilegeTypes reqPriv;
+    SQLPrivilegeType reqPriv;
     try {
-      reqPriv = SQLPrivilegeTypes.valueOf(priv.toUpperCase(Locale.US));
+      reqPriv = SQLPrivilegeType.valueOf(priv.toUpperCase(Locale.US));
     } catch (IllegalArgumentException e) {
       throw new HiveAuthorizationPluginException("Invalid privilege " + priv, e);
     } catch (NullPointerException e) {

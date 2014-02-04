@@ -86,12 +86,12 @@ public class GrantPrivilegeAuthorizer {
     RequiredPrivileges availPrivs = getRequiredPrivsFromThrift(thrifPrivs);
 
     // check if required privileges is subset of available privileges
-    Collection<SQLPrivilegeWithGrantTypes> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
+    Collection<SQLPrivilegeTypeWithGrant> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       StringBuilder errMsg = new StringBuilder("Permission denied. User " + userName
           + " does not have following privileges: ");
-      for (SQLPrivilegeWithGrantTypes reqPriv : missingPrivs) {
+      for (SQLPrivilegeTypeWithGrant reqPriv : missingPrivs) {
         errMsg.append(reqPriv.toInfoString()).append(", ");
       }
       throw new HiveAuthorizationPluginException(errMsg.toString());

@@ -27,10 +27,10 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorization
 
 public class RequiredPrivileges {
 
-  private final Set<SQLPrivilegeWithGrantTypes> privilegeGrantSet = new HashSet<SQLPrivilegeWithGrantTypes>();
+  private final Set<SQLPrivilegeTypeWithGrant> privilegeGrantSet = new HashSet<SQLPrivilegeTypeWithGrant>();
 
   public void addPrivilege(String priv, boolean withGrant) throws HiveAuthorizationPluginException {
-    SQLPrivilegeWithGrantTypes privType = SQLPrivilegeWithGrantTypes.getSQLPrivilegeWithGrantTypes(priv, withGrant);
+    SQLPrivilegeTypeWithGrant privType = SQLPrivilegeTypeWithGrant.getSQLPrivilegeWithGrantTypes(priv, withGrant);
     addPrivilege(privType);
     privilegeGrantSet.add(privType);
     if(withGrant){
@@ -39,7 +39,7 @@ public class RequiredPrivileges {
     }
   }
 
-  public Set<SQLPrivilegeWithGrantTypes> getRequiredPrivilegeSet() {
+  public Set<SQLPrivilegeTypeWithGrant> getRequiredPrivilegeSet() {
     return privilegeGrantSet;
   }
 
@@ -50,9 +50,9 @@ public class RequiredPrivileges {
    *          - available privileges
    * @return missing privileges as RequiredPrivileges object
    */
-  public Collection<SQLPrivilegeWithGrantTypes> findMissingPrivs(RequiredPrivileges availPrivs) {
+  public Collection<SQLPrivilegeTypeWithGrant> findMissingPrivs(RequiredPrivileges availPrivs) {
     MissingPrivilegeCapturer missingPrivCapturer = new MissingPrivilegeCapturer();
-    for (SQLPrivilegeWithGrantTypes requiredPriv : privilegeGrantSet) {
+    for (SQLPrivilegeTypeWithGrant requiredPriv : privilegeGrantSet) {
       if (!availPrivs.privilegeGrantSet.contains(requiredPriv)) {
         missingPrivCapturer.addMissingPrivilege(requiredPriv);
       }
@@ -60,11 +60,11 @@ public class RequiredPrivileges {
     return missingPrivCapturer.getMissingPrivileges();
   }
 
-  private void addPrivilege(SQLPrivilegeWithGrantTypes requiredPriv) {
+  private void addPrivilege(SQLPrivilegeTypeWithGrant requiredPriv) {
     privilegeGrantSet.add(requiredPriv);
   }
 
-  Set<SQLPrivilegeWithGrantTypes> getPrivilegeWithGrants() {
+  Set<SQLPrivilegeTypeWithGrant> getPrivilegeWithGrants() {
     return privilegeGrantSet;
   }
 
@@ -74,10 +74,10 @@ public class RequiredPrivileges {
    */
   class MissingPrivilegeCapturer {
 
-    private Map<SQLPrivilegeTypes, SQLPrivilegeWithGrantTypes> priv2privWithGrant = new HashMap<SQLPrivilegeTypes, SQLPrivilegeWithGrantTypes>();
+    private Map<SQLPrivilegeType, SQLPrivilegeTypeWithGrant> priv2privWithGrant = new HashMap<SQLPrivilegeType, SQLPrivilegeTypeWithGrant>();
 
-    void addMissingPrivilege(SQLPrivilegeWithGrantTypes newPrivWGrant) {
-      SQLPrivilegeWithGrantTypes matchingPrivWGrant = priv2privWithGrant
+    void addMissingPrivilege(SQLPrivilegeTypeWithGrant newPrivWGrant) {
+      SQLPrivilegeTypeWithGrant matchingPrivWGrant = priv2privWithGrant
           .get(newPrivWGrant.privType);
       if (matchingPrivWGrant != null) {
         if (matchingPrivWGrant.withGrant || !newPrivWGrant.withGrant) {
@@ -91,7 +91,7 @@ public class RequiredPrivileges {
       priv2privWithGrant.put(newPrivWGrant.privType, newPrivWGrant);
     }
 
-    Collection<SQLPrivilegeWithGrantTypes> getMissingPrivileges(){
+    Collection<SQLPrivilegeTypeWithGrant> getMissingPrivileges(){
       return priv2privWithGrant.values();
     }
 
