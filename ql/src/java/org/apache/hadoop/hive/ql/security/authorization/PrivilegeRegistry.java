@@ -36,20 +36,12 @@ public class PrivilegeRegistry {
     return Registry.get(privilegeType);
   }
 
-  private static void initializeRegistry() {
-    if(Registry != null){
-      //already initialized, nothing to do
-      return;
-    }
-    //population of registry done in separate synchronized call
-    populateRegistry();
-  }
-
   /**
    * Add entries to registry. This needs to be synchronized to avoid Registry being populated
    * multiple times.
    */
-  private static synchronized void populateRegistry() {
+  private static synchronized void initializeRegistry() {
+    boolean isAuthModeV2 = SessionState.get().isAuthorizationModeV2();
     //do check again in synchronized block
     if(Registry != null){
       //already initialized, nothing to do
@@ -68,7 +60,8 @@ public class PrivilegeRegistry {
     Registry.put(Privilege.SELECT.getPriv(), Privilege.SELECT);
     Registry.put(Privilege.SHOW_DATABASE.getPriv(),
         Privilege.SHOW_DATABASE);
-    if(SessionState.get().isAuthorizationModeV2()){
+
+    if(isAuthModeV2){
       //add the privileges not supported in V1
       //The list of privileges supported in V2 is implementation defined,
       //so just pass everything that syntax supports.
