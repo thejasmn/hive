@@ -19,16 +19,32 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.List;
 
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 
 public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValidator {
 
+  private HiveMetastoreClientFactory metastoreClientFactory;
+  private HiveConf conf;
+  private HiveAuthenticationProvider authenticator;
+
+  public SQLStdHiveAuthorizationValidator(HiveMetastoreClientFactory metastoreClientFactory,
+      HiveConf conf, HiveAuthenticationProvider authenticator) {
+    this.metastoreClientFactory = metastoreClientFactory;
+    this.conf = conf;
+    this.authenticator = authenticator;
+  }
+
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
       List<HivePrivilegeObject> outputHObjs) throws HiveAuthorizationPluginException {
+    String userName = authenticator.getUserName();
+
   }
 
 }
