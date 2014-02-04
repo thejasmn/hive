@@ -1,0 +1,41 @@
+#### A masked pattern was here ####
+PREHOOK: type: CREATETABLE
+#### A masked pattern was here ####
+POSTHOOK: type: CREATETABLE
+#### A masked pattern was here ####
+PREHOOK: query: -- all privileges should have been set for user
+
+#### A masked pattern was here ####
+PREHOOK: type: SHOW_GRANT
+POSTHOOK: query: -- all privileges should have been set for user
+
+#### A masked pattern was here ####
+POSTHOOK: type: SHOW_GRANT
+database	default
+#### A masked pattern was here ####
+principalName	user1
+principalType	USER
+privilege	DELETE
+#### A masked pattern was here ####
+grantor	user1
+database	default
+#### A masked pattern was here ####
+principalName	user1
+principalType	USER
+privilege	INSERT
+#### A masked pattern was here ####
+grantor	user1
+database	default
+#### A masked pattern was here ####
+principalName	user1
+principalType	USER
+privilege	SELECT
+#### A masked pattern was here ####
+grantor	user1
+database	default
+#### A masked pattern was here ####
+principalName	user1
+principalType	USER
+privilege	UPDATE
+#### A masked pattern was here ####
+grantor	user1
