@@ -200,14 +200,14 @@ public class SQLAuthorizationUtils {
     }
   }
 
-  public static void assertNoMissingPrivilege(Collection<SQLPrivilegeTypeWithGrant> missingPrivs,
+  public static void assertNoMissingPrivilege(Collection<SQLPrivTypeGrant> missingPrivs,
       HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject)
           throws HiveAuthorizationPluginException {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       StringBuilder errMsg = new StringBuilder("Permission denied. " + hivePrincipal
           + " does not have following privileges on " + hivePrivObject + " :");
-      for (SQLPrivilegeTypeWithGrant reqPriv : missingPrivs) {
+      for (SQLPrivTypeGrant reqPriv : missingPrivs) {
         errMsg.append(reqPriv.toInfoString()).append(", ");
       }
       throw new HiveAuthorizationPluginException(errMsg.toString());

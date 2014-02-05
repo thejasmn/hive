@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 
@@ -64,8 +65,9 @@ public class GrantPrivilegeAuthorizer {
         metastoreClient, userName, hivePrivObject);
 
     // check if required privileges is subset of available privileges
-    Collection<SQLPrivilegeTypeWithGrant> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
-    SQLAuthorizationUtils.assertNoMissingPrivilege(missingPrivs, hivePrincipal, hivePrivObject);
+    Collection<SQLPrivTypeGrant> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
+    SQLAuthorizationUtils.assertNoMissingPrivilege(missingPrivs, new HivePrincipal(userName,
+        HivePrincipalType.USER), hivePrivObject);
   }
 
   private static RequiredPrivileges getGrantRequiredPrivileges(List<HivePrivilege> hivePrivileges)

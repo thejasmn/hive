@@ -20,7 +20,7 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 
 
-public enum SQLPrivilegeTypeWithGrant {
+public enum SQLPrivTypeGrant {
   SELECT_NOGRANT(SQLPrivilegeType.SELECT, false),
   SELECT_WGRANT(SQLPrivilegeType.SELECT, true),
   INSERT_NOGRANT(SQLPrivilegeType.INSERT, false),
@@ -33,18 +33,18 @@ public enum SQLPrivilegeTypeWithGrant {
 
   final SQLPrivilegeType privType;
   final boolean withGrant;
-  SQLPrivilegeTypeWithGrant(SQLPrivilegeType privType, boolean isGrant){
+  SQLPrivTypeGrant(SQLPrivilegeType privType, boolean isGrant){
     this.privType = privType;
     this.withGrant = isGrant;
   }
 
-  public static SQLPrivilegeTypeWithGrant getSQLPrivilegeWithGrantTypes(
+  public static SQLPrivTypeGrant getSQLPrivilegeWithGrantTypes(
       SQLPrivilegeType privType, boolean isGrant) {
     String typeName = privType.name() + (isGrant ? "_WGRANT" : "_NOGRANT");
-    return SQLPrivilegeTypeWithGrant.valueOf(typeName);
+    return SQLPrivTypeGrant.valueOf(typeName);
   }
 
-  public static SQLPrivilegeTypeWithGrant getSQLPrivilegeWithGrantTypes(
+  public static SQLPrivTypeGrant getSQLPrivilegeWithGrantTypes(
       String privTypeStr, boolean isGrant) throws HiveAuthorizationPluginException {
     SQLPrivilegeType ptype = SQLPrivilegeType.getRequirePrivilege(privTypeStr);
     return getSQLPrivilegeWithGrantTypes(ptype, isGrant);

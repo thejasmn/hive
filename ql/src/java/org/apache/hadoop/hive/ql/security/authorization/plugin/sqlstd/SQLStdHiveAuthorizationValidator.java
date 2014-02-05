@@ -51,16 +51,16 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
 
     // get privileges required on input and check
-    SQLPrivilegeTypeWithGrant[] inputPrivs = Operation2Privilege.getInputPrivs(hiveOpType);
+    SQLPrivTypeGrant[] inputPrivs = Operation2Privilege.getInputPrivs(hiveOpType);
     checkPrivileges(inputPrivs, inputHObjs, metastoreClient, userName);
 
     // get privileges required on input and check
-    SQLPrivilegeTypeWithGrant[] outputPrivs = Operation2Privilege.getOutputPrivs(hiveOpType);
+    SQLPrivTypeGrant[] outputPrivs = Operation2Privilege.getOutputPrivs(hiveOpType);
     checkPrivileges(outputPrivs, outputHObjs, metastoreClient, userName);
 
   }
 
-  private void checkPrivileges(SQLPrivilegeTypeWithGrant[] reqPrivs,
+  private void checkPrivileges(SQLPrivTypeGrant[] reqPrivs,
       List<HivePrivilegeObject> hObjs, IMetaStoreClient metastoreClient, String userName)
           throws HiveAuthorizationPluginException {
     RequiredPrivileges requiredInpPrivs = new RequiredPrivileges();
@@ -71,7 +71,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       // get the privileges that this user has on the object
       RequiredPrivileges availPrivs = SQLAuthorizationUtils.getReqPrivilegesFromMetaStore(
           metastoreClient, userName, hObj);
-      Collection<SQLPrivilegeTypeWithGrant> missingPriv = requiredInpPrivs
+      Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
           .findMissingPrivs(availPrivs);
       SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
           HivePrincipalType.USER), hObj);
