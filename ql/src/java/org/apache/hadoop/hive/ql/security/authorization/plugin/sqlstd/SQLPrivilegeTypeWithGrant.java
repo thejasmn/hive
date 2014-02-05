@@ -28,7 +28,8 @@ public enum SQLPrivilegeTypeWithGrant {
   UPDATE_NOGRANT(SQLPrivilegeType.UPDATE, false),
   UPDATE_WGRANT(SQLPrivilegeType.UPDATE, true),
   DELETE_NOGRANT(SQLPrivilegeType.DELETE, false),
-  DELETE_WGRANT(SQLPrivilegeType.DELETE, true);
+  DELETE_WGRANT(SQLPrivilegeType.DELETE, true),
+  NOSUCH_PRIV(null, false); // This one can be used to deny permission for performing the operation
 
   final SQLPrivilegeType privType;
   final boolean withGrant;

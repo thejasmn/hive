@@ -19,19 +19,12 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
-import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
-import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
-import org.apache.thrift.TException;
 
 /**
  * Utility class to authorize grant/revoke privileges
@@ -66,75 +59,13 @@ public class GrantPrivilegeAuthorizer {
     // keep track of the principals on which privileges have been checked for
     // this object
 
-    // get privileges for this user and its role on this object
-    PrincipalPrivilegeSet thrifPrivs = null;
-    try {
-      thrifPrivs = metastoreClient.get_privilege_set(
-          AuthorizationUtils.getThriftHiveObjectRef(hivePrivObject), userName, null);
-    } catch (MetaException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (TException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (HiveException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    // convert to RequiredPrivileges
-    RequiredPrivileges availPrivs = getRequiredPrivsFromThrift(thrifPrivs);
+    // get privileges for this user and its roles on this object
+    RequiredPrivileges availPrivs = SQLAuthorizationUtils.getReqPrivilegesFromMetaStore(
+        metastoreClient, userName, hivePrivObject);
 
     // check if required privileges is subset of available privileges
     Collection<SQLPrivilegeTypeWithGrant> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
-    if (missingPrivs.size() != 0) {
-      // there are some required privileges missing, create error message
-      StringBuilder errMsg = new StringBuilder("Permission denied. User " + userName
-          + " does not have following privileges: ");
-      for (SQLPrivilegeTypeWithGrant reqPriv : missingPrivs) {
-        errMsg.append(reqPriv.toInfoString()).append(", ");
-      }
-      throw new HiveAuthorizationPluginException(errMsg.toString());
-    }
-
-  }
-
-  private static RequiredPrivileges getRequiredPrivsFromThrift(PrincipalPrivilegeSet thrifPrivs)
-      throws HiveAuthorizationPluginException {
-
-    RequiredPrivileges reqPrivs = new RequiredPrivileges();
-    // add user privileges
-    Map<String, List<PrivilegeGrantInfo>> userPrivs = thrifPrivs.getUserPrivileges();
-    if (userPrivs != null && userPrivs.size() != 1) {
-      throw new HiveAuthorizationPluginException("Invalid number of user privilege objects: "
-          + userPrivs.size());
-    }
-    addRequiredPrivs(reqPrivs, userPrivs);
-
-    // add role privileges
-    Map<String, List<PrivilegeGrantInfo>> rolePrivs = thrifPrivs.getRolePrivileges();
-    addRequiredPrivs(reqPrivs, rolePrivs);
-    return reqPrivs;
-  }
-
-  /**
-   * Add privileges to RequiredPrivileges object reqPrivs from thrift availPrivs
-   * object
-   * @param reqPrivs
-   * @param availPrivs
-   * @throws HiveAuthorizationPluginException
-   */
-  private static void addRequiredPrivs(RequiredPrivileges reqPrivs,
-      Map<String, List<PrivilegeGrantInfo>> availPrivs) throws HiveAuthorizationPluginException {
-    if(availPrivs == null){
-      return;
-    }
-    for (Map.Entry<String, List<PrivilegeGrantInfo>> userPriv : availPrivs.entrySet()) {
-      List<PrivilegeGrantInfo> userPrivGInfos = userPriv.getValue();
-      for (PrivilegeGrantInfo userPrivGInfo : userPrivGInfos) {
-        reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), userPrivGInfo.isGrantOption());
-      }
-    }
+    SQLAuthorizationUtils.assertNoMissingPrivilege(missingPrivs, hivePrincipal, hivePrivObject);
   }
 
   private static RequiredPrivileges getGrantRequiredPrivileges(List<HivePrivilege> hivePrivileges)

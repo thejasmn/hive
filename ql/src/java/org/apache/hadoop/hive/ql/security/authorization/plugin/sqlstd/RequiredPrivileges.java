@@ -77,8 +77,7 @@ public class RequiredPrivileges {
     private Map<SQLPrivilegeType, SQLPrivilegeTypeWithGrant> priv2privWithGrant = new HashMap<SQLPrivilegeType, SQLPrivilegeTypeWithGrant>();
 
     void addMissingPrivilege(SQLPrivilegeTypeWithGrant newPrivWGrant) {
-      SQLPrivilegeTypeWithGrant matchingPrivWGrant = priv2privWithGrant
-          .get(newPrivWGrant.privType);
+      SQLPrivilegeTypeWithGrant matchingPrivWGrant = priv2privWithGrant.get(newPrivWGrant.privType);
       if (matchingPrivWGrant != null) {
         if (matchingPrivWGrant.withGrant || !newPrivWGrant.withGrant) {
           // the existing entry already has grant, or new priv does not have
@@ -91,10 +90,19 @@ public class RequiredPrivileges {
       priv2privWithGrant.put(newPrivWGrant.privType, newPrivWGrant);
     }
 
-    Collection<SQLPrivilegeTypeWithGrant> getMissingPrivileges(){
+    Collection<SQLPrivilegeTypeWithGrant> getMissingPrivileges() {
       return priv2privWithGrant.values();
     }
 
+  }
+
+  public void addAll(SQLPrivilegeTypeWithGrant[] inputPrivs) {
+    if (inputPrivs == null) {
+      return;
+    }
+    for (SQLPrivilegeTypeWithGrant privType : inputPrivs) {
+      addPrivilege(privType);
+    }
   }
 
 }

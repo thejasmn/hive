@@ -18,14 +18,19 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -35,6 +40,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
+import org.apache.thrift.TException;
 
 public class SQLAuthorizationUtils {
 
@@ -129,4 +135,84 @@ public class SQLAuthorizationUtils {
       }
     }
   }
+
+  static RequiredPrivileges getReqPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
+      String userName, HivePrivilegeObject hivePrivObject) throws HiveAuthorizationPluginException {
+
+    // get privileges for this user and its role on this object
+    PrincipalPrivilegeSet thrifPrivs = null;
+    try {
+      thrifPrivs = metastoreClient.get_privilege_set(
+          AuthorizationUtils.getThriftHiveObjectRef(hivePrivObject), userName, null);
+    } catch (MetaException e) {
+      throwGetPrivErr(e, hivePrivObject, userName);
+    } catch (TException e) {
+      throwGetPrivErr(e, hivePrivObject, userName);
+    } catch (HiveException e) {
+      throwGetPrivErr(e, hivePrivObject, userName);
+    }
+
+    // convert to RequiredPrivileges
+    return getRequiredPrivsFromThrift(thrifPrivs);
+  }
+
+  private static void throwGetPrivErr(Exception e, HivePrivilegeObject hivePrivObject,
+      String userName) throws HiveAuthorizationPluginException {
+    String msg = "Error getting privileges on " + hivePrivObject + " for " + userName;
+    throw new HiveAuthorizationPluginException(msg, e);
+  }
+
+  private static RequiredPrivileges getRequiredPrivsFromThrift(PrincipalPrivilegeSet thrifPrivs)
+      throws HiveAuthorizationPluginException {
+
+    RequiredPrivileges reqPrivs = new RequiredPrivileges();
+    // add user privileges
+    Map<String, List<PrivilegeGrantInfo>> userPrivs = thrifPrivs.getUserPrivileges();
+    if (userPrivs != null && userPrivs.size() != 1) {
+      throw new HiveAuthorizationPluginException("Invalid number of user privilege objects: "
+          + userPrivs.size());
+    }
+    addRequiredPrivs(reqPrivs, userPrivs);
+
+    // add role privileges
+    Map<String, List<PrivilegeGrantInfo>> rolePrivs = thrifPrivs.getRolePrivileges();
+    addRequiredPrivs(reqPrivs, rolePrivs);
+    return reqPrivs;
+  }
+
+  /**
+   * Add privileges to RequiredPrivileges object reqPrivs from thrift availPrivs
+   * object
+   * @param reqPrivs
+   * @param availPrivs
+   * @throws HiveAuthorizationPluginException
+   */
+  private static void addRequiredPrivs(RequiredPrivileges reqPrivs,
+      Map<String, List<PrivilegeGrantInfo>> availPrivs) throws HiveAuthorizationPluginException {
+    if(availPrivs == null){
+      return;
+    }
+    for (Map.Entry<String, List<PrivilegeGrantInfo>> userPriv : availPrivs.entrySet()) {
+      List<PrivilegeGrantInfo> userPrivGInfos = userPriv.getValue();
+      for (PrivilegeGrantInfo userPrivGInfo : userPrivGInfos) {
+        reqPrivs.addPrivilege(userPrivGInfo.getPrivilege(), userPrivGInfo.isGrantOption());
+      }
+    }
+  }
+
+  public static void assertNoMissingPrivilege(Collection<SQLPrivilegeTypeWithGrant> missingPrivs,
+      HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject)
+          throws HiveAuthorizationPluginException {
+    if (missingPrivs.size() != 0) {
+      // there are some required privileges missing, create error message
+      StringBuilder errMsg = new StringBuilder("Permission denied. " + hivePrincipal
+          + " does not have following privileges on " + hivePrivObject + " :");
+      for (SQLPrivilegeTypeWithGrant reqPriv : missingPrivs) {
+        errMsg.append(reqPriv.toInfoString()).append(", ");
+      }
+      throw new HiveAuthorizationPluginException(errMsg.toString());
+    }
+  }
+
+
 }
