@@ -144,18 +144,18 @@ public class Operation2Privilege {
 
     //  The following actions are authorized through SQLStdHiveAccessController,
     // and it is not using this privilege mapping
-     op2Priv.put(HiveOperationType.CREATEROLE, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.DROPROLE, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.GRANT_PRIVILEGE, new InOutPrivs(null,
-     null));
-     op2Priv.put(HiveOperationType.REVOKE_PRIVILEGE, new InOutPrivs(null,
-     null));
-     op2Priv.put(HiveOperationType.SHOW_GRANT, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.GRANT_ROLE, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.REVOKE_ROLE, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.SHOW_ROLES, new InOutPrivs(null, null));
-     op2Priv.put(HiveOperationType.SHOW_ROLE_GRANT, new InOutPrivs(null,
-     null));
+    op2Priv.put(HiveOperationType.CREATEROLE, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.DROPROLE, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.GRANT_PRIVILEGE, new InOutPrivs(null,
+        null));
+    op2Priv.put(HiveOperationType.REVOKE_PRIVILEGE, new InOutPrivs(null,
+        null));
+    op2Priv.put(HiveOperationType.SHOW_GRANT, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.GRANT_ROLE, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.REVOKE_ROLE, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOW_ROLES, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOW_ROLE_GRANT, new InOutPrivs(null,
+        null));
 
   }
 
