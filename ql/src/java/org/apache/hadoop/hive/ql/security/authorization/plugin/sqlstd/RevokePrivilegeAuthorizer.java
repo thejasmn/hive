@@ -28,7 +28,8 @@ public class RevokePrivilegeAuthorizer {
     StringBuilder errMsg = new StringBuilder();
     for (HivePrincipal principal : principals) {
 
-      // get metastore/thrift privilege object for this principal and object
+      // get metastore/thrift privilege object for this principal and object, not looking at
+      // privileges obtained indirectly via roles
       List<HiveObjectPrivilege> msObjPrivs;
       try {
         msObjPrivs = mClient.list_privileges(principal.getName(),

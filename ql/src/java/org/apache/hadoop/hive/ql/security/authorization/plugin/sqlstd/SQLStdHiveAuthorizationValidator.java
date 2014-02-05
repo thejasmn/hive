@@ -17,14 +17,18 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 
 public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValidator {
@@ -44,7 +48,34 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
       List<HivePrivilegeObject> outputHObjs) throws HiveAuthorizationPluginException {
     String userName = authenticator.getUserName();
+    IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
 
+    // get privileges required on input and check
+    SQLPrivilegeTypeWithGrant[] inputPrivs = Operation2Privilege.getInputPrivs(hiveOpType);
+    checkPrivileges(inputPrivs, inputHObjs, metastoreClient, userName);
+
+    // get privileges required on input and check
+    SQLPrivilegeTypeWithGrant[] outputPrivs = Operation2Privilege.getOutputPrivs(hiveOpType);
+    checkPrivileges(outputPrivs, outputHObjs, metastoreClient, userName);
+
+  }
+
+  private void checkPrivileges(SQLPrivilegeTypeWithGrant[] reqPrivs,
+      List<HivePrivilegeObject> hObjs, IMetaStoreClient metastoreClient, String userName)
+          throws HiveAuthorizationPluginException {
+    RequiredPrivileges requiredInpPrivs = new RequiredPrivileges();
+    requiredInpPrivs.addAll(reqPrivs);
+
+    // check if this user has these privileges on the objects
+    for (HivePrivilegeObject hObj : hObjs) {
+      // get the privileges that this user has on the object
+      RequiredPrivileges availPrivs = SQLAuthorizationUtils.getReqPrivilegesFromMetaStore(
+          metastoreClient, userName, hObj);
+      Collection<SQLPrivilegeTypeWithGrant> missingPriv = requiredInpPrivs
+          .findMissingPrivs(availPrivs);
+      SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
+          HivePrincipalType.USER), hObj);
+    }
   }
 
 }

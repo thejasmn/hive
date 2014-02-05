@@ -55,6 +55,7 @@ import org.apache.hadoop.hive.ql.exec.TaskRunner;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.history.HiveHistory.Keys;
 import org.apache.hadoop.hive.ql.hooks.Entity;
+import org.apache.hadoop.hive.ql.hooks.Entity.Type;
 import org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext;
 import org.apache.hadoop.hive.ql.hooks.Hook;
 import org.apache.hadoop.hive.ql.hooks.HookContext;
@@ -711,13 +712,14 @@ public class Driver implements CommandProcessor {
   private void doAuthorizationV2(SessionState ss, HiveOperation op, HashSet<ReadEntity> inputs,
       HashSet<WriteEntity> outputs) throws HiveException {
     HiveOperationType hiveOpType = getHiveOperationType(op);
-    List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs);
-    List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs);
+    List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs, false);
+    //skip output URI for now
+    List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs, true);
     ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs);
     return;
   }
 
-  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects) {
+  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects, boolean ignoreURI) {
     List<HivePrivilegeObject> hivePrivobjs = new ArrayList<HivePrivilegeObject>();
     if(privObjects == null){
       return hivePrivobjs;
@@ -725,10 +727,16 @@ public class Driver implements CommandProcessor {
     for(Entity privObject : privObjects){
       HivePrivilegeObjectType privObjType =
           AuthorizationUtils.getHivePrivilegeObjectType(privObject.getType());
+      if(ignoreURI && privObjType == HivePrivilegeObjectType.URI){
+        continue;
+      }
+      if(privObjType == HivePrivilegeObjectType.PARTITION){
+        continue;
+      }
 
       //support for authorization on partitions or uri needs to be added
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType,
-          privObject.getDatabase() == null ? null : privObject.getDatabase().getName(),
+          getDataBaseName(privObject),
               privObject.getTable() == null ? null : privObject.getTable().getTableName());
       hivePrivobjs.add(hPrivObject);
     }
@@ -736,6 +744,14 @@ public class Driver implements CommandProcessor {
   }
 
 
+
+  private String getDataBaseName(Entity privObject) {
+    if(privObject.getType() == Type.DATABASE){
+      return privObject.getDatabase() == null ? null : privObject.getDatabase().getName();
+    } else {
+      return privObject.getTable() == null ? null : privObject.getTable().getDbName();
+    }
+  }
 
   private HiveOperationType getHiveOperationType(HiveOperation op) {
     return HiveOperationType.valueOf(op.name());
