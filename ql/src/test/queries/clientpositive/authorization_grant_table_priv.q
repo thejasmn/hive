@@ -32,12 +32,12 @@ set user.name=user1;
 -- switched back to table owner
 
 -- grant all with grant to user22
-GRANT SELECT ON table_priv1 TO USER user22 with grant option;
+GRANT ALL ON table_priv1 TO USER user22 with grant option;
 SHOW GRANT USER user22 ON TABLE table_priv1;
 
 set user.name=user22;
 
 -- grant all without grant to user33
-GRANT SELECT ON table_priv1 TO USER user33 with grant option;
+GRANT ALL ON table_priv1 TO USER user33 with grant option;
 SHOW GRANT USER user33 ON TABLE table_priv1;
 

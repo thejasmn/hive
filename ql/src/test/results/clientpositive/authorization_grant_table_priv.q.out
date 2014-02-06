@@ -98,3 +98,87 @@ principalType	USER
 privilege	SELECT
 #### A masked pattern was here ####
 grantor	user3
+#### A masked pattern was here ####
+
+-- grant all with grant to user22
+GRANT ALL ON table_priv1 TO USER user22 with grant option
+PREHOOK: type: GRANT_PRIVILEGE
+PREHOOK: Output: default@table_priv1
+#### A masked pattern was here ####
+
+-- grant all with grant to user22
+GRANT ALL ON table_priv1 TO USER user22 with grant option
+POSTHOOK: type: GRANT_PRIVILEGE
+POSTHOOK: Output: default@table_priv1
+PREHOOK: query: SHOW GRANT USER user22 ON TABLE table_priv1
+PREHOOK: type: SHOW_GRANT
+POSTHOOK: query: SHOW GRANT USER user22 ON TABLE table_priv1
+POSTHOOK: type: SHOW_GRANT
+database	default
+table	table_priv1
+principalName	user22
+principalType	USER
+privilege	DELETE
+#### A masked pattern was here ####
+grantor	user1
+database	default
+table	table_priv1
+principalName	user22
+principalType	USER
+privilege	INSERT
+#### A masked pattern was here ####
+grantor	user1
+database	default
+table	table_priv1
+principalName	user22
+principalType	USER
+privilege	SELECT
+#### A masked pattern was here ####
+grantor	user1
+database	default
+table	table_priv1
+principalName	user22
+principalType	USER
+privilege	UPDATE
+#### A masked pattern was here ####
+grantor	user1
+PREHOOK: query: -- grant all without grant to user33
+GRANT ALL ON table_priv1 TO USER user33 with grant option
+PREHOOK: type: GRANT_PRIVILEGE
+PREHOOK: Output: default@table_priv1
+POSTHOOK: query: -- grant all without grant to user33
+GRANT ALL ON table_priv1 TO USER user33 with grant option
+POSTHOOK: type: GRANT_PRIVILEGE
+POSTHOOK: Output: default@table_priv1
+PREHOOK: query: SHOW GRANT USER user33 ON TABLE table_priv1
+PREHOOK: type: SHOW_GRANT
+POSTHOOK: query: SHOW GRANT USER user33 ON TABLE table_priv1
+POSTHOOK: type: SHOW_GRANT
+database	default
+table	table_priv1
+principalName	user33
+principalType	USER
+privilege	DELETE
+#### A masked pattern was here ####
+grantor	user22
+database	default
+table	table_priv1
+principalName	user33
+principalType	USER
+privilege	INSERT
+#### A masked pattern was here ####
+grantor	user22
+database	default
+table	table_priv1
+principalName	user33
+principalType	USER
+privilege	SELECT
+#### A masked pattern was here ####
+grantor	user22
+database	default
+table	table_priv1
+principalName	user33
+principalType	USER
+privilege	UPDATE
+#### A masked pattern was here ####
+grantor	user22
