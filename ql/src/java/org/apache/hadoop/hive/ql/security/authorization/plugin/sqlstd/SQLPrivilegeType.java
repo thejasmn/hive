@@ -22,7 +22,7 @@ import java.util.Locale;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 
 public enum SQLPrivilegeType {
-  //ALL privilege is expanded to these, so its not needed here
+  //ALL privilege is expanded to these, so it is not needed here
   SELECT, INSERT, UPDATE, DELETE;
 
   public static SQLPrivilegeType getRequirePrivilege(String priv)
