@@ -50,38 +50,38 @@ public class Operation2Privilege {
 
     op2Priv.put(HiveOperationType.EXPLAIN, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT),
         arr(SQLPrivTypeGrant.SELECT_NOGRANT))); //??
-    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
+    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
     op2Priv.put(HiveOperationType.EXPORT, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT), null));
-    op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.CREATEDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
+    op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.CREATEDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
     op2Priv.put(HiveOperationType.SWITCHDATABASE, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.LOCKDB, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.UNLOCKDB, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.DROPTABLE, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
+    op2Priv.put(HiveOperationType.LOCKDB, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.UNLOCKDB, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.DROPTABLE, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
     op2Priv.put(HiveOperationType.DESCTABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT), null));
     op2Priv.put(HiveOperationType.DESCFUNCTION, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.MSCK, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ADDCOLS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_REPLACECOLS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMEPART, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAME, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_TOUCH, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ARCHIVE, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_UNARCHIVE, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_PROPERTIES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SERIALIZER, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_PARTCOLTYPE, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_SERIALIZER, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SERDEPROPERTIES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_SERDEPROPERTIES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_CLUSTER_SORT, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.MSCK, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ADDCOLS, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_REPLACECOLS, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMEPART, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAME, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_TOUCH, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ARCHIVE, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_UNARCHIVE, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PROPERTIES, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SERIALIZER, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PARTCOLTYPE, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_SERIALIZER, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SERDEPROPERTIES, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_SERDEPROPERTIES, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_CLUSTER_SORT, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
     op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_BUCKETNUM, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_BUCKETNUM, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_BUCKETNUM, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_BUCKETNUM, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
     op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWTABLES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT), null));
@@ -102,11 +102,11 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.CREATEVIEW, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_WGRANT), null));
 
     // require view ownership
-    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
 
-    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
+    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
 
     // require view ownership
     op2Priv.put(HiveOperationType.ALTERVIEW_PROPERTIES, new InOutPrivs(null, null));
@@ -125,11 +125,12 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.CREATETABLE, new InOutPrivs(null, null));
 
     // require table ownership
-    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(arr(SQLPrivTypeGrant.OWNER_PRIV), null));
+
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT), null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
-    op2Priv.put(HiveOperationType.ALTERDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.NOSUCH_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
+    op2Priv.put(HiveOperationType.ALTERDATABASE, new InOutPrivs(arr(SQLPrivTypeGrant.ADMIN_PRIV), null));
     op2Priv.put(HiveOperationType.DESCDATABASE, new InOutPrivs(null, null));
 
     // require table ownership
@@ -142,8 +143,8 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(null, null));
 
 
-    //  The following actions are authorized through SQLStdHiveAccessController,
-    // and it is not using this privilege mapping
+    // The following actions are authorized through SQLStdHiveAccessController,
+    // and it is not using this privilege mapping, but it might make sense to move it here
     op2Priv.put(HiveOperationType.CREATEROLE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.DROPROLE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.GRANT_PRIVILEGE, new InOutPrivs(null,

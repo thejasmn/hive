@@ -29,32 +29,70 @@ public enum SQLPrivTypeGrant {
   UPDATE_WGRANT(SQLPrivilegeType.UPDATE, true),
   DELETE_NOGRANT(SQLPrivilegeType.DELETE, false),
   DELETE_WGRANT(SQLPrivilegeType.DELETE, true),
-  NOSUCH_PRIV(null, false); // This one can be used to deny permission for performing the operation
+  OWNER_PRIV("Object ownership"),
+  ADMIN_PRIV("Admin privilege"); // This one can be used to deny permission for performing the operation
 
-  final SQLPrivilegeType privType;
-  final boolean withGrant;
+  private final SQLPrivilegeType privType;
+  private final boolean withGrant;
+
+  private final String privDesc;
   SQLPrivTypeGrant(SQLPrivilegeType privType, boolean isGrant){
     this.privType = privType;
     this.withGrant = isGrant;
+    this.privDesc = privType.toString() + (withGrant ? " with grant" : "");
   }
 
-  public static SQLPrivTypeGrant getSQLPrivilegeWithGrantTypes(
+  /**
+   * Constructor for privileges that are not the standard sql types, but are used by
+   * authorization rules
+   * @param privDesc
+   */
+  SQLPrivTypeGrant(String privDesc){
+    this.privDesc = privDesc;
+    this.privType = null;
+    this.withGrant = false;
+  }
+
+  /**
+   * Find matching enum
+   * @param privType
+   * @param isGrant
+   * @return
+   */
+  public static SQLPrivTypeGrant getSQLPrivTypeGrant(
       SQLPrivilegeType privType, boolean isGrant) {
     String typeName = privType.name() + (isGrant ? "_WGRANT" : "_NOGRANT");
     return SQLPrivTypeGrant.valueOf(typeName);
   }
 
-  public static SQLPrivTypeGrant getSQLPrivilegeWithGrantTypes(
-      String privTypeStr, boolean isGrant) throws HiveAuthorizationPluginException {
+  /**
+   * Find matching enum
+   *
+   * @param privTypeStr
+   *          privilege type string
+   * @param isGrant
+   * @return
+   * @throws HiveAuthorizationPluginException
+   */
+  public static SQLPrivTypeGrant getSQLPrivTypeGrant(String privTypeStr, boolean isGrant)
+      throws HiveAuthorizationPluginException {
     SQLPrivilegeType ptype = SQLPrivilegeType.getRequirePrivilege(privTypeStr);
-    return getSQLPrivilegeWithGrantTypes(ptype, isGrant);
+    return getSQLPrivTypeGrant(ptype, isGrant);
+  }
+
+  public SQLPrivilegeType getPrivType() {
+    return privType;
+  }
+
+  public boolean isWithGrant() {
+    return withGrant;
   }
 
   /**
    * @return String representation for use in error messages
    */
   public String toInfoString(){
-    return privType.toString() + (withGrant ? " with grant" : "");
+    return privDesc;
   }
 
 };
