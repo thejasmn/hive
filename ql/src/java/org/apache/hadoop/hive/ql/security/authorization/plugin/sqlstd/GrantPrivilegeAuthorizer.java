@@ -61,7 +61,7 @@ public class GrantPrivilegeAuthorizer {
     // this object
 
     // get privileges for this user and its roles on this object
-    RequiredPrivileges availPrivs = SQLAuthorizationUtils.getReqPrivilegesFromMetaStore(
+    RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
         metastoreClient, userName, hivePrivObject);
 
     // check if required privileges is subset of available privileges

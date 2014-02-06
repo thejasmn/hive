@@ -30,9 +30,11 @@ import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
@@ -126,6 +128,11 @@ public class SQLAuthorizationUtils {
     }
   }
 
+  /**
+   * Check if the privileges are acceptable for SQL Standard authorization implementation
+   * @param hivePrivileges
+   * @throws HiveAuthorizationPluginException
+   */
   public static void validatePrivileges(List<HivePrivilege> hivePrivileges) throws HiveAuthorizationPluginException {
     for (HivePrivilege hivePrivilege : hivePrivileges) {
       if (hivePrivilege.getColumns() != null && hivePrivilege.getColumns().size() != 0) {
@@ -136,7 +143,17 @@ public class SQLAuthorizationUtils {
     }
   }
 
-  static RequiredPrivileges getReqPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
+  /**
+   * Get the privileges this user(userName argument) has on the object
+   * (hivePrivObject argument)
+   *
+   * @param metastoreClient
+   * @param userName
+   * @param hivePrivObject
+   * @return
+   * @throws HiveAuthorizationPluginException
+   */
+  static RequiredPrivileges getPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
       String userName, HivePrivilegeObject hivePrivObject) throws HiveAuthorizationPluginException {
 
     // get privileges for this user and its role on this object
@@ -153,7 +170,50 @@ public class SQLAuthorizationUtils {
     }
 
     // convert to RequiredPrivileges
-    return getRequiredPrivsFromThrift(thrifPrivs);
+    RequiredPrivileges privs = getRequiredPrivsFromThrift(thrifPrivs);
+
+    // add owner privilege if user is owner of the object
+    if (isOwner(metastoreClient, userName, hivePrivObject)) {
+      privs.addPrivilege(SQLPrivTypeGrant.OWNER_PRIV);
+    }
+
+    return privs;
+  }
+
+  /**
+   * Check if user is owner of the given object
+   *
+   * @param metastoreClient
+   * @param userName
+   *          user
+   * @param hivePrivObject
+   *          given object
+   * @return true if user is owner
+   * @throws HiveAuthorizationPluginException
+   */
+  private static boolean isOwner(IMetaStoreClient metastoreClient, String userName,
+      HivePrivilegeObject hivePrivObject) throws HiveAuthorizationPluginException {
+    //for now, check only table
+    if(hivePrivObject.getType() == HivePrivilegeObjectType.TABLE){
+      Table thriftTableObj = null;
+      try {
+        thriftTableObj = metastoreClient.getTable(hivePrivObject.getDbname(), hivePrivObject.getTableviewname());
+      } catch (MetaException e) {
+        throwGetTableErr(e, hivePrivObject);
+      } catch (NoSuchObjectException e) {
+        throwGetTableErr(e, hivePrivObject);
+      } catch (TException e) {
+        throwGetTableErr(e, hivePrivObject);
+      }
+      return userName.equals(thriftTableObj.getOwner());
+    }
+    return false;
+  }
+
+  private static void throwGetTableErr(Exception e, HivePrivilegeObject hivePrivObject)
+      throws HiveAuthorizationPluginException {
+    String msg = "Error getting table object from metastore for" + hivePrivObject;
+    throw new HiveAuthorizationPluginException(msg, e);
   }
 
   private static void throwGetPrivErr(Exception e, HivePrivilegeObject hivePrivObject,

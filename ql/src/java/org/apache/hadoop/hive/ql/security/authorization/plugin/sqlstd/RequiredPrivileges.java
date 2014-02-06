@@ -30,7 +30,7 @@ public class RequiredPrivileges {
   private final Set<SQLPrivTypeGrant> privilegeGrantSet = new HashSet<SQLPrivTypeGrant>();
 
   public void addPrivilege(String priv, boolean withGrant) throws HiveAuthorizationPluginException {
-    SQLPrivTypeGrant privType = SQLPrivTypeGrant.getSQLPrivilegeWithGrantTypes(priv, withGrant);
+    SQLPrivTypeGrant privType = SQLPrivTypeGrant.getSQLPrivTypeGrant(priv, withGrant);
     addPrivilege(privType);
     privilegeGrantSet.add(privType);
     if(withGrant){
@@ -60,7 +60,7 @@ public class RequiredPrivileges {
     return missingPrivCapturer.getMissingPrivileges();
   }
 
-  private void addPrivilege(SQLPrivTypeGrant requiredPriv) {
+  void addPrivilege(SQLPrivTypeGrant requiredPriv) {
     privilegeGrantSet.add(requiredPriv);
   }
 
@@ -77,9 +77,9 @@ public class RequiredPrivileges {
     private Map<SQLPrivilegeType, SQLPrivTypeGrant> priv2privWithGrant = new HashMap<SQLPrivilegeType, SQLPrivTypeGrant>();
 
     void addMissingPrivilege(SQLPrivTypeGrant newPrivWGrant) {
-      SQLPrivTypeGrant matchingPrivWGrant = priv2privWithGrant.get(newPrivWGrant.privType);
+      SQLPrivTypeGrant matchingPrivWGrant = priv2privWithGrant.get(newPrivWGrant.getPrivType());
       if (matchingPrivWGrant != null) {
-        if (matchingPrivWGrant.withGrant || !newPrivWGrant.withGrant) {
+        if (matchingPrivWGrant.isWithGrant() || !newPrivWGrant.isWithGrant()) {
           // the existing entry already has grant, or new priv does not have
           // grant
           // no update needs to be done.
@@ -87,7 +87,7 @@ public class RequiredPrivileges {
         }
       }
       // add the new entry
-      priv2privWithGrant.put(newPrivWGrant.privType, newPrivWGrant);
+      priv2privWithGrant.put(newPrivWGrant.getPrivType(), newPrivWGrant);
     }
 
     Collection<SQLPrivTypeGrant> getMissingPrivileges() {

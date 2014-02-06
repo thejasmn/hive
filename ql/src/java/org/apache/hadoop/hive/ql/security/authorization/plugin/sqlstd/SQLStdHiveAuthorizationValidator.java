@@ -69,7 +69,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     // check if this user has these privileges on the objects
     for (HivePrivilegeObject hObj : hObjs) {
       // get the privileges that this user has on the object
-      RequiredPrivileges availPrivs = SQLAuthorizationUtils.getReqPrivilegesFromMetaStore(
+      RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
           metastoreClient, userName, hObj);
       Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
           .findMissingPrivs(availPrivs);
