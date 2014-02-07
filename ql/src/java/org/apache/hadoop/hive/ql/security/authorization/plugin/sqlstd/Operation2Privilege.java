@@ -23,6 +23,9 @@ import java.util.Set;
 
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 
+/**
+ * Mapping of operation to its required input and output privileges
+ */
 public class Operation2Privilege {
 
   private static class InOutPrivs {

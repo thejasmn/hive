@@ -11,7 +11,8 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
@@ -21,7 +22,8 @@ public class RevokePrivilegeAuthorizer {
 
   public static List<HiveObjectPrivilege> authorizeAndGetRevokePrivileges(List<HivePrincipal> principals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject, boolean grantOption,
-      IMetaStoreClient mClient, String userName) throws HiveAuthorizationPluginException {
+      IMetaStoreClient mClient, String userName)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
 
     List<HiveObjectPrivilege> matchingPrivs = new ArrayList<HiveObjectPrivilege>();
 
@@ -36,9 +38,9 @@ public class RevokePrivilegeAuthorizer {
             AuthorizationUtils.getThriftPrincipalType(principal.getType()),
             SQLAuthorizationUtils.getThriftHiveObjectRef(hivePrivObject));
       } catch (MetaException e) {
-        throw new HiveAuthorizationPluginException(e);
+        throw new HiveAuthzPluginException(e);
       } catch (TException e) {
-        throw new HiveAuthorizationPluginException(e);
+        throw new HiveAuthzPluginException(e);
       }
 
       // the resulting privileges need to be filtered on privilege type and
@@ -74,7 +76,7 @@ public class RevokePrivilegeAuthorizer {
     }
 
     if (errMsg.length() != 0) {
-      throw new HiveAuthorizationPluginException(errMsg.toString());
+      throw new HiveAuthzPluginDeniedException(errMsg.toString());
     }
     return matchingPrivs;
   }

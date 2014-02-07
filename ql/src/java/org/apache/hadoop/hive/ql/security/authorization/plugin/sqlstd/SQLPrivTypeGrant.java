@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 
 
 public enum SQLPrivTypeGrant {
@@ -72,10 +72,10 @@ public enum SQLPrivTypeGrant {
    *          privilege type string
    * @param isGrant
    * @return
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   public static SQLPrivTypeGrant getSQLPrivTypeGrant(String privTypeStr, boolean isGrant)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     SQLPrivilegeType ptype = SQLPrivilegeType.getRequirePrivilege(privTypeStr);
     return getSQLPrivTypeGrant(ptype, isGrant);
   }

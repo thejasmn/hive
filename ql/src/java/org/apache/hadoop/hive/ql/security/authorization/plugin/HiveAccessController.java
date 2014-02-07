@@ -30,34 +30,34 @@ public interface HiveAccessController {
 
   void grantPrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption)
-          throws HiveAuthorizationPluginException;;
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void revokePrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, HivePrincipal grantorPrincipal, boolean grantOption)
-          throws HiveAuthorizationPluginException;;
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void createRole(String roleName, HivePrincipal adminGrantor)
-      throws HiveAuthorizationPluginException;
+      throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void dropRole(String roleName)
-      throws HiveAuthorizationPluginException;
+      throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   List<HiveRole> getRoles(HivePrincipal hivePrincipal)
-      throws HiveAuthorizationPluginException;
+      throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void grantRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc)
-          throws HiveAuthorizationPluginException;
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roles, boolean grantOption,
       HivePrincipal grantorPrinc)
-          throws HiveAuthorizationPluginException;
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   List<String> getAllRoles()
-      throws HiveAuthorizationPluginException;
+      throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
-      throws HiveAuthorizationPluginException;
+      throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
   void setCurrentRole(String roleName) throws HiveAuthorizationPluginException;
 

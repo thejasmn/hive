@@ -23,13 +23,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 
+/**
+ * Captures privilege sets, and can be used to compare required and available privileges
+ * to find missing privileges (if any).
+ */
 public class RequiredPrivileges {
 
   private final Set<SQLPrivTypeGrant> privilegeGrantSet = new HashSet<SQLPrivTypeGrant>();
 
-  public void addPrivilege(String priv, boolean withGrant) throws HiveAuthorizationPluginException {
+  public void addPrivilege(String priv, boolean withGrant) throws HiveAuthzPluginException {
     SQLPrivTypeGrant privType = SQLPrivTypeGrant.getSQLPrivTypeGrant(priv, withGrant);
     addPrivilege(privType);
     privilegeGrantSet.add(privType);
@@ -74,7 +78,7 @@ public class RequiredPrivileges {
    */
   class MissingPrivilegeCapturer {
 
-    private Map<SQLPrivilegeType, SQLPrivTypeGrant> priv2privWithGrant = new HashMap<SQLPrivilegeType, SQLPrivTypeGrant>();
+    private final Map<SQLPrivilegeType, SQLPrivTypeGrant> priv2privWithGrant = new HashMap<SQLPrivilegeType, SQLPrivTypeGrant>();
 
     void addMissingPrivilege(SQLPrivTypeGrant newPrivWGrant) {
       SQLPrivTypeGrant matchingPrivWGrant = priv2privWithGrant.get(newPrivWGrant.getPrivType());

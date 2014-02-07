@@ -39,7 +39,8 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -95,7 +96,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   @Override
   public void grantPrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
 
     SQLAuthorizationUtils.validatePrivileges(hivePrivileges);
 
@@ -113,7 +115,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     try {
       metastoreClient.grant_privileges(privBag);
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error granting privileges", e);
+      throw new HiveAuthzPluginException("Error granting privileges", e);
     }
   }
 
@@ -141,21 +143,21 @@ public class SQLStdHiveAccessController implements HiveAccessController {
    * @param grantorPrincipal
    * @param grantOption
    * @return
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   private PrivilegeBag getThriftPrivilegesBag(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthzPluginException {
 
     HiveObjectRef privObj = SQLAuthorizationUtils.getThriftHiveObjectRef(hivePrivObject);
     PrivilegeBag privBag = new PrivilegeBag();
     for (HivePrivilege privilege : hivePrivileges) {
       if (privilege.getColumns() != null && privilege.getColumns().size() > 0) {
-        throw new HiveAuthorizationPluginException("Privileges on columns not supported currently"
+        throw new HiveAuthzPluginException("Privileges on columns not supported currently"
             + " in sql standard authorization mode");
       }
       if (!SUPPORTED_PRIVS_SET.contains(privilege.getName().toUpperCase(Locale.US))) {
-        throw new HiveAuthorizationPluginException("Privilege: " + privilege.getName()
+        throw new HiveAuthzPluginException("Privilege: " + privilege.getName()
             + " is not supported in sql standard authorization mode");
       }
       PrivilegeGrantInfo grantInfo = getThriftPrivilegeGrantInfo(privilege, grantorPrincipal,
@@ -170,19 +172,20 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   }
 
   private PrivilegeGrantInfo getThriftPrivilegeGrantInfo(HivePrivilege privilege,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthzPluginException {
     try {
       return AuthorizationUtils.getThriftPrivilegeGrantInfo(privilege, grantorPrincipal,
           grantOption);
     } catch (HiveException e) {
-      throw new HiveAuthorizationPluginException(e);
+      throw new HiveAuthzPluginException(e);
     }
   }
 
   @Override
   public void revokePrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
     SQLAuthorizationUtils.validatePrivileges(hivePrivileges);
 
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
@@ -200,50 +203,50 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       // that has desired behavior.
       metastoreClient.revoke_privileges(new PrivilegeBag(revokePrivs));
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error revoking privileges", e);
+      throw new HiveAuthzPluginException("Error revoking privileges", e);
     }
   }
 
   @Override
   public void createRole(String roleName, HivePrincipal adminGrantor)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     try {
       String grantorName = adminGrantor == null ? null : adminGrantor.getName();
       metastoreClientFactory.getHiveMetastoreClient().create_role(
         new Role(roleName, 0, grantorName));
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error create role", e);
+      throw new HiveAuthzPluginException("Error create role", e);
     }
   }
 
   @Override
-  public void dropRole(String roleName) throws HiveAuthorizationPluginException {
+  public void dropRole(String roleName) throws HiveAuthzPluginException {
     try {
       metastoreClientFactory.getHiveMetastoreClient().drop_role(roleName);
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error dropping role", e);
+      throw new HiveAuthzPluginException("Error dropping role", e);
     }
   }
 
   @Override
-  public List<HiveRole> getRoles(HivePrincipal hivePrincipal) throws HiveAuthorizationPluginException {
+  public List<HiveRole> getRoles(HivePrincipal hivePrincipal) throws HiveAuthzPluginException {
     try {
       List<Role> roles = metastoreClientFactory.getHiveMetastoreClient().list_roles(
-        hivePrincipal.getName(), AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType()));
-      List<HiveRole> roleNames = new ArrayList<HiveRole>(roles.size());
+          hivePrincipal.getName(), AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType()));
+      List<HiveRole> hiveRoles = new ArrayList<HiveRole>(roles.size());
       for (Role role : roles){
-        roleNames.add(new HiveRole(role));
+        hiveRoles.add(new HiveRole(role));
       }
-      return roleNames;
+      return hiveRoles;
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error listing roles for user"
+      throw new HiveAuthzPluginException("Error listing roles for user"
           + hivePrincipal.getName(), e);
     }
   }
 
   @Override
   public void grantRole(List<HivePrincipal> hivePrincipals, List<String> roleNames,
-      boolean grantOption, HivePrincipal grantorPrinc) throws HiveAuthorizationPluginException {
+      boolean grantOption, HivePrincipal grantorPrinc) throws HiveAuthzPluginException {
     for (HivePrincipal hivePrincipal : hivePrincipals) {
       for (String roleName : roleNames) {
         try {
@@ -253,11 +256,11 @@ public class SQLStdHiveAccessController implements HiveAccessController {
               grantorPrinc.getName(),
               AuthorizationUtils.getThriftPrincipalType(grantorPrinc.getType()), grantOption);
         } catch (MetaException e) {
-          throw new HiveAuthorizationPluginException(e.getMessage(), e);
+          throw new HiveAuthzPluginException(e.getMessage(), e);
         } catch (Exception e) {
           String msg = "Error granting roles for " + hivePrincipal.getName() + " to role "
               + roleName + ": " + e.getMessage();
-          throw new HiveAuthorizationPluginException(msg, e);
+          throw new HiveAuthzPluginException(msg, e);
         }
       }
     }
@@ -265,10 +268,10 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   @Override
   public void revokeRole(List<HivePrincipal> hivePrincipals, List<String> roleNames,
-      boolean grantOption, HivePrincipal grantorPrinc) throws HiveAuthorizationPluginException {
+      boolean grantOption, HivePrincipal grantorPrinc) throws HiveAuthzPluginException {
     if (grantOption) {
       // removing grant privileges only is not supported in metastore api
-      throw new HiveAuthorizationPluginException("Revoking only the admin privileges on "
+      throw new HiveAuthzPluginException("Revoking only the admin privileges on "
           + "role is not currently supported");
     }
     for (HivePrincipal hivePrincipal : hivePrincipals) {
@@ -280,24 +283,24 @@ public class SQLStdHiveAccessController implements HiveAccessController {
         } catch (Exception e) {
           String msg = "Error revoking roles for " + hivePrincipal.getName() + " to role "
               + roleName + hivePrincipal.getName();
-          throw new HiveAuthorizationPluginException(msg, e);
+          throw new HiveAuthzPluginException(msg, e);
         }
       }
     }
   }
 
   @Override
-  public List<String> getAllRoles() throws HiveAuthorizationPluginException {
+  public List<String> getAllRoles() throws HiveAuthzPluginException {
     try {
       return metastoreClientFactory.getHiveMetastoreClient().listRoleNames();
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error listing all roles", e);
+      throw new HiveAuthzPluginException("Error listing all roles", e);
     }
   }
 
   @Override
   public List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     try {
       IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
       List<HivePrivilegeInfo> resPrivInfos = new ArrayList<HivePrivilegeInfo>();
@@ -334,13 +337,13 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       return resPrivInfos;
 
     } catch (Exception e) {
-      throw new HiveAuthorizationPluginException("Error showing privileges", e);
+      throw new HiveAuthzPluginException("Error showing privileges", e);
     }
 
   }
 
   private HivePrivilegeObjectType getPluginObjType(HiveObjectType objectType)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     switch (objectType) {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
@@ -349,7 +352,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     case COLUMN:
     case GLOBAL:
     case PARTITION:
-      throw new HiveAuthorizationPluginException("Unsupported object type " + objectType);
+      throw new HiveAuthzPluginException("Unsupported object type " + objectType);
     default:
       throw new AssertionError("Unexpected object type " + objectType);
     }
