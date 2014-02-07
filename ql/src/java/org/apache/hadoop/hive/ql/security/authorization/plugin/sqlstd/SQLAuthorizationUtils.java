@@ -271,16 +271,12 @@ public class SQLAuthorizationUtils {
       throws HiveAuthzPluginDeniedException {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
-      StringBuilder errMsg = new StringBuilder("Permission denied. " + hivePrincipal
-          + " does not have following privileges on " + hivePrivObject + " :");
-
-      // get a sorted list of privileges so that error message is deterministic (for tests)
+      // sort the privileges so that error message is deterministic (for tests)
       List<SQLPrivTypeGrant> sortedmissingPrivs = new ArrayList<SQLPrivTypeGrant>(missingPrivs);
       Collections.sort(sortedmissingPrivs);
 
-      for (SQLPrivTypeGrant reqPriv : sortedmissingPrivs) {
-        errMsg.append(reqPriv.toInfoString()).append(", ");
-      }
+      String errMsg = "Permission denied. " + hivePrincipal
+          + " does not have following privileges on " + hivePrivObject + " : " + sortedmissingPrivs;
       throw new HiveAuthzPluginDeniedException(errMsg.toString());
     }
   }
