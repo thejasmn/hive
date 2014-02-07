@@ -25,7 +25,6 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 
 public class Operation2Privilege {
 
-
   private static class InOutPrivs {
     private final SQLPrivTypeGrant[] inputPrivs;
     private final SQLPrivTypeGrant[] outputPrivs;
@@ -59,16 +58,24 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(ADMIN_PRIV_AR, null));
     // select with grant for exporting contents
     op2Priv.put(HiveOperationType.EXPORT, new InOutPrivs(SEL_GRANT_AR, null));
+
     op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(ADMIN_PRIV_AR, null));
+
     op2Priv.put(HiveOperationType.CREATEDATABASE, new InOutPrivs(ADMIN_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(ADMIN_PRIV_AR, null));
+    //this should be database usage privilege once it is supported
     op2Priv.put(HiveOperationType.SWITCHDATABASE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.LOCKDB, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.UNLOCKDB, new InOutPrivs(null, null));
+
     op2Priv.put(HiveOperationType.DROPTABLE, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DESCTABLE, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.DESCFUNCTION, new InOutPrivs(null, null));
+
+    //meta store check command - require admin priv
     op2Priv.put(HiveOperationType.MSCK, new InOutPrivs(ADMIN_PRIV_AR, null));
+
+    //alter table commands require table ownership
     op2Priv.put(HiveOperationType.ALTERTABLE_ADDCOLS, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_REPLACECOLS, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(OWNER_PRIV_AR, null));
@@ -86,11 +93,23 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERTABLE_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERPARTITION_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_CLUSTER_SORT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
     op2Priv.put(HiveOperationType.ALTERTABLE_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERPARTITION_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_MERGEFILES, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_MERGEFILES, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SKEWED, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(null, null));
+
+    op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
     op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWTABLES, new InOutPrivs(null, null));
+
     op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
@@ -98,6 +117,7 @@ public class Operation2Privilege {
     //show create table is more sensitive information, includes table properties etc
     // for now require select WITH GRANT
     op2Priv.put(HiveOperationType.SHOW_CREATETABLE, new InOutPrivs(SEL_GRANT_AR, null));
+
     op2Priv.put(HiveOperationType.SHOWFUNCTIONS, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWINDEXES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWPARTITIONS, new InOutPrivs(null, null));
@@ -111,25 +131,19 @@ public class Operation2Privilege {
     // require view ownership
     op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(OWNER_PRIV_AR, null));
 
-    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(ADMIN_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(ADMIN_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(ADMIN_PRIV_AR, null));
+    //table ownership for create/drop/alter index
+    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(OWNER_PRIV_AR, null));
 
-    // require view ownership
+    // require view ownership for alter/drop view
     op2Priv.put(HiveOperationType.ALTERVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DROPVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-
+    op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(OWNER_PRIV_AR, null));
 
     op2Priv.put(HiveOperationType.LOCKTABLE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.UNLOCKTABLE, new InOutPrivs(null, null));
-
-    // require table ownership
-    op2Priv.put(HiveOperationType.ALTERTABLE_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
 
     // require db ownership
     op2Priv.put(HiveOperationType.CREATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
@@ -137,21 +151,11 @@ public class Operation2Privilege {
     // require table ownership
     op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
 
-    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(OWNER_PRIV_AR, SEL_NOGRANT_AR));
     op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(ADMIN_PRIV_AR, null));
+
     op2Priv.put(HiveOperationType.ALTERDATABASE, new InOutPrivs(ADMIN_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DESCDATABASE, new InOutPrivs(null, null));
-
-    // require table ownership
-    op2Priv.put(HiveOperationType.ALTERTABLE_MERGEFILES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_MERGEFILES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SKEWED, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(null, null));
-
-    //require view ownership
-    op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(null, null));
-
 
     // The following actions are authorized through SQLStdHiveAccessController,
     // and it is not using this privilege mapping, but it might make sense to move it here
@@ -171,7 +175,9 @@ public class Operation2Privilege {
   }
 
   /**
-   * Convenience method so that creation of this array in InOutPrivs constructor is not too verbose
+   * Convenience method so that creation of this array in InOutPrivs constructor
+   * is not too verbose
+   *
    * @param grantList
    * @return grantList
    */
@@ -179,15 +185,15 @@ public class Operation2Privilege {
     return grantList;
   }
 
-  public static SQLPrivTypeGrant[] getInputPrivs(HiveOperationType opType){
+  public static SQLPrivTypeGrant[] getInputPrivs(HiveOperationType opType) {
     return op2Priv.get(opType).getInputPrivs();
   }
 
-  public static SQLPrivTypeGrant[] getOutputPrivs(HiveOperationType opType){
+  public static SQLPrivTypeGrant[] getOutputPrivs(HiveOperationType opType) {
     return op2Priv.get(opType).getOutputPrivs();
   }
 
-  //for unit tests
+  // for unit tests
   public static Set<HiveOperationType> getOperationTypes() {
     return op2Priv.keySet();
   }
