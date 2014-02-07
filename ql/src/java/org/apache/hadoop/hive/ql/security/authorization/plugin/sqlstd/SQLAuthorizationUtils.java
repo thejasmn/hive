@@ -37,7 +37,8 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
@@ -59,20 +60,20 @@ public class SQLAuthorizationUtils {
    * @param grantorPrincipal
    * @param grantOption
    * @return
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   static PrivilegeBag getThriftPrivilegesBag(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthzPluginException {
     HiveObjectRef privObj = getThriftHiveObjectRef(hivePrivObject);
     PrivilegeBag privBag = new PrivilegeBag();
     for (HivePrivilege privilege : hivePrivileges) {
       if (privilege.getColumns() != null && privilege.getColumns().size() > 0) {
-        throw new HiveAuthorizationPluginException("Privileges on columns not supported currently"
+        throw new HiveAuthzPluginException("Privileges on columns not supported currently"
             + " in sql standard authorization mode");
       }
       if (!SUPPORTED_PRIVS_SET.contains(privilege.getName().toUpperCase(Locale.US))) {
-        throw new HiveAuthorizationPluginException("Privilege: " + privilege.getName()
+        throw new HiveAuthzPluginException("Privilege: " + privilege.getName()
             + " is not supported in sql standard authorization mode");
       }
       PrivilegeGrantInfo grantInfo = getThriftPrivilegeGrantInfo(privilege, grantorPrincipal,
@@ -87,12 +88,12 @@ public class SQLAuthorizationUtils {
   }
 
   static PrivilegeGrantInfo getThriftPrivilegeGrantInfo(HivePrivilege privilege,
-      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthorizationPluginException {
+      HivePrincipal grantorPrincipal, boolean grantOption) throws HiveAuthzPluginException {
     try {
       return AuthorizationUtils.getThriftPrivilegeGrantInfo(privilege, grantorPrincipal,
           grantOption);
     } catch (HiveException e) {
-      throw new HiveAuthorizationPluginException(e);
+      throw new HiveAuthzPluginException(e);
     }
   }
 
@@ -101,19 +102,19 @@ public class SQLAuthorizationUtils {
    *
    * @param privObj
    * @return
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   static HiveObjectRef getThriftHiveObjectRef(HivePrivilegeObject privObj)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     try {
       return AuthorizationUtils.getThriftHiveObjectRef(privObj);
     } catch (HiveException e) {
-      throw new HiveAuthorizationPluginException(e);
+      throw new HiveAuthzPluginException(e);
     }
   }
 
   static HivePrivilegeObjectType getPluginObjType(HiveObjectType objectType)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     switch (objectType) {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
@@ -122,7 +123,7 @@ public class SQLAuthorizationUtils {
     case COLUMN:
     case GLOBAL:
     case PARTITION:
-      throw new HiveAuthorizationPluginException("Unsupported object type " + objectType);
+      throw new HiveAuthzPluginException("Unsupported object type " + objectType);
     default:
       throw new AssertionError("Unexpected object type " + objectType);
     }
@@ -131,12 +132,12 @@ public class SQLAuthorizationUtils {
   /**
    * Check if the privileges are acceptable for SQL Standard authorization implementation
    * @param hivePrivileges
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
-  public static void validatePrivileges(List<HivePrivilege> hivePrivileges) throws HiveAuthorizationPluginException {
+  public static void validatePrivileges(List<HivePrivilege> hivePrivileges) throws HiveAuthzPluginException {
     for (HivePrivilege hivePrivilege : hivePrivileges) {
       if (hivePrivilege.getColumns() != null && hivePrivilege.getColumns().size() != 0) {
-        throw new HiveAuthorizationPluginException(
+        throw new HiveAuthzPluginException(
             "Privilege with columns are not currently supported with sql standard authorization:"
                 + hivePrivilege);
       }
@@ -151,10 +152,10 @@ public class SQLAuthorizationUtils {
    * @param userName
    * @param hivePrivObject
    * @return
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   static RequiredPrivileges getPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
-      String userName, HivePrivilegeObject hivePrivObject) throws HiveAuthorizationPluginException {
+      String userName, HivePrivilegeObject hivePrivObject) throws HiveAuthzPluginException {
 
     // get privileges for this user and its role on this object
     PrincipalPrivilegeSet thrifPrivs = null;
@@ -189,10 +190,10 @@ public class SQLAuthorizationUtils {
    * @param hivePrivObject
    *          given object
    * @return true if user is owner
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   private static boolean isOwner(IMetaStoreClient metastoreClient, String userName,
-      HivePrivilegeObject hivePrivObject) throws HiveAuthorizationPluginException {
+      HivePrivilegeObject hivePrivObject) throws HiveAuthzPluginException {
     //for now, check only table
     if(hivePrivObject.getType() == HivePrivilegeObjectType.TABLE){
       Table thriftTableObj = null;
@@ -211,25 +212,25 @@ public class SQLAuthorizationUtils {
   }
 
   private static void throwGetTableErr(Exception e, HivePrivilegeObject hivePrivObject)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     String msg = "Error getting table object from metastore for" + hivePrivObject;
-    throw new HiveAuthorizationPluginException(msg, e);
+    throw new HiveAuthzPluginException(msg, e);
   }
 
   private static void throwGetPrivErr(Exception e, HivePrivilegeObject hivePrivObject,
-      String userName) throws HiveAuthorizationPluginException {
+      String userName) throws HiveAuthzPluginException {
     String msg = "Error getting privileges on " + hivePrivObject + " for " + userName;
-    throw new HiveAuthorizationPluginException(msg, e);
+    throw new HiveAuthzPluginException(msg, e);
   }
 
   private static RequiredPrivileges getRequiredPrivsFromThrift(PrincipalPrivilegeSet thrifPrivs)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
 
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
     // add user privileges
     Map<String, List<PrivilegeGrantInfo>> userPrivs = thrifPrivs.getUserPrivileges();
     if (userPrivs != null && userPrivs.size() != 1) {
-      throw new HiveAuthorizationPluginException("Invalid number of user privilege objects: "
+      throw new HiveAuthzPluginException("Invalid number of user privilege objects: "
           + userPrivs.size());
     }
     addRequiredPrivs(reqPrivs, userPrivs);
@@ -245,10 +246,10 @@ public class SQLAuthorizationUtils {
    * object
    * @param reqPrivs
    * @param availPrivs
-   * @throws HiveAuthorizationPluginException
+   * @throws HiveAuthzPluginException
    */
   private static void addRequiredPrivs(RequiredPrivileges reqPrivs,
-      Map<String, List<PrivilegeGrantInfo>> availPrivs) throws HiveAuthorizationPluginException {
+      Map<String, List<PrivilegeGrantInfo>> availPrivs) throws HiveAuthzPluginException {
     if(availPrivs == null){
       return;
     }
@@ -262,7 +263,7 @@ public class SQLAuthorizationUtils {
 
   public static void assertNoMissingPrivilege(Collection<SQLPrivTypeGrant> missingPrivs,
       HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject)
-          throws HiveAuthorizationPluginException {
+          throws HiveAuthzPluginDeniedException {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       StringBuilder errMsg = new StringBuilder("Permission denied. " + hivePrincipal
@@ -270,7 +271,7 @@ public class SQLAuthorizationUtils {
       for (SQLPrivTypeGrant reqPriv : missingPrivs) {
         errMsg.append(reqPriv.toInfoString()).append(", ");
       }
-      throw new HiveAuthorizationPluginException(errMsg.toString());
+      throw new HiveAuthzPluginDeniedException(errMsg.toString());
     }
   }
 

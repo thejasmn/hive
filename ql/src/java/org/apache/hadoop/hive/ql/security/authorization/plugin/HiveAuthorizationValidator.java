@@ -29,14 +29,18 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 @Public
 @Evolving
 public interface HiveAuthorizationValidator {
+
   /**
-   * Check if current user has privileges to perform given operation type hiveOpType on the given
-   * input and output objects
+   * Check if current user has privileges to perform given operation type
+   * hiveOpType on the given input and output objects
+   *
    * @param hiveOpType
    * @param inputHObjs
    * @param outputHObjs
+   * @throws HiveAuthzPluginException
+   * @throws HiveAuthzPluginDeniedException
    */
   void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
-      List<HivePrivilegeObject> outputHObjs) throws HiveAuthorizationPluginException;
+      List<HivePrivilegeObject> outputHObjs) throws HiveAuthzPluginException, HiveAuthzPluginDeniedException;
 
 }

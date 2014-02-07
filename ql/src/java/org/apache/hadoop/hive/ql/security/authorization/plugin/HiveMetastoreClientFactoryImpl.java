@@ -30,14 +30,14 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 public class HiveMetastoreClientFactoryImpl implements HiveMetastoreClientFactory{
 
   @Override
-  public IMetaStoreClient getHiveMetastoreClient() throws HiveAuthorizationPluginException {
+  public IMetaStoreClient getHiveMetastoreClient() throws HiveAuthzPluginException {
     String errMsg = "Error getting metastore client";
     try {
       return Hive.get().getMSC();
     } catch (MetaException e) {
-      throw new HiveAuthorizationPluginException(errMsg, e);
+      throw new HiveAuthzPluginException(errMsg, e);
     } catch (HiveException e) {
-      throw new HiveAuthorizationPluginException(errMsg, e);
+      throw new HiveAuthzPluginException(errMsg, e);
     }
   }
 

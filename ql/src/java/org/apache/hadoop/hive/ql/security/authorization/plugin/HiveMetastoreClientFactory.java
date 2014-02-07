@@ -24,5 +24,5 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
  */
 @Public
 public interface HiveMetastoreClientFactory {
-  IMetaStoreClient getHiveMetastoreClient() throws HiveAuthorizationPluginException;
+  IMetaStoreClient getHiveMetastoreClient() throws HiveAuthzPluginException;
 }

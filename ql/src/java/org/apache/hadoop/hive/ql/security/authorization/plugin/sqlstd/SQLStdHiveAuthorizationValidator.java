@@ -23,8 +23,9 @@ import java.util.List;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
@@ -33,9 +34,9 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 
 public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValidator {
 
-  private HiveMetastoreClientFactory metastoreClientFactory;
-  private HiveConf conf;
-  private HiveAuthenticationProvider authenticator;
+  private final HiveMetastoreClientFactory metastoreClientFactory;
+  private final HiveConf conf;
+  private final HiveAuthenticationProvider authenticator;
 
   public SQLStdHiveAuthorizationValidator(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, HiveAuthenticationProvider authenticator) {
@@ -46,7 +47,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
-      List<HivePrivilegeObject> outputHObjs) throws HiveAuthorizationPluginException {
+      List<HivePrivilegeObject> outputHObjs) throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
     String userName = authenticator.getUserName();
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
 
@@ -62,7 +63,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
   private void checkPrivileges(SQLPrivTypeGrant[] reqPrivs,
       List<HivePrivilegeObject> hObjs, IMetaStoreClient metastoreClient, String userName)
-          throws HiveAuthorizationPluginException {
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
     RequiredPrivileges requiredInpPrivs = new RequiredPrivileges();
     requiredInpPrivs.addAll(reqPrivs);
 

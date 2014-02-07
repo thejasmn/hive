@@ -21,7 +21,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -32,9 +33,10 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
  */
 public class GrantPrivilegeAuthorizer {
 
-  static void authorize(List<HivePrincipal> hivePrincipals,
-      List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject, boolean grantOption,
-      IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
+  static void authorize(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
+      HivePrivilegeObject hivePrivObject, boolean grantOption, IMetaStoreClient metastoreClient,
+      String userName)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
 
     // check if this user has grant privileges for this privileges on this
     // object
@@ -48,15 +50,19 @@ public class GrantPrivilegeAuthorizer {
 
   private static void checkRequiredPrivileges(List<HivePrincipal> hivePrincipals,
       RequiredPrivileges reqPrivs, HivePrivilegeObject hivePrivObject,
-      IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
-    for (HivePrincipal hivePrincipal : hivePrincipals) {
+      IMetaStoreClient metastoreClient, String userName)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+
+  for (HivePrincipal hivePrincipal : hivePrincipals) {
       checkRequiredPrivileges(hivePrincipal, reqPrivs, hivePrivObject, metastoreClient, userName);
     }
   }
 
   private static void checkRequiredPrivileges(HivePrincipal hivePrincipal,
       RequiredPrivileges reqPrivileges, HivePrivilegeObject hivePrivObject,
-      IMetaStoreClient metastoreClient, String userName) throws HiveAuthorizationPluginException {
+      IMetaStoreClient metastoreClient, String userName)
+          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+
     // keep track of the principals on which privileges have been checked for
     // this object
 
@@ -71,7 +77,7 @@ public class GrantPrivilegeAuthorizer {
   }
 
   private static RequiredPrivileges getGrantRequiredPrivileges(List<HivePrivilege> hivePrivileges)
-      throws HiveAuthorizationPluginException {
+      throws HiveAuthzPluginException {
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
     for (HivePrivilege hivePriv : hivePrivileges) {
       reqPrivs.addPrivilege(hivePriv.getName(), true /* grant priv required */);
