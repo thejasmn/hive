@@ -186,6 +186,7 @@ public class Driver implements CommandProcessor {
     }
   }
 
+  @Override
   public void init() {
     Operator.resetId();
   }
@@ -712,14 +713,13 @@ public class Driver implements CommandProcessor {
   private void doAuthorizationV2(SessionState ss, HiveOperation op, HashSet<ReadEntity> inputs,
       HashSet<WriteEntity> outputs) throws HiveException {
     HiveOperationType hiveOpType = getHiveOperationType(op);
-    List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs, false);
-    //skip output URI for now
-    List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs, true);
+    List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs);
+    List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs);
     ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs);
     return;
   }
 
-  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects, boolean ignoreURI) {
+  private List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects) {
     List<HivePrivilegeObject> hivePrivobjs = new ArrayList<HivePrivilegeObject>();
     if(privObjects == null){
       return hivePrivobjs;
@@ -727,12 +727,6 @@ public class Driver implements CommandProcessor {
     for(Entity privObject : privObjects){
       HivePrivilegeObjectType privObjType =
           AuthorizationUtils.getHivePrivilegeObjectType(privObject.getType());
-      if(ignoreURI && privObjType == HivePrivilegeObjectType.URI){
-        continue;
-      }
-      if(privObjType == HivePrivilegeObjectType.PARTITION){
-        continue;
-      }
 
       //support for authorization on partitions or uri needs to be added
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType,
@@ -742,7 +736,6 @@ public class Driver implements CommandProcessor {
     }
     return hivePrivobjs;
   }
-
 
 
   private String getDataBaseName(Entity privObject) {
@@ -983,6 +976,7 @@ public class Driver implements CommandProcessor {
     perfLogger.PerfLogEnd(CLASS_NAME, PerfLogger.RELEASE_LOCKS);
   }
 
+  @Override
   public CommandProcessorResponse run(String command)
       throws CommandNeedRetryException {
     return run(command, false);
