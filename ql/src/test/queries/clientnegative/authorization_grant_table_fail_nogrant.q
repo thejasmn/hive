@@ -10,5 +10,5 @@ CREATE TABLE table_priv_gfail1(i int);
 GRANT INSERT ON table_priv_gfail1 TO USER user2;
 
 set user.name=user2;
--- try grant insert to user3 
+-- try grant insert to user3
 GRANT INSERT ON table_priv_gfail1 TO USER user3;

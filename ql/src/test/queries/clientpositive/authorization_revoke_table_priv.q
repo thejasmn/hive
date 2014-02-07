@@ -31,7 +31,7 @@ SHOW GRANT USER user2 ON TABLE table_priv_rev;
 GRANT DELETE ON table_priv_rev TO USER user2;
 SHOW GRANT USER user2 ON TABLE table_priv_rev;
 
--- start revoking -- 
+-- start revoking --
 -- revoke update privilege from user2
 REVOKE UPDATE ON TABLE table_priv_rev FROM USER user2;
 SHOW GRANT USER user2 ON TABLE table_priv_rev;

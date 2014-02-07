@@ -17,8 +17,10 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -141,6 +143,9 @@ public class SQLAuthorizationUtils {
             "Privilege with columns are not currently supported with sql standard authorization:"
                 + hivePrivilege);
       }
+      //try converting to the enum to verify that this is a valid privilege type
+      SQLPrivilegeType.getRequirePrivilege(hivePrivilege.getName());
+
     }
   }
 
@@ -263,12 +268,17 @@ public class SQLAuthorizationUtils {
 
   public static void assertNoMissingPrivilege(Collection<SQLPrivTypeGrant> missingPrivs,
       HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject)
-          throws HiveAuthzPluginDeniedException {
+      throws HiveAuthzPluginDeniedException {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       StringBuilder errMsg = new StringBuilder("Permission denied. " + hivePrincipal
           + " does not have following privileges on " + hivePrivObject + " :");
-      for (SQLPrivTypeGrant reqPriv : missingPrivs) {
+
+      // get a sorted list of privileges so that error message is deterministic (for tests)
+      List<SQLPrivTypeGrant> sortedmissingPrivs = new ArrayList<SQLPrivTypeGrant>(missingPrivs);
+      Collections.sort(sortedmissingPrivs);
+
+      for (SQLPrivTypeGrant reqPriv : sortedmissingPrivs) {
         errMsg.append(reqPriv.toInfoString()).append(", ");
       }
       throw new HiveAuthzPluginDeniedException(errMsg.toString());

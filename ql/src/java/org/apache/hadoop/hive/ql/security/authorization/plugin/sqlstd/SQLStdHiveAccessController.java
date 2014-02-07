@@ -18,10 +18,8 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -58,10 +56,6 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   private final HiveMetastoreClientFactory metastoreClientFactory;
   private final HiveConf conf;
   private final HiveAuthenticationProvider authenticator;
-
-  private static final String[] SUPPORTED_PRIVS = { "INSERT", "UPDATE", "DELETE", "SELECT" };
-  private static final Set<String> SUPPORTED_PRIVS_SET = new HashSet<String>(
-      Arrays.asList(SUPPORTED_PRIVS));
 
   SQLStdHiveAccessController(HiveMetastoreClientFactory metastoreClientFactory, HiveConf conf,
       HiveAuthenticationProvider authenticator) {
@@ -132,10 +126,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
         throw new HiveAuthzPluginException("Privileges on columns not supported currently"
             + " in sql standard authorization mode");
       }
-      if (!SUPPORTED_PRIVS_SET.contains(privilege.getName().toUpperCase(Locale.US))) {
-        throw new HiveAuthzPluginException("Privilege: " + privilege.getName()
-            + " is not supported in sql standard authorization mode");
-      }
+
       PrivilegeGrantInfo grantInfo = getThriftPrivilegeGrantInfo(privilege, grantorPrincipal,
           grantOption);
       for (HivePrincipal principal : hivePrincipals) {
@@ -215,7 +206,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       }
       return hiveRoles;
     } catch (Exception e) {
-      throw new HiveAuthzPluginException("Error listing roles for user"
+      throw new HiveAuthzPluginException("Error listing roles for user "
           + hivePrincipal.getName(), e);
     }
   }
@@ -258,7 +249,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
               AuthorizationUtils.getThriftPrincipalType(hivePrincipal.getType()));
         } catch (Exception e) {
           String msg = "Error revoking roles for " + hivePrincipal.getName() + " to role "
-              + roleName + hivePrincipal.getName();
+              + roleName;
           throw new HiveAuthzPluginException(msg, e);
         }
       }
