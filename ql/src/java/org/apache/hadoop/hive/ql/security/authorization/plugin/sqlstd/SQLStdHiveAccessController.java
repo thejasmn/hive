@@ -93,10 +93,10 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       HivePrincipal grantorPrincipal, boolean grantOption)
           throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
 
-    SQLAuthorizationUtils.validatePrivileges(hivePrivileges);
-
     // expand ALL privileges, if any
     hivePrivileges = expandAllPrivileges(hivePrivileges);
+
+    SQLAuthorizationUtils.validatePrivileges(hivePrivileges);
 
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
     // authorize the grant
