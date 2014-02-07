@@ -23,13 +23,7 @@ PREHOOK: query: SHOW GRANT USER user2 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user2 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user2
-principalType	USER
-privilege	INSERT
-#### A masked pattern was here ####
-grantor	user1
+default	table_priv1			user2	USER	INSERT	false	-1	user1
 PREHOOK: query: -- grant select privilege to another user with grant
 GRANT SELECT ON table_priv1 TO USER user2 with grant option
 PREHOOK: type: GRANT_PRIVILEGE
@@ -42,20 +36,8 @@ PREHOOK: query: SHOW GRANT USER user2 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user2 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user2
-principalType	USER
-privilege	INSERT
-#### A masked pattern was here ####
-grantor	user1
-database	default
-table	table_priv1
-principalName	user2
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user1
+default	table_priv1			user2	USER	INSERT	false	-1	user1
+default	table_priv1			user2	USER	SELECT	true	-1	user1
 PREHOOK: query: -- change to other user - user2
 -- grant permissions to another user as user2
 GRANT SELECT ON table_priv1 TO USER user3 with grant option
@@ -70,13 +52,7 @@ PREHOOK: query: SHOW GRANT USER user3 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user3 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user3
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user2
+default	table_priv1			user3	USER	SELECT	true	-1	user2
 PREHOOK: query: -- change to other user - user3
 -- grant permissions to another user as user3
 GRANT SELECT ON table_priv1 TO USER user4 with grant option
@@ -91,13 +67,7 @@ PREHOOK: query: SHOW GRANT USER user4 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user4 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user4
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user3
+default	table_priv1			user4	USER	SELECT	true	-1	user3
 #### A masked pattern was here ####
 
 -- grant all with grant to user22
@@ -114,34 +84,10 @@ PREHOOK: query: SHOW GRANT USER user22 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user22 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user22
-principalType	USER
-privilege	DELETE
-#### A masked pattern was here ####
-grantor	user1
-database	default
-table	table_priv1
-principalName	user22
-principalType	USER
-privilege	INSERT
-#### A masked pattern was here ####
-grantor	user1
-database	default
-table	table_priv1
-principalName	user22
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user1
-database	default
-table	table_priv1
-principalName	user22
-principalType	USER
-privilege	UPDATE
-#### A masked pattern was here ####
-grantor	user1
+default	table_priv1			user22	USER	DELETE	true	-1	user1
+default	table_priv1			user22	USER	INSERT	true	-1	user1
+default	table_priv1			user22	USER	SELECT	true	-1	user1
+default	table_priv1			user22	USER	UPDATE	true	-1	user1
 PREHOOK: query: -- grant all without grant to user33
 GRANT ALL ON table_priv1 TO USER user33 with grant option
 PREHOOK: type: GRANT_PRIVILEGE
@@ -154,31 +100,7 @@ PREHOOK: query: SHOW GRANT USER user33 ON TABLE table_priv1
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: SHOW GRANT USER user33 ON TABLE table_priv1
 POSTHOOK: type: SHOW_GRANT
-database	default
-table	table_priv1
-principalName	user33
-principalType	USER
-privilege	DELETE
-#### A masked pattern was here ####
-grantor	user22
-database	default
-table	table_priv1
-principalName	user33
-principalType	USER
-privilege	INSERT
-#### A masked pattern was here ####
-grantor	user22
-database	default
-table	table_priv1
-principalName	user33
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user22
-database	default
-table	table_priv1
-principalName	user33
-principalType	USER
-privilege	UPDATE
-#### A masked pattern was here ####
-grantor	user22
+default	table_priv1			user33	USER	DELETE	true	-1	user22
+default	table_priv1			user33	USER	INSERT	true	-1	user22
+default	table_priv1			user33	USER	SELECT	true	-1	user22
+default	table_priv1			user33	USER	UPDATE	true	-1	user22

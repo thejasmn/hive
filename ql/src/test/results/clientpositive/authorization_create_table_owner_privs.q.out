@@ -1,41 +1,17 @@
-#### A masked pattern was here ####
+PREHOOK: query: create table create_table_creator_priv_test(i int)
 PREHOOK: type: CREATETABLE
-#### A masked pattern was here ####
+POSTHOOK: query: create table create_table_creator_priv_test(i int)
 POSTHOOK: type: CREATETABLE
-#### A masked pattern was here ####
+POSTHOOK: Output: default@create_table_creator_priv_test
 PREHOOK: query: -- all privileges should have been set for user
 
-#### A masked pattern was here ####
+show grant user user1 on table create_table_creator_priv_test
 PREHOOK: type: SHOW_GRANT
 POSTHOOK: query: -- all privileges should have been set for user
 
-#### A masked pattern was here ####
+show grant user user1 on table create_table_creator_priv_test
 POSTHOOK: type: SHOW_GRANT
-database	default
-#### A masked pattern was here ####
-principalName	user1
-principalType	USER
-privilege	DELETE
-#### A masked pattern was here ####
-grantor	user1
-database	default
-#### A masked pattern was here ####
-principalName	user1
-principalType	USER
-privilege	INSERT
-#### A masked pattern was here ####
-grantor	user1
-database	default
-#### A masked pattern was here ####
-principalName	user1
-principalType	USER
-privilege	SELECT
-#### A masked pattern was here ####
-grantor	user1
-database	default
-#### A masked pattern was here ####
-principalName	user1
-principalType	USER
-privilege	UPDATE
-#### A masked pattern was here ####
-grantor	user1
+default	create_table_creator_priv_test			user1	USER	DELETE	true	-1	user1
+default	create_table_creator_priv_test			user1	USER	INSERT	true	-1	user1
+default	create_table_creator_priv_test			user1	USER	SELECT	true	-1	user1
+default	create_table_creator_priv_test			user1	USER	UPDATE	true	-1	user1
