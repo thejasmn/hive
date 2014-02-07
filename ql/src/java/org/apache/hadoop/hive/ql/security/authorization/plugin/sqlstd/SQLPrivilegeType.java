@@ -28,12 +28,13 @@ public enum SQLPrivilegeType {
   public static SQLPrivilegeType getRequirePrivilege(String priv)
       throws HiveAuthzPluginException {
     SQLPrivilegeType reqPriv;
+    if(priv == null){
+      throw new HiveAuthzPluginException("Null privilege obtained");
+    }
     try {
       reqPriv = SQLPrivilegeType.valueOf(priv.toUpperCase(Locale.US));
     } catch (IllegalArgumentException e) {
-      throw new HiveAuthzPluginException("Invalid privilege " + priv, e);
-    } catch (NullPointerException e) {
-      throw new HiveAuthzPluginException("Null privilege obtained", e);
+      throw new HiveAuthzPluginException("Unsupported privilege type " + priv, e);
     }
     return reqPriv;
   }
