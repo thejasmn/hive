@@ -19,11 +19,16 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import java.util.List;
 
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
+import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
+
 /**
  * Interface that is invoked by access control commands, including grant/revoke role/privileges,
  * create/drop roles, and commands to read the state of authorization rules.
  * Methods here have corresponding methods in HiveAuthorizer, check method documentation there.
  */
+@LimitedPrivate(value = { "" })
+@Evolving
 public interface HiveAccessController {
 
   void grantPrivileges(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,

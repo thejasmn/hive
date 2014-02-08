@@ -20,9 +20,14 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
+import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
+
 /**
  * Represents the hive privilege being granted/revoked
  */
+@LimitedPrivate(value = { "" })
+@Evolving
 public class HivePrivilege {
   @Override
   public String toString() {

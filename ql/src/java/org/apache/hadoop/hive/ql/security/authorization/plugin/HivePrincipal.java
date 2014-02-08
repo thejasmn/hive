@@ -17,9 +17,14 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
+import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
+
 /**
  * Represents the user or role in grant/revoke statements
  */
+@LimitedPrivate(value = { "" })
+@Evolving
 public class HivePrincipal {
 
   public enum HivePrincipalType{
