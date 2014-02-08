@@ -29,7 +29,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
  * Authenticator that returns the userName set in SessionState. For use when authorizing with HS2
  * so that HS2 can set the user for the session through SessionState
  */
-public class SessionStateUserAuthenticator implements SessionStateAuthenticator {
+public class SessionStateUserAuthenticator implements HiveAuthenticationProvider {
 
   private final List<String> groupNames = new ArrayList<String>();
 

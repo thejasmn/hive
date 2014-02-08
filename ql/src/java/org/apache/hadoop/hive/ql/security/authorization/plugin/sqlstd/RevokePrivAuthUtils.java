@@ -11,19 +11,19 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.thrift.TException;
 
-public class RevokePrivilegeAuthorizer {
+public class RevokePrivAuthUtils {
 
   public static List<HiveObjectPrivilege> authorizeAndGetRevokePrivileges(List<HivePrincipal> principals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject, boolean grantOption,
       IMetaStoreClient mClient, String userName)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
 
     List<HiveObjectPrivilege> matchingPrivs = new ArrayList<HiveObjectPrivilege>();
 
@@ -76,7 +76,7 @@ public class RevokePrivilegeAuthorizer {
     }
 
     if (errMsg.length() != 0) {
-      throw new HiveAuthzPluginDeniedException(errMsg.toString());
+      throw new HiveAccessControlException(errMsg.toString());
     }
     return matchingPrivs;
   }
