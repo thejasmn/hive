@@ -54,7 +54,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
-import org.apache.hadoop.hive.ql.security.SessionStateAuthenticator;
 import org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
@@ -356,10 +355,7 @@ public class SessionState {
         // just returns the sessionstate user
         authenticator = new SessionStateUserAuthenticator(this);
       }
-
-      if(authenticator instanceof SessionStateAuthenticator){
-        ((SessionStateAuthenticator)authenticator).setSessionState(this);
-      }
+      authenticator.setSessionState(this);
 
       authorizer = HiveUtils.getAuthorizeProviderManager(getConf(),
           HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER, authenticator, true);
@@ -609,16 +605,19 @@ public class SessionState {
    */
   public static enum ResourceType {
     FILE(new ResourceHook() {
+      @Override
       public String preHook(Set<String> cur, String s) {
         return validateFile(cur, s);
       }
 
+      @Override
       public boolean postHook(Set<String> cur, String s) {
         return true;
       }
     }),
 
     JAR(new ResourceHook() {
+      @Override
       public String preHook(Set<String> cur, String s) {
         String newJar = validateFile(cur, s);
         if (newJar != null) {
@@ -628,16 +627,19 @@ public class SessionState {
         }
       }
 
+      @Override
       public boolean postHook(Set<String> cur, String s) {
         return unregisterJar(s);
       }
     }),
 
     ARCHIVE(new ResourceHook() {
+      @Override
       public String preHook(Set<String> cur, String s) {
         return validateFile(cur, s);
       }
 
+      @Override
       public boolean postHook(Set<String> cur, String s) {
         return true;
       }
