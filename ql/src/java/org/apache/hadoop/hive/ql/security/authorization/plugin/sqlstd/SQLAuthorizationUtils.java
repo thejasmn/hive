@@ -39,7 +39,7 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -268,7 +268,7 @@ public class SQLAuthorizationUtils {
 
   public static void assertNoMissingPrivilege(Collection<SQLPrivTypeGrant> missingPrivs,
       HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject)
-      throws HiveAuthzPluginDeniedException {
+      throws HiveAccessControlException {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       // sort the privileges so that error message is deterministic (for tests)
@@ -277,7 +277,7 @@ public class SQLAuthorizationUtils {
 
       String errMsg = "Permission denied. " + hivePrincipal
           + " does not have following privileges on " + hivePrivObject + " : " + sortedmissingPrivs;
-      throw new HiveAuthzPluginDeniedException(errMsg.toString());
+      throw new HiveAccessControlException(errMsg.toString());
     }
   }
 

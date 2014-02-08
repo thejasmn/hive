@@ -30,7 +30,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
  * set in SessionState config, if that is null, it returns value of
  * System property user.name
  */
-public class SessionStateConfigUserAuthenticator implements SessionStateAuthenticator {
+public class SessionStateConfigUserAuthenticator implements HiveAuthenticationProvider {
 
   private final List<String> groupNames = new ArrayList<String>();
 

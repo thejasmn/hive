@@ -27,22 +27,22 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
  * denied.
  */
 @Public
-public class HiveAuthzPluginDeniedException extends HiveException{
+public class HiveAccessControlException extends HiveException{
 
   private static final long serialVersionUID = 1L;
 
-  public HiveAuthzPluginDeniedException(){
+  public HiveAccessControlException(){
   }
 
-  public HiveAuthzPluginDeniedException(String msg){
+  public HiveAccessControlException(String msg){
     super(msg);
   }
 
-  public HiveAuthzPluginDeniedException(String msg, Throwable cause){
+  public HiveAccessControlException(String msg, Throwable cause){
     super(msg, cause);
   }
 
-  public HiveAuthzPluginDeniedException(Throwable cause){
+  public HiveAccessControlException(Throwable cause){
     super(cause);
   }
 

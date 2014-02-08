@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
@@ -31,12 +31,12 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 /**
  * Utility class to authorize grant/revoke privileges
  */
-public class GrantPrivilegeAuthorizer {
+public class GrantPrivAuthUtils {
 
   static void authorize(List<HivePrincipal> hivePrincipals, List<HivePrivilege> hivePrivileges,
       HivePrivilegeObject hivePrivObject, boolean grantOption, IMetaStoreClient metastoreClient,
       String userName)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
 
     // check if this user has grant privileges for this privileges on this
     // object
@@ -51,7 +51,7 @@ public class GrantPrivilegeAuthorizer {
   private static void checkRequiredPrivileges(List<HivePrincipal> hivePrincipals,
       RequiredPrivileges reqPrivs, HivePrivilegeObject hivePrivObject,
       IMetaStoreClient metastoreClient, String userName)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
 
   for (HivePrincipal hivePrincipal : hivePrincipals) {
       checkRequiredPrivileges(hivePrincipal, reqPrivs, hivePrivObject, metastoreClient, userName);
@@ -61,7 +61,7 @@ public class GrantPrivilegeAuthorizer {
   private static void checkRequiredPrivileges(HivePrincipal hivePrincipal,
       RequiredPrivileges reqPrivileges, HivePrivilegeObject hivePrivObject,
       IMetaStoreClient metastoreClient, String userName)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
 
     // keep track of the principals on which privileges have been checked for
     // this object

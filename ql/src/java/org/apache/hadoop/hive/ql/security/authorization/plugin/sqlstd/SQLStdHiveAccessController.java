@@ -36,7 +36,7 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginDeniedException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
@@ -68,7 +68,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public void grantPrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
       HivePrincipal grantorPrincipal, boolean grantOption)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
 
     // expand ALL privileges, if any
     hivePrivileges = expandAllPrivileges(hivePrivileges);
@@ -77,7 +77,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
     // authorize the grant
-    GrantPrivilegeAuthorizer.authorize(hivePrincipals, hivePrivileges, hivePrivObject, grantOption,
+    GrantPrivAuthUtils.authorize(hivePrincipals, hivePrivileges, hivePrivObject, grantOption,
         metastoreClient, authenticator.getUserName());
 
     // grant
@@ -152,12 +152,12 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public void revokePrivileges(List<HivePrincipal> hivePrincipals,
       List<HivePrivilege> hivePrivileges, HivePrivilegeObject hivePrivObject,
       HivePrincipal grantorPrincipal, boolean grantOption)
-          throws HiveAuthzPluginException, HiveAuthzPluginDeniedException {
+          throws HiveAuthzPluginException, HiveAccessControlException {
     SQLAuthorizationUtils.validatePrivileges(hivePrivileges);
 
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
     // authorize the revoke, and get the set of privileges to be revoked
-    List<HiveObjectPrivilege> revokePrivs = RevokePrivilegeAuthorizer
+    List<HiveObjectPrivilege> revokePrivs = RevokePrivAuthUtils
         .authorizeAndGetRevokePrivileges(hivePrincipals, hivePrivileges, hivePrivObject,
             grantOption, metastoreClient, authenticator.getUserName());
 
