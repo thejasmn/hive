@@ -38,7 +38,8 @@ public interface HiveAuthorizerFactory {
    * @param conf - current HiveConf
    * @param hiveAuthenticator - authenticator, provides user name
    * @return new instance of HiveAuthorizer
+   * @throws HiveAuthzPluginException
    */
   HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
-      HiveConf conf, HiveAuthenticationProvider hiveAuthenticator);
+      HiveConf conf, HiveAuthenticationProvider hiveAuthenticator) throws HiveAuthzPluginException;
 }

@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
-import org.apache.hadoop.hive.metastore.api.Role;
 
 /**
  * Convenience implementation of HiveAuthorizer.
@@ -106,12 +105,12 @@ public class HiveAuthorizerImpl implements HiveAuthorizer {
   }
 
   @Override
-  public void setCurrentRole(String roleName) throws HiveAuthorizationPluginException {
+  public void setCurrentRole(String roleName) throws HiveAuthzPluginException {
     accessController.setCurrentRole(roleName);
   }
 
   @Override
-  public List<HiveRole> getCurrentRoles() throws HiveAuthorizationPluginException {
+  public List<HiveRole> getCurrentRoles() throws HiveAuthzPluginException {
     return accessController.getCurrentRoles();
   }
 

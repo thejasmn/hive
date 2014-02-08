@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
-import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
 
 /**
@@ -161,9 +160,9 @@ public interface HiveAuthorizer {
   List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
       throws HiveAuthzPluginException, HiveAccessControlException;
 
-  void setCurrentRole(String roleName) throws HiveAuthorizationPluginException;
+  void setCurrentRole(String roleName) throws HiveAuthzPluginException;
 
-  List<HiveRole> getCurrentRoles() throws HiveAuthorizationPluginException;
+  List<HiveRole> getCurrentRoles() throws HiveAuthzPluginException;
   //other functions to be added -
   //showUsersInRole(rolename)
   //isSuperuser(username)

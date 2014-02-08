@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
 import org.apache.hadoop.hive.metastore.api.HiveObjectType;
@@ -36,8 +37,8 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
@@ -57,17 +58,36 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   private final HiveMetastoreClientFactory metastoreClientFactory;
   private final HiveConf conf;
   private final HiveAuthenticationProvider authenticator;
-  private final List<HiveRole> currentRoles;
+  private String currentUserName;
+  private List<HiveRole> currentRoles;
   private HiveRole adminRole;
 
   SQLStdHiveAccessController(HiveMetastoreClientFactory metastoreClientFactory, HiveConf conf,
-      HiveAuthenticationProvider authenticator) {
+      HiveAuthenticationProvider authenticator) throws HiveAuthzPluginException {
     this.metastoreClientFactory = metastoreClientFactory;
     this.conf = conf;
     this.authenticator = authenticator;
+    initUserRoles();
   }
 
-  private List<HiveRole> getRolesFromMS() throws HiveAuthorizationPluginException {
+  /**
+   * (Re-)initialize currentRoleNames if necessary.
+   * @throws HiveAuthzPluginException
+   */
+  private void initUserRoles() throws HiveAuthzPluginException {
+    //to aid in testing through .q files, authenticator is passed as argument to
+    // the interface. this helps in being able to switch the user within a session.
+    // so we need to check if the user has changed
+    String newUserName = authenticator.getUserName();
+    if(currentUserName == newUserName){
+      //no need to (re-)initialize the currentUserName, currentRoles fields
+      return;
+    }
+    this.currentUserName = newUserName;
+    this.currentRoles = getRolesFromMS();
+  }
+
+  private List<HiveRole> getRolesFromMS() throws HiveAuthzPluginException {
     List<Role> roles;
     try {
       roles = metastoreClientFactory.getHiveMetastoreClient().
@@ -82,8 +102,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       }
       return currentRoles;
     } catch (Exception e) {
-        throw new HiveAuthorizationPluginException("Failed to retrieve roles for "+
-        currentUserName, e);
+        throw new HiveAuthzPluginException("Failed to retrieve roles for "+
+            currentUserName, e);
     }
   }
 
@@ -350,7 +370,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   }
 
   @Override
-  public void setCurrentRole(String roleName) throws HiveAuthorizationPluginException {
+  public void setCurrentRole(String roleName) throws HiveAuthzPluginException {
+
     if ("NONE".equalsIgnoreCase(roleName)) {
       // for set role NONE, reset roles to default roles.
       currentRoles.clear();
@@ -372,12 +393,13 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       return;
     }
     // If we are here it means, user is requesting a role he doesn't belong to.
-    throw new HiveAuthorizationPluginException(currentUserName +" doesn't belong to role "
+    throw new HiveAuthzPluginException(currentUserName +" doesn't belong to role "
       +roleName);
   }
 
   @Override
-  public List<HiveRole> getCurrentRoles() throws HiveAuthorizationPluginException {
+  public List<HiveRole> getCurrentRoles() throws HiveAuthzPluginException {
+    initUserRoles();
     return currentRoles;
   }
 }
