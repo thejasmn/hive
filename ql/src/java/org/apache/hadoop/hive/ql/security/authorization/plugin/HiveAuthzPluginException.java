@@ -18,7 +18,8 @@
 
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
-import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
+import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 
 /**
@@ -26,7 +27,8 @@ import org.apache.hadoop.hive.ql.metadata.HiveException;
  * an error while performing authorization, and not a authorization being
  * denied.
  */
-@Public
+@LimitedPrivate(value = { "" })
+@Evolving
 public class HiveAuthzPluginException extends HiveException{
 
   private static final long serialVersionUID = 1L;

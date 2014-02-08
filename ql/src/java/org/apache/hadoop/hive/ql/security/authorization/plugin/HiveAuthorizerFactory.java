@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
-import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
@@ -27,7 +27,7 @@ import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
  * create  {@link HiveAuthorizer} instance used for hive authorization.
  *
  */
-@Public
+@LimitedPrivate(value = { "" })
 @Evolving
 public interface HiveAuthorizerFactory {
   /**

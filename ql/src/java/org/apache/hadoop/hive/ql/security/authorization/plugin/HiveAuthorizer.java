@@ -19,7 +19,7 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import java.util.List;
 
-import org.apache.hadoop.hive.common.classification.InterfaceAudience.Public;
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
@@ -34,7 +34,7 @@ import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvide
  *  statements and does not make assumptions about the privileges needed for a hive operation.
  * This is referred to as V2 authorizer in other parts of the code.
  */
-@Public
+@LimitedPrivate(value = { "" })
 @Evolving
 public interface HiveAuthorizer {
 
