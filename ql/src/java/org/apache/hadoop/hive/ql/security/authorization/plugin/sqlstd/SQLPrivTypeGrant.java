@@ -91,7 +91,8 @@ public enum SQLPrivTypeGrant {
   /**
    * @return String representation for use in error messages
    */
-  public String toInfoString(){
+  @Override
+  public String toString(){
     return privDesc;
   }
 
