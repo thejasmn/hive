@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +46,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRole;
 import org.apache.thrift.TException;
 
 public class SQLAuthorizationUtils {
@@ -156,11 +158,14 @@ public class SQLAuthorizationUtils {
    * @param metastoreClient
    * @param userName
    * @param hivePrivObject
+   * @param curRoles
+   *          current active roles for user
    * @return
    * @throws HiveAuthzPluginException
    */
   static RequiredPrivileges getPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
-      String userName, HivePrivilegeObject hivePrivObject) throws HiveAuthzPluginException {
+      String userName, HivePrivilegeObject hivePrivObject, List<HiveRole> curRoles)
+          throws HiveAuthzPluginException {
 
     // get privileges for this user and its role on this object
     PrincipalPrivilegeSet thrifPrivs = null;
@@ -175,6 +180,8 @@ public class SQLAuthorizationUtils {
       throwGetPrivErr(e, hivePrivObject, userName);
     }
 
+    filterPrivsByCurrentRoles(thrifPrivs, curRoles);
+
     // convert to RequiredPrivileges
     RequiredPrivileges privs = getRequiredPrivsFromThrift(thrifPrivs);
 
@@ -184,6 +191,34 @@ public class SQLAuthorizationUtils {
     }
 
     return privs;
+  }
+
+  /**
+   * Remove any role privileges that don't belong to the roles in curRoles
+   * @param thriftPrivs
+   * @param curRoles
+   * @return
+   */
+  private static void filterPrivsByCurrentRoles(PrincipalPrivilegeSet thriftPrivs,
+      List<HiveRole> curRoles) {
+    // check if there are privileges to be filtered
+    if(thriftPrivs == null || thriftPrivs.getRolePrivileges() == null
+        || thriftPrivs.getRolePrivilegesSize() == 0
+        ){
+      // no privileges to filter
+      return;
+    }
+
+    // add the privs for roles in curRoles to new role-to-priv map
+    Map<String, List<PrivilegeGrantInfo>> filteredRolePrivs = new HashMap<String, List<PrivilegeGrantInfo>>();
+    for(HiveRole role : curRoles){
+      String roleName = role.getRoleName();
+      List<PrivilegeGrantInfo> privs = thriftPrivs.getRolePrivileges().get(roleName);
+      if(privs != null){
+        filteredRolePrivs.put(roleName, privs);
+      }
+    }
+    thriftPrivs.setRolePrivileges(filteredRolePrivs);
   }
 
   /**
@@ -224,7 +259,8 @@ public class SQLAuthorizationUtils {
 
   private static void throwGetPrivErr(Exception e, HivePrivilegeObject hivePrivObject,
       String userName) throws HiveAuthzPluginException {
-    String msg = "Error getting privileges on " + hivePrivObject + " for " + userName;
+    String msg = "Error getting privileges on " + hivePrivObject + " for " + userName + ": "
+      + e.getMessage();
     throw new HiveAuthzPluginException(msg, e);
   }
 
