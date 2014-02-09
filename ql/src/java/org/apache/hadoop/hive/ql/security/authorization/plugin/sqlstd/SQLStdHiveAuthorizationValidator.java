@@ -23,8 +23,8 @@ import java.util.List;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
@@ -37,12 +37,16 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
   private final HiveMetastoreClientFactory metastoreClientFactory;
   private final HiveConf conf;
   private final HiveAuthenticationProvider authenticator;
+  private final SQLStdHiveAccessController privController;
 
   public SQLStdHiveAuthorizationValidator(HiveMetastoreClientFactory metastoreClientFactory,
-      HiveConf conf, HiveAuthenticationProvider authenticator) {
+      HiveConf conf, HiveAuthenticationProvider authenticator,
+      SQLStdHiveAccessController privController) {
+
     this.metastoreClientFactory = metastoreClientFactory;
     this.conf = conf;
     this.authenticator = authenticator;
+    this.privController = privController;
   }
 
   @Override
@@ -71,7 +75,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     for (HivePrivilegeObject hObj : hObjs) {
       // get the privileges that this user has on the object
       RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
-          metastoreClient, userName, hObj);
+          metastoreClient, userName, hObj, privController.getCurrentRoles());
       Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
           .findMissingPrivs(availPrivs);
       SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
