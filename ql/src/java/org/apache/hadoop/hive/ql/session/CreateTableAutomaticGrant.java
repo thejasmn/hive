@@ -44,11 +44,9 @@ public class CreateTableAutomaticGrant {
         HiveConf.ConfVars.HIVE_AUTHORIZATION_TABLE_GROUP_GRANTS));
     grants.roleGrants = getGrantMap(HiveConf.getVar(conf,
         HiveConf.ConfVars.HIVE_AUTHORIZATION_TABLE_ROLE_GRANTS));
-    
-    String grantor = null;
-    if (SessionState.get() != null
-        && SessionState.get().getAuthenticator() != null) {
-      grantor = SessionState.get().getAuthenticator().getUserName();
+
+    String grantor = SessionState.getUserFromAuthenticator();
+    if (grantor != null) {
       List<PrivilegeGrantInfo> ownerGrant = getGrantorInfoList(HiveConf.getVar(conf,
           HiveConf.ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS));
       if(ownerGrant != null) {
@@ -97,10 +95,8 @@ public class CreateTableAutomaticGrant {
     checkPrivilege(privList);
     String[] grantArray = privList.split(",");
     List<PrivilegeGrantInfo> grantInfoList = new ArrayList<PrivilegeGrantInfo>();
-    String grantor = null;
-    if (SessionState.get().getAuthenticator() != null) {
-      grantor = SessionState.get().getAuthenticator().getUserName();  
-    }
+    String grantor = SessionState.getUserFromAuthenticator();
+
     for (String grant : grantArray) {
       grantInfoList.add(new PrivilegeGrantInfo(grant, -1, grantor,
           PrincipalType.USER, true));
