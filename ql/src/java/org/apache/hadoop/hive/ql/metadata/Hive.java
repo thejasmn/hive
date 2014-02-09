@@ -2419,11 +2419,7 @@ private void constructOneLBLocationMap(FileStatus fSta,
   }
 
   private String getUserName() {
-    SessionState ss = SessionState.get();
-    if (ss != null && ss.getAuthenticator() != null) {
-      return ss.getAuthenticator().getUserName();
-    }
-    return null;
+    return SessionState.getUserFromAuthenticator();
   }
 
   private List<String> getGroupNames() {

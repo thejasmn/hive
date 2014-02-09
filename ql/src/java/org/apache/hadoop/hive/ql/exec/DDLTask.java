@@ -3645,12 +3645,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
    */
   private boolean updateModifiedParameters(Map<String, String> params, HiveConf conf) throws HiveException {
     String user = null;
-    try {
-      user = conf.getUser();
-    } catch (IOException e) {
-      throw new HiveException(e, ErrorMsg.GENERIC_ERROR, "Unable to get current user");
-    }
-
+    user = SessionState.getUserFromAuthenticator();
     params.put("last_modified_by", user);
     params.put("last_modified_time", Long.toString(System.currentTimeMillis() / 1000));
     return true;
@@ -4150,11 +4145,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   }
 
   private int setGenericTableAttributes(Table tbl) throws HiveException {
-    try {
-      tbl.setOwner(conf.getUser());
-    } catch (IOException e) {
-      throw new HiveException(e, ErrorMsg.GENERIC_ERROR, "Unable to get current user");
-    }
+    tbl.setOwner(SessionState.getUserFromAuthenticator());
     // set create time
     tbl.setCreateTime((int) (System.currentTimeMillis() / 1000));
     return 0;
