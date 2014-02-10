@@ -62,10 +62,6 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.EXPLAIN, new InOutPrivs(SEL_NOGRANT_AR,
         SEL_NOGRANT_AR)); //??
     op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(ADMIN_PRIV_AR, null));
-    // select with grant for exporting contents
-    op2Priv.put(HiveOperationType.EXPORT, new InOutPrivs(SEL_GRANT_AR, null));
-
-    op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(ADMIN_PRIV_AR, null));
 
     op2Priv.put(HiveOperationType.CREATEDATABASE, new InOutPrivs(ADMIN_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(ADMIN_PRIV_AR, null));
@@ -111,37 +107,6 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
 
-    op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
-    op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.SHOWTABLES, new InOutPrivs(null, null));
-
-    // operations that require insert/delete privileges
-    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(DEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(INS_NOGRANT_AR, null));
-
-
-
-    op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
-
-    //show create table is more sensitive information, includes table properties etc
-    // for now require select WITH GRANT
-    op2Priv.put(HiveOperationType.SHOW_CREATETABLE, new InOutPrivs(SEL_GRANT_AR, null));
-
-    op2Priv.put(HiveOperationType.SHOWFUNCTIONS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.SHOWINDEXES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.SHOWPARTITIONS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.SHOWLOCKS, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.CREATEFUNCTION, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.DROPFUNCTION, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.CREATEMACRO, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.DROPMACRO, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.CREATEVIEW, new InOutPrivs(SEL_GRANT_AR, null));
-
-    // require view ownership
-    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(OWNER_PRIV_AR, null));
-
     //table ownership for create/drop/alter index
     op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
@@ -152,6 +117,47 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DROPVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(OWNER_PRIV_AR, null));
+
+    op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
+    op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOWTABLES, new InOutPrivs(null, null));
+
+    // operations that require insert/delete privileges
+    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(DEL_NOGRANT_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(INS_NOGRANT_AR, null));
+
+    // select with grant for exporting contents
+    op2Priv.put(HiveOperationType.EXPORT, new InOutPrivs(SEL_GRANT_AR, null));
+    op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(INS_NOGRANT_AR, null));
+
+    // operations require select priv
+    op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
+    op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
+    op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
+
+
+    //show create table is more sensitive information, includes table properties etc
+    // for now require select WITH GRANT
+    op2Priv.put(HiveOperationType.SHOW_CREATETABLE, new InOutPrivs(SEL_GRANT_AR, null));
+
+    // for now allow only create-view with 'select with grant'
+    // the owner will also have select with grant privileges on new view
+    op2Priv.put(HiveOperationType.CREATEVIEW, new InOutPrivs(SEL_GRANT_AR, null));
+
+    op2Priv.put(HiveOperationType.SHOWFUNCTIONS, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOWINDEXES, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOWPARTITIONS, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.SHOWLOCKS, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.CREATEFUNCTION, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.DROPFUNCTION, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.CREATEMACRO, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.DROPMACRO, new InOutPrivs(null, null));
+
+
+    // require view ownership
+    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(OWNER_PRIV_AR, null));
+
+
 
     op2Priv.put(HiveOperationType.LOCKTABLE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.UNLOCKTABLE, new InOutPrivs(null, null));
