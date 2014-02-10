@@ -129,9 +129,6 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(DEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(INS_NOGRANT_AR, null));
 
-    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(ADMIN_PRIV_AR, null));
-
-
     // select with grant for exporting contents
     op2Priv.put(HiveOperationType.EXPORT, new InOutPrivs(SEL_GRANT_AR, null));
     op2Priv.put(HiveOperationType.IMPORT, new InOutPrivs(INS_NOGRANT_AR, null));
@@ -141,9 +138,12 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(OWNER_PRIV_AR, SEL_NOGRANT_AR));
-    // QUERY op can contain an insert, so require insert privileges on output
-    op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR, INS_NOGRANT_AR));
 
+    // QUERY,LOAD op can contain an insert & ovewrite, so require insert+delete privileges on output
+    op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR,
+        arr(SQLPrivTypeGrant.INSERT_NOGRANT, SQLPrivTypeGrant.DELETE_NOGRANT)));
+    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(SEL_NOGRANT_AR,
+        arr(SQLPrivTypeGrant.INSERT_NOGRANT, SQLPrivTypeGrant.DELETE_NOGRANT)));
 
     // show create table is more sensitive information, includes table properties etc
     // for now require select WITH GRANT
@@ -161,11 +161,6 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.DROPFUNCTION, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.CREATEMACRO, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.DROPMACRO, new InOutPrivs(null, null));
-
-
-
-
-
 
     op2Priv.put(HiveOperationType.LOCKTABLE, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.UNLOCKTABLE, new InOutPrivs(null, null));
