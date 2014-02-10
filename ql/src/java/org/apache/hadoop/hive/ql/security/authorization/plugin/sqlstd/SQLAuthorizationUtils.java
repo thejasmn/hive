@@ -123,7 +123,7 @@ public class SQLAuthorizationUtils {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
     case TABLE:
-      return HivePrivilegeObjectType.TABLE;
+      return HivePrivilegeObjectType.TABLE_OR_VIEW;
     case COLUMN:
     case GLOBAL:
     case PARTITION:
@@ -235,7 +235,7 @@ public class SQLAuthorizationUtils {
   private static boolean isOwner(IMetaStoreClient metastoreClient, String userName,
       HivePrivilegeObject hivePrivObject) throws HiveAuthzPluginException {
     //for now, check only table
-    if(hivePrivObject.getType() == HivePrivilegeObjectType.TABLE){
+    if(hivePrivObject.getType() == HivePrivilegeObjectType.TABLE_OR_VIEW){
       Table thriftTableObj = null;
       try {
         thriftTableObj = metastoreClient.getTable(hivePrivObject.getDbname(), hivePrivObject.getTableviewname());

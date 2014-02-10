@@ -52,6 +52,9 @@ public class Operation2Privilege {
   private static SQLPrivTypeGrant[] SEL_NOGRANT_AR = arr(SQLPrivTypeGrant.SELECT_NOGRANT);
   private static SQLPrivTypeGrant[] SEL_GRANT_AR = arr(SQLPrivTypeGrant.SELECT_WGRANT);
   private static SQLPrivTypeGrant[] ADMIN_PRIV_AR = arr(SQLPrivTypeGrant.ADMIN_PRIV);
+  private static SQLPrivTypeGrant[] INS_NOGRANT_AR = arr(SQLPrivTypeGrant.INSERT_NOGRANT);
+  private static SQLPrivTypeGrant[] DEL_NOGRANT_AR = arr(SQLPrivTypeGrant.DELETE_NOGRANT);
+
 
   static {
     op2Priv = new HashMap<HiveOperationType, InOutPrivs>();
@@ -84,8 +87,6 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_RENAMEPART, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_RENAME, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_TOUCH, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_ARCHIVE, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_UNARCHIVE, new InOutPrivs(OWNER_PRIV_AR, null));
@@ -108,10 +109,17 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.ALTERPARTITION_MERGEFILES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.ALTERTABLE_SKEWED, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(null, null));
+    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
 
     op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
     op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));
     op2Priv.put(HiveOperationType.SHOWTABLES, new InOutPrivs(null, null));
+
+    // operations that require insert/delete privileges
+    op2Priv.put(HiveOperationType.ALTERTABLE_DROPPARTS, new InOutPrivs(DEL_NOGRANT_AR, null));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ADDPARTS, new InOutPrivs(INS_NOGRANT_AR, null));
+
+
 
     op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
@@ -150,9 +158,6 @@ public class Operation2Privilege {
 
     // require db ownership
     op2Priv.put(HiveOperationType.CREATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
-
-    // require table ownership
-    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
 
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(OWNER_PRIV_AR, SEL_NOGRANT_AR));
     op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR, null));

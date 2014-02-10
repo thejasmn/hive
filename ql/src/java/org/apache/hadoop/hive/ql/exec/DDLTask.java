@@ -875,7 +875,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
   private HivePrivilegeObjectType getPrivObjectType(PrivilegeObjectDesc privSubjectDesc) {
     //TODO: This needs to change to support view once view grant/revoke is supported as
     // part of HIVE-6181
-    return privSubjectDesc.getTable() ? HivePrivilegeObjectType.TABLE : HivePrivilegeObjectType.DATABASE;
+    return privSubjectDesc.getTable() ? HivePrivilegeObjectType.TABLE_OR_VIEW : HivePrivilegeObjectType.DATABASE;
   }
 
   private List<HivePrivilege> getHivePrivileges(List<PrivilegeDesc> privileges) {

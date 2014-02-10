@@ -33,7 +33,7 @@ public class HivePrivilegeObject {
         + tableviewname + "]";
   }
 
-  public enum HivePrivilegeObjectType { DATABASE, TABLE, VIEW, PARTITION, URI};
+  public enum HivePrivilegeObjectType { DATABASE, TABLE_OR_VIEW, PARTITION, URI};
   private final HivePrivilegeObjectType type;
   private final String dbname;
   private final String tableviewname;

@@ -389,7 +389,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
     case TABLE:
-      return HivePrivilegeObjectType.TABLE;
+      return HivePrivilegeObjectType.TABLE_OR_VIEW;
     case COLUMN:
     case GLOBAL:
     case PARTITION:

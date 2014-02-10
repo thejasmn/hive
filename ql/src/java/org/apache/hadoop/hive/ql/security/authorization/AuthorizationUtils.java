@@ -68,7 +68,7 @@ public class AuthorizationUtils {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
     case TABLE:
-      return HivePrivilegeObjectType.TABLE;
+      return HivePrivilegeObjectType.TABLE_OR_VIEW;
     case LOCAL_DIR:
     case DFS_DIR:
       return HivePrivilegeObjectType.URI;
@@ -127,12 +127,11 @@ public class AuthorizationUtils {
     switch(type){
     case DATABASE:
       return HiveObjectType.DATABASE;
-    case TABLE:
+    case TABLE_OR_VIEW:
       return HiveObjectType.TABLE;
     case PARTITION:
       return HiveObjectType.PARTITION;
     case URI:
-    case VIEW:
       throw new HiveException("Unsupported type " + type);
     default:
       //should not happen as we have accounted for all types
