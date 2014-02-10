@@ -238,7 +238,7 @@ public class SQLAuthorizationUtils {
     if(hivePrivObject.getType() == HivePrivilegeObjectType.TABLE_OR_VIEW){
       Table thriftTableObj = null;
       try {
-        thriftTableObj = metastoreClient.getTable(hivePrivObject.getDbname(), hivePrivObject.getTableviewname());
+        thriftTableObj = metastoreClient.getTable(hivePrivObject.getDbname(), hivePrivObject.getTableViewURI());
       } catch (MetaException e) {
         throwGetTableErr(e, hivePrivObject);
       } catch (NoSuchObjectException e) {

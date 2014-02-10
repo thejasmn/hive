@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValidator {
 
@@ -73,13 +74,38 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
     // check if this user has these privileges on the objects
     for (HivePrivilegeObject hObj : hObjs) {
-      // get the privileges that this user has on the object
-      RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
-          metastoreClient, userName, hObj, privController.getCurrentRoles());
-      Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
-          .findMissingPrivs(availPrivs);
-      SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
-          HivePrincipalType.USER), hObj);
+      if (hObj.getType() == HivePrivilegeObjectType.LOCAL_URI) {
+
+      } else if (hObj.getType() == HivePrivilegeObjectType.DFS_URI) {
+//        // get the 'available privileges' from file system
+//        URI fsURI;
+//        try {
+//          fsURI = new URI(hObj.getTableViewURI());
+//        } catch (URISyntaxException e) {
+//          String msg = "Error creating URI with " + hObj + ": " + e.getMessage();
+//          throw new HiveAuthzPluginException(msg, e);
+//        }
+//
+//        // check file system permission
+//        FileSystem fs;
+//        try {
+//          fs = FileSystem.get(fsURI, conf);
+//          FsPermission fsPermission = fs.getFileStatus(new Path(fsURI)).getPermission();
+//          // TODO: implement the check
+//        } catch (IOException e) {
+//          String msg = "Error getting permissions for " + fsURI + ": " + e.getMessage();
+//          throw new HiveAuthzPluginException(msg, e);
+//        }
+
+      } else {
+        // get the privileges that this user has on the object
+        RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
+            metastoreClient, userName, hObj, privController.getCurrentRoles());
+        Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
+            .findMissingPrivs(availPrivs);
+        SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
+            HivePrincipalType.USER), hObj);
+      }
     }
   }
 

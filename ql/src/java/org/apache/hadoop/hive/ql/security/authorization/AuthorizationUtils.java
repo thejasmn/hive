@@ -70,8 +70,9 @@ public class AuthorizationUtils {
     case TABLE:
       return HivePrivilegeObjectType.TABLE_OR_VIEW;
     case LOCAL_DIR:
+      return HivePrivilegeObjectType.LOCAL_URI;
     case DFS_DIR:
-      return HivePrivilegeObjectType.URI;
+      return HivePrivilegeObjectType.DFS_URI;
     case PARTITION:
     case DUMMYPARTITION: //need to determine if a different type is needed for dummy partitions
       return HivePrivilegeObjectType.PARTITION;
@@ -131,7 +132,8 @@ public class AuthorizationUtils {
       return HiveObjectType.TABLE;
     case PARTITION:
       return HiveObjectType.PARTITION;
-    case URI:
+    case LOCAL_URI:
+    case DFS_URI:
       throw new HiveException("Unsupported type " + type);
     default:
       //should not happen as we have accounted for all types
@@ -148,7 +150,7 @@ public class AuthorizationUtils {
    */
   public static HiveObjectRef getThriftHiveObjectRef(HivePrivilegeObject privObj) throws HiveException {
     HiveObjectType objType = getThriftHiveObjType(privObj.getType());
-    return new HiveObjectRef(objType, privObj.getDbname(), privObj.getTableviewname(), null, null);
+    return new HiveObjectRef(objType, privObj.getDbname(), privObj.getTableViewURI(), null, null);
   }
 
 
