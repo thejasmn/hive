@@ -79,47 +79,50 @@ public class Operation2Privilege {
     //meta store check command - require admin priv
     op2Priv.put(HiveOperationType.MSCK, new InOutPrivs(ADMIN_PRIV_AR, null));
 
+
     //alter table commands require table ownership
-    op2Priv.put(HiveOperationType.ALTERTABLE_ADDCOLS, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_REPLACECOLS, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMEPART, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_RENAME, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_TOUCH, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_ARCHIVE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_UNARCHIVE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SERIALIZER, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_PARTCOLTYPE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_SERIALIZER, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_CLUSTER_SORT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_LOCATION, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_MERGEFILES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERPARTITION_MERGEFILES, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTABLE_SKEWED, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(null, null));
-    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, null));
+    // There should not be output object, but just in case the table is incorrectly added
+    // to output instead of input, adding owner requirement on output will catch that as wellÿ
+    op2Priv.put(HiveOperationType.ALTERTABLE_ADDCOLS, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_REPLACECOLS, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMECOL, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAMEPART, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_RENAME, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_TOUCH, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_ARCHIVE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_UNARCHIVE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SERIALIZER, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PARTCOLTYPE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_SERIALIZER, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_SERDEPROPERTIES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_CLUSTER_SORT, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_BUCKETNUM, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_PROTECTMODE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_FILEFORMAT, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_LOCATION, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_LOCATION, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_MERGEFILES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERPARTITION_MERGEFILES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTABLE_SKEWED, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERTBLPART_SKEWED_LOCATION, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.TRUNCATETABLE, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
 
     //table ownership for create/drop/alter index
-    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.CREATEINDEX, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.DROPINDEX, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERINDEX_REBUILD, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERINDEX_PROPS, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
 
     // require view ownership for alter/drop view
-    op2Priv.put(HiveOperationType.ALTERVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.DROPVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(OWNER_PRIV_AR, null));
-    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.ALTERVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.DROPVIEW_PROPERTIES, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.ALTERVIEW_RENAME, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.DROPVIEW, new InOutPrivs(OWNER_PRIV_AR, OWNER_PRIV_AR));
 
     op2Priv.put(HiveOperationType.ANALYZE_TABLE, new InOutPrivs(arr(SQLPrivTypeGrant.SELECT_NOGRANT, SQLPrivTypeGrant.INSERT_NOGRANT), null));
     op2Priv.put(HiveOperationType.SHOWDATABASES, new InOutPrivs(null, null));

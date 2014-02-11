@@ -727,6 +727,13 @@ public class Driver implements CommandProcessor {
       HivePrivilegeObjectType privObjType =
           AuthorizationUtils.getHivePrivilegeObjectType(privObject.getType());
 
+      if(privObject instanceof ReadEntity && !((ReadEntity)privObject).isDirect()){
+        // In case of views, the underlying views or tables are not direct dependencies
+        // and are not used for authorization checks.
+        // This ReadEntity represents one of the underlying tables/views, so skip it.
+        // See description of the isDirect in ReadEntity
+        continue;
+      }
 
       //support for authorization on partitions needs to be added
       String dbname = null;

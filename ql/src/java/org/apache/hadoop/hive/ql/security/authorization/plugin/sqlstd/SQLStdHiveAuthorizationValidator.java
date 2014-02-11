@@ -97,6 +97,9 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 //          throw new HiveAuthzPluginException(msg, e);
 //        }
 
+      } else if (hObj.getType() == HivePrivilegeObjectType.PARTITION) {
+        // sql std authorization is managing privileges at the table/view levels only
+        // ignore partitions
       } else {
         // get the privileges that this user has on the object
         RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
