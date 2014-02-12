@@ -115,7 +115,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       } else {
         // get the privileges that this user has on the object
         RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
-            metastoreClient, userName, hObj, privController.getCurrentRoles());
+            metastoreClient, userName, hObj, privController.getCurrentRoles(),
+            privController.isUserAdmin());
         Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
             .findMissingPrivs(availPrivs);
         SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,

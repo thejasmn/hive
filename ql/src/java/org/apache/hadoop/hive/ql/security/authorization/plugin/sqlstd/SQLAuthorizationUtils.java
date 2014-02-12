@@ -160,11 +160,12 @@ public class SQLAuthorizationUtils {
    * @param hivePrivObject
    * @param curRoles
    *          current active roles for user
+   * @param isAdmin
    * @return
    * @throws HiveAuthzPluginException
    */
   static RequiredPrivileges getPrivilegesFromMetaStore(IMetaStoreClient metastoreClient,
-      String userName, HivePrivilegeObject hivePrivObject, List<HiveRole> curRoles)
+      String userName, HivePrivilegeObject hivePrivObject, List<HiveRole> curRoles, boolean isAdmin)
           throws HiveAuthzPluginException {
 
     // get privileges for this user and its role on this object
@@ -188,6 +189,9 @@ public class SQLAuthorizationUtils {
     // add owner privilege if user is owner of the object
     if (isOwner(metastoreClient, userName, hivePrivObject)) {
       privs.addPrivilege(SQLPrivTypeGrant.OWNER_PRIV);
+    }
+    if (isAdmin) {
+      privs.addPrivilege(SQLPrivTypeGrant.ADMIN_PRIV);
     }
 
     return privs;
