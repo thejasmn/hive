@@ -920,6 +920,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         writeToFile(writeRoleInfo(roles, testMode), roleDDLDesc.getResFile());
       } else if (operation.equals(RoleDDLDesc.RoleOperation.SHOW_ROLES)) {
         List<String> roleNames = db.getAllRoleNames();
+        //sort the list to get sorted (deterministic) output (for ease of testing)
+        Collections.sort(roleNames);
         Path resFile = new Path(roleDDLDesc.getResFile());
         FileSystem fs = resFile.getFileSystem(conf);
         outStream = fs.create(resFile);
@@ -3087,6 +3089,9 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return "";
     }
     StringBuilder builder = new StringBuilder();
+    //sort the list to get sorted (deterministic) output (for ease of testing)
+    Collections.sort(privileges);
+
     for (HiveObjectPrivilege privilege : privileges) {
       HiveObjectRef resource = privilege.getHiveObject();
       PrivilegeGrantInfo grantInfo = privilege.getGrantInfo();
@@ -3110,6 +3115,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return "";
     }
     StringBuilder builder = new StringBuilder();
+    //sort the list to get sorted (deterministic) output (for ease of testing)
+    Collections.sort(roles);
     for (Role role : roles) {
       appendNonNull(builder, role.getRoleName(), true);
       appendNonNull(builder, testMode ? -1 : role.getCreateTime() * 1000L);
@@ -3127,6 +3134,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       return "";
     }
     StringBuilder builder = new StringBuilder();
+    //sort the list to get sorted (deterministic) output (for ease of testing)
+    Collections.sort(roles);
     for (HiveRole role : roles) {
       appendNonNull(builder, role.getRoleName(), true);
       appendNonNull(builder, testMode ? -1 : role.getCreateTime() * 1000L);
