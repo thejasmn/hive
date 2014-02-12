@@ -1,3 +1,7 @@
+PREHOOK: query: set role ADMIN
+PREHOOK: type: SHOW_ROLES
+POSTHOOK: query: set role ADMIN
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: -- the test verifies that authorization is happening with privileges of the current roles
 
 -- grant privileges with grant option for table to role2 

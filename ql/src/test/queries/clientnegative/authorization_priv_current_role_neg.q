@@ -1,7 +1,8 @@
+set hive.users.in.admin.role=hive_admin_user;
 set hive.security.authorization.manager=org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory;
 set hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateConfigUserAuthenticator;
-
-set user.name=user1;
+set user.name=hive_admin_user;
+set role ADMIN;
 
 -- the test verifies that authorization is happening with privileges of the current roles
 
