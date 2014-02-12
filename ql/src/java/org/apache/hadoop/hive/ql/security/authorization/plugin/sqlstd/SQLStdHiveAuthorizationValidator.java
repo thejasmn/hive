@@ -20,7 +20,10 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
@@ -39,6 +42,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
   private final HiveConf conf;
   private final HiveAuthenticationProvider authenticator;
   private final SQLStdHiveAccessController privController;
+  public static final Log LOG = LogFactory.getLog(HiveMetaStore.class);
 
   public SQLStdHiveAuthorizationValidator(HiveMetastoreClientFactory metastoreClientFactory,
       HiveConf conf, HiveAuthenticationProvider authenticator,
@@ -53,6 +57,14 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
       List<HivePrivilegeObject> outputHObjs) throws HiveAuthzPluginException, HiveAccessControlException {
+
+    if(LOG.isDebugEnabled()){
+      String msg = "Checking privileges for operation " + hiveOpType + " by user "
+        +  authenticator.getUserName() + " on " + " input objects " + inputHObjs
+        + " and output objects " + outputHObjs;
+      LOG.debug(msg);
+    }
+
     String userName = authenticator.getUserName();
     IMetaStoreClient metastoreClient = metastoreClientFactory.getHiveMetastoreClient();
 
