@@ -140,7 +140,7 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(OWNER_PRIV_AR, SEL_NOGRANT_AR));
+    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(SEL_NOGRANT_AR, OWNER_PRIV_AR));
 
     // QUERY,LOAD op can contain an insert & ovewrite, so require insert+delete privileges on output
     op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR,

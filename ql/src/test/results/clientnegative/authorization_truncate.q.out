@@ -1,0 +1,8 @@
+PREHOOK: query: -- check add partition without insert privilege
+create table tpart(i int, j int) partitioned by (k string)
+PREHOOK: type: CREATETABLE
+POSTHOOK: query: -- check add partition without insert privilege
+create table tpart(i int, j int) partitioned by (k string)
+POSTHOOK: type: CREATETABLE
+POSTHOOK: Output: default@tpart
+FAILED: SemanticException [Error 10001]: Table not found t1
