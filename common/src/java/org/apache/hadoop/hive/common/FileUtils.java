@@ -27,6 +27,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Shell;
 
 
@@ -295,6 +298,60 @@ public final class FileUtils {
     } else {
       results.add(fileStatus);
     }
+  }
+
+  /**
+   * Find the parent of path that exists
+   *
+   * @param fs
+   *          file system
+   * @param path
+   * @return the argument path if it exists or a parent path exists. Returns
+   *         NULL root is only parent that exists
+   * @throws IOException
+   */
+  public static Path getParentThatExists(FileSystem fs, Path path) throws IOException {
+    if (!fs.exists(path)) {
+      Path parentPath = path.getParent();
+      return getParentThatExists(fs, parentPath);
+    }
+    return path;
+  }
+
+  /**
+   * Check if the given FileStatus indicates that the action is allowed for
+   * userName. It checks the group and other permissions also to determine this.
+   *
+   * @param userName
+   * @param fsStatus
+   * @param action
+   * @return true if it is writable for userName
+   */
+  public static boolean isActionPermittedForUser(String userName, FileStatus fsStatus, FsAction action) {
+    FsPermission permissions = fsStatus.getPermission();
+    // check user perm
+    if (fsStatus.getOwner().equals(userName)
+        && permissions.getUserAction().implies(action)) {
+      return true;
+    }
+    // check other perm
+    if (permissions.getOtherAction().implies(action)) {
+      return true;
+    }
+    // check group perm after ensuring user belongs to the file owner group
+    String fileGroup = fsStatus.getGroup();
+    String[] userGroups = UserGroupInformation.createRemoteUser(userName).getGroupNames();
+    for (String group : userGroups) {
+      if (group.equals(fileGroup)) {
+        // user belongs to the file group
+        if (permissions.getGroupAction().implies(action)) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    return false;
   }
 
 }

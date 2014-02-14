@@ -78,32 +78,36 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
   }
 
-  private void checkPrivileges(SQLPrivTypeGrant[] reqPrivs,
-      List<HivePrivilegeObject> hObjs, IMetaStoreClient metastoreClient, String userName)
-          throws HiveAuthzPluginException, HiveAccessControlException {
+  private void checkPrivileges(SQLPrivTypeGrant[] reqPrivs, List<HivePrivilegeObject> hObjs,
+      IMetaStoreClient metastoreClient, String userName) throws HiveAuthzPluginException,
+      HiveAccessControlException {
     RequiredPrivileges requiredInpPrivs = new RequiredPrivileges();
     requiredInpPrivs.addAll(reqPrivs);
 
     // check if this user has these privileges on the objects
     for (HivePrivilegeObject hObj : hObjs) {
+      RequiredPrivileges availPrivs = null;
       if (hObj.getType() == HivePrivilegeObjectType.LOCAL_URI) {
 
       } else if (hObj.getType() == HivePrivilegeObjectType.DFS_URI) {
+        availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(hObj.getTableViewURI(), conf,
+            userName);
 
       } else if (hObj.getType() == HivePrivilegeObjectType.PARTITION) {
-        // sql std authorization is managing privileges at the table/view levels only
+        // sql std authorization is managing privileges at the table/view levels
+        // only
         // ignore partitions
       } else {
         // get the privileges that this user has on the object
-        RequiredPrivileges availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(
-            metastoreClient, userName, hObj, privController.getCurrentRoles(),
-            privController.isUserAdmin());
-        Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs
-            .findMissingPrivs(availPrivs);
-        SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
-            HivePrincipalType.USER), hObj);
+        availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(metastoreClient, userName,
+            hObj, privController.getCurrentRoles(), privController.isUserAdmin());
       }
+      Collection<SQLPrivTypeGrant> missingPriv = requiredInpPrivs.findMissingPrivs(availPrivs);
+      SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
+          HivePrincipalType.USER), hObj);
+
     }
   }
+
 
 }

@@ -734,6 +734,10 @@ public class Driver implements CommandProcessor {
         // See description of the isDirect in ReadEntity
         continue;
       }
+      if(privObject instanceof WriteEntity && ((WriteEntity)privObject).isTempURI()){
+        //do not authorize temporary uris
+        continue;
+      }
 
       //support for authorization on partitions needs to be added
       String dbname = null;

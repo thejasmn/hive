@@ -17,6 +17,9 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +31,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.hive.common.FileUtils;
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -321,6 +330,45 @@ public class SQLAuthorizationUtils {
           + " does not have following privileges on " + hivePrivObject + " : " + sortedmissingPrivs;
       throw new HiveAccessControlException(errMsg.toString());
     }
+  }
+
+  /**
+   * Map permissions for this uri to SQL Standard privileges
+   * @param tableViewURI
+   * @param conf
+   * @param userName
+   * @return
+   * @throws HiveAuthzPluginException
+   */
+  public static RequiredPrivileges getPrivilegesFromFS(String tableViewURI, HiveConf conf,
+      String userName) throws HiveAuthzPluginException {
+    // get the 'available privileges' from file system
+    URI fsURI;
+    try {
+      fsURI = new URI(tableViewURI);
+    } catch (URISyntaxException e) {
+      String msg = "Error creating URI with " + tableViewURI + ": " + e.getMessage();
+      throw new HiveAuthzPluginException(msg, e);
+    }
+
+    RequiredPrivileges availPrivs = new RequiredPrivileges();
+    // check file system permission
+    FileSystem fs;
+    try {
+      fs = FileSystem.get(fsURI, conf);
+      Path path = FileUtils.getParentThatExists(fs, new Path(fsURI));
+      FileStatus fileStatus = fs.getFileStatus(path);
+      if(FileUtils.isActionPermittedForUser(userName, fileStatus, FsAction.WRITE)){
+        availPrivs.addPrivilege(SQLPrivTypeGrant.INSERT_NOGRANT);
+      }
+      if(FileUtils.isActionPermittedForUser(userName, fileStatus, FsAction.READ)){
+        availPrivs.addPrivilege(SQLPrivTypeGrant.SELECT_NOGRANT);
+      }
+    } catch (IOException e) {
+      String msg = "Error getting permissions for " + fsURI + ": " + e.getMessage();
+      throw new HiveAuthzPluginException(msg, e);
+    }
+    return availPrivs;
   }
 
 
