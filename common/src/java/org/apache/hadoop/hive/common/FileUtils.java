@@ -20,9 +20,12 @@ package org.apache.hadoop.hive.common;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.BitSet;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -37,7 +40,7 @@ import org.apache.hadoop.util.Shell;
  * Collection of file manipulation utilities common across Hive.
  */
 public final class FileUtils {
-
+  static final private Log LOG = LogFactory.getLog(FileUtils.class.getName());
   /**
    * Variant of Path.makeQualified that qualifies the input path against the default file system
    * indicated by the configuration
@@ -353,5 +356,66 @@ public final class FileUtils {
     }
     return false;
   }
+
+  /**
+   * Check if user userName has permissions to perform the given FsAction action
+   * on all files under the file whose FileStatus fileStatus is provided
+   *
+   * @param fs
+   * @param fileStatus
+   * @param userName
+   * @param action
+   * @return
+   * @throws IOException
+   */
+  public static boolean isActionPermittedForFileHierarchy(FileSystem fs, FileStatus fileStatus,
+      String userName, FsAction action) throws IOException {
+    boolean isDir = fileStatus.isDir();
+
+    FsAction dirActionNeeded = action;
+    if (isDir) {
+      // for dirs user needs execute privileges as well
+      dirActionNeeded.and(FsAction.EXECUTE);
+    }
+    if (!isActionPermittedForUser(userName, fileStatus, dirActionNeeded)) {
+      return false;
+    }
+
+    if (!isDir) {
+      // no sub dirs to be checked
+      return true;
+    }
+    // check all children
+    FileStatus[] childStatuses = fs.listStatus(fileStatus.getPath());
+    for (FileStatus childStatus : childStatuses) {
+      if (!isActionPermittedForUser(userName, childStatus, action)) {
+        return false;
+      }
+      // check children recursively
+      if (!isActionPermittedForFileHierarchy(fs, childStatus, userName, action)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * A best effort attempt to determine if if the file is a local file based on the scheme if any
+   * @param fileName
+   * @return true if it was successfully able to determine that it is a local file
+   */
+  public static boolean hasLocalFileScheme(String fileName) {
+    try {
+      // do best effor to determine if this is a local file
+      String scheme = new URI(fileName).getScheme();
+      if (scheme != null) {
+        return scheme.equals("file");
+      }
+    } catch (URISyntaxException e) {
+      LOG.warn("Unable to create URI from " + fileName, e);
+    }
+    return false;
+  }
+
 
 }

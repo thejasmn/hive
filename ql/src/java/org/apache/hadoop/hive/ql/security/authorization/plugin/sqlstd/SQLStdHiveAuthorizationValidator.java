@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -90,8 +91,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       if (hObj.getType() == HivePrivilegeObjectType.LOCAL_URI) {
 
       } else if (hObj.getType() == HivePrivilegeObjectType.DFS_URI) {
-        availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(hObj.getTableViewURI(), conf,
-            userName);
+        availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(new Path(hObj.getTableViewURI()),
+            conf, userName);
 
       } else if (hObj.getType() == HivePrivilegeObjectType.PARTITION) {
         // sql std authorization is managing privileges at the table/view levels
