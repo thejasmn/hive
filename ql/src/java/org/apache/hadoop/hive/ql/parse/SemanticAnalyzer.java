@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.Order;
@@ -9710,7 +9711,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       case HiveParser.TOK_TABLELOCATION:
         location = unescapeSQLString(child.getChild(0).getText());
         location = EximUtil.relativeToAbsolutePath(conf, location);
-        outputs.add(new WriteEntity(new Path(location), FileUtils.hasLocalFileScheme(location)));
+        inputs.add(new ReadEntity(new Path(location), FileUtils.hasLocalFileScheme(location)));
         break;
       case HiveParser.TOK_TABLEPROPERTIES:
         tblProps = DDLSemanticAnalyzer.getProps((ASTNode) child.getChild(0));
@@ -9764,6 +9765,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         e.printStackTrace();
       }
     }
+
+    String[] qualified = Hive.getQualifiedNames(tableName);
+    String dbName = qualified.length == 1 ? SessionState.get().getCurrentDatabase() : qualified[0];
+    Database database  = getDatabase(dbName);
+    outputs.add(new WriteEntity(database));
 
     // Handle different types of CREATE TABLE command
     CreateTableDesc crtTblDesc = null;

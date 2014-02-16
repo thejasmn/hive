@@ -148,13 +148,13 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.SHOWCOLUMNS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TABLESTATUS, new InOutPrivs(SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, new InOutPrivs(SEL_NOGRANT_AR, null));
-    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(SEL_NOGRANT_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, new InOutPrivs(SEL_NOGRANT_AR, null));
 
     // QUERY,LOAD op can contain an insert & ovewrite, so require insert+delete privileges on output
     op2Priv.put(HiveOperationType.QUERY, new InOutPrivs(SEL_NOGRANT_AR,
         arr(SQLPrivTypeGrant.INSERT_NOGRANT, SQLPrivTypeGrant.DELETE_NOGRANT)));
 
-    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(SEL_NOGRANT_AR,
+    op2Priv.put(HiveOperationType.LOAD, new InOutPrivs(OWNER_INS_SEL_DEL_NOGRANT_AR,
         arr(SQLPrivTypeGrant.INSERT_NOGRANT, SQLPrivTypeGrant.DELETE_NOGRANT)));
 
     // show create table is more sensitive information, includes table properties etc
@@ -179,7 +179,7 @@ public class Operation2Privilege {
 
     // require db ownership, if there is a file require SELECT , INSERT, and DELETE
     op2Priv.put(HiveOperationType.CREATETABLE,
-        new InOutPrivs(OWNER_PRIV_AR, OWNER_INS_SEL_DEL_NOGRANT_AR));
+        new InOutPrivs(OWNER_INS_SEL_DEL_NOGRANT_AR, null));
 
     op2Priv.put(HiveOperationType.ALTERDATABASE, new InOutPrivs(OWNER_PRIV_AR, null));
     op2Priv.put(HiveOperationType.DESCDATABASE, new InOutPrivs(null, null));
