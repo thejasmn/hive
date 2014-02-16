@@ -388,9 +388,6 @@ public final class FileUtils {
     // check all children
     FileStatus[] childStatuses = fs.listStatus(fileStatus.getPath());
     for (FileStatus childStatus : childStatuses) {
-      if (!isActionPermittedForUser(userName, childStatus, action)) {
-        return false;
-      }
       // check children recursively
       if (!isActionPermittedForFileHierarchy(fs, childStatus, userName, action)) {
         return false;
@@ -415,6 +412,27 @@ public final class FileUtils {
       LOG.warn("Unable to create URI from " + fileName, e);
     }
     return false;
+  }
+
+  public static boolean isOwnerOfFileHierarchy(FileSystem fs, FileStatus fileStatus, String userName)
+      throws IOException {
+    if (!fileStatus.getOwner().equals(userName)) {
+      return false;
+    }
+
+    if (!fileStatus.isDir()) {
+      // no sub dirs to be checked
+      return true;
+    }
+    // check all children
+    FileStatus[] childStatuses = fs.listStatus(fileStatus.getPath());
+    for (FileStatus childStatus : childStatuses) {
+      // check children recursively
+      if (!isOwnerOfFileHierarchy(fs, childStatus, userName)) {
+        return false;
+      }
+    }
+    return true;
   }
 
 
