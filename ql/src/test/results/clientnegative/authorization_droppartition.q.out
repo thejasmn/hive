@@ -8,6 +8,7 @@ POSTHOOK: type: CREATETABLE
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@tpart
 #### A masked pattern was here ####
+<<<<<<< HEAD
 PREHOOK: type: ALTERTABLE_ADDPARTS
 #### A masked pattern was here ####
 PREHOOK: Output: default@tpart
@@ -17,3 +18,5 @@ POSTHOOK: type: ALTERTABLE_ADDPARTS
 POSTHOOK: Output: default@tpart
 POSTHOOK: Output: default@tpart@k=abc
 FAILED: HiveAccessControlException Permission denied. Principal [name=user1, type=USER] does not have following privileges on Object [type=TABLE_OR_VIEW, name=default.tpart] : [DELETE]
+=======
+>>>>>>> full test updates part 1
