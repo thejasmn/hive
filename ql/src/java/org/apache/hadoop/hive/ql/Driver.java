@@ -593,7 +593,7 @@ public class Driver implements CommandProcessor {
           continue;
         }
         Table tbl = read.getTable();
-        if ((read.getPartition() != null) || (tbl.isPartitioned())) {
+        if ((read.getPartition() != null) || (tbl != null && tbl.isPartitioned())) {
           String tblName = tbl.getTableName();
           if (tableUsePartLevelAuth.get(tblName) == null) {
             boolean usePartLevelPriv = (tbl.getParameters().get(
