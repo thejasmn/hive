@@ -88,9 +88,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     // check if this user has these privileges on the objects
     for (HivePrivilegeObject hObj : hObjs) {
       RequiredPrivileges availPrivs = null;
-      if (hObj.getType() == HivePrivilegeObjectType.LOCAL_URI) {
-
-      } else if (hObj.getType() == HivePrivilegeObjectType.DFS_URI) {
+      if (hObj.getType() == HivePrivilegeObjectType.LOCAL_URI
+          || hObj.getType() == HivePrivilegeObjectType.DFS_URI) {
         availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(new Path(hObj.getTableViewURI()),
             conf, userName);
 
