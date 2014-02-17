@@ -40,7 +40,7 @@ import org.apache.hadoop.util.Shell;
  * Collection of file manipulation utilities common across Hive.
  */
 public final class FileUtils {
-  static final private Log LOG = LogFactory.getLog(FileUtils.class.getName());
+  private static final Log LOG = LogFactory.getLog(FileUtils.class.getName());
   /**
    * Variant of Path.makeQualified that qualifies the input path against the default file system
    * indicated by the configuration
@@ -347,11 +347,7 @@ public final class FileUtils {
     for (String group : userGroups) {
       if (group.equals(fileGroup)) {
         // user belongs to the file group
-        if (permissions.getGroupAction().implies(action)) {
-          return true;
-        } else {
-          return false;
-        }
+        return permissions.getGroupAction().implies(action);
       }
     }
     return false;

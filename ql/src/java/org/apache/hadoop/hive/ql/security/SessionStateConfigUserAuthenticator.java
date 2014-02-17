@@ -44,11 +44,11 @@ public class SessionStateConfigUserAuthenticator implements HiveAuthenticationPr
 
   @Override
   public String getUserName() {
-    String newUserName = sessionState.getConf().get("user.name");
-    if (newUserName != null && !newUserName.trim().isEmpty()) {
-      return newUserName;
-    } else {
+    String newUserName = sessionState.getConf().get("user.name", "").trim();
+    if (newUserName.isEmpty()) {
       return System.getProperty("user.name");
+    } else {
+      return newUserName;
     }
   }
 
