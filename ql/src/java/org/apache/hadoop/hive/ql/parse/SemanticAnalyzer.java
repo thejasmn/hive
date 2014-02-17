@@ -9770,7 +9770,6 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     String dbName = qualified.length == 1 ? SessionState.get().getCurrentDatabase() : qualified[0];
     Database database  = getDatabase(dbName);
     outputs.add(new WriteEntity(database));
-
     // Handle different types of CREATE TABLE command
     CreateTableDesc crtTblDesc = null;
     switch (command_type) {
@@ -9811,13 +9810,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     case CTAS: // create table as select
 
       // Verify that the table does not already exist
-      String databaseName;
       try {
         Table dumpTable = db.newTable(tableName);
-        databaseName = dumpTable.getDbName();
-        if (null == db.getDatabase(dumpTable.getDbName())) {
-          throw new SemanticException(ErrorMsg.DATABASE_NOT_EXISTS.getMsg(dumpTable.getDbName()));
-        }
         if (null != db.getTable(dumpTable.getDbName(), dumpTable.getTableName(), false)) {
           throw new SemanticException(ErrorMsg.TABLE_ALREADY_EXISTS.getMsg(tableName));
         }
@@ -9827,7 +9821,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
 
       tblProps = addDefaultProperties(tblProps);
 
-      crtTblDesc = new CreateTableDesc(databaseName, tableName, isExt, cols, partCols,
+      crtTblDesc = new CreateTableDesc(dbName, tableName, isExt, cols, partCols,
           bucketCols, sortCols, numBuckets, rowFormatParams.fieldDelim,
           rowFormatParams.fieldEscape,
           rowFormatParams.collItemDelim, rowFormatParams.mapKeyDelim, rowFormatParams.lineDelim,
