@@ -29,9 +29,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Shell;
 
@@ -304,7 +306,7 @@ public final class FileUtils {
   }
 
   /**
-   * Find the parent of path that exists
+   * Find the parent of path that exists, if path does not exist
    *
    * @param fs
    *          file system
@@ -313,10 +315,10 @@ public final class FileUtils {
    *         NULL root is only parent that exists
    * @throws IOException
    */
-  public static Path getParentThatExists(FileSystem fs, Path path) throws IOException {
+  public static Path getPathOrParentThatExists(FileSystem fs, Path path) throws IOException {
     if (!fs.exists(path)) {
       Path parentPath = path.getParent();
-      return getParentThatExists(fs, parentPath);
+      return getPathOrParentThatExists(fs, parentPath);
     }
     return path;
   }
@@ -393,19 +395,20 @@ public final class FileUtils {
   }
 
   /**
-   * A best effort attempt to determine if if the file is a local file based on the scheme if any
+   * A best effort attempt to determine if if the file is a local file
+   * @param conf
    * @param fileName
    * @return true if it was successfully able to determine that it is a local file
    */
-  public static boolean hasLocalFileScheme(String fileName) {
+  public static boolean isLocalFile(HiveConf conf, String fileName) {
     try {
       // do best effor to determine if this is a local file
-      String scheme = new URI(fileName).getScheme();
-      if (scheme != null) {
-        return scheme.equals("file");
-      }
+      FileSystem fsForFile = FileSystem.get(new URI(fileName), conf);
+      return LocalFileSystem.class.isInstance(fsForFile);
     } catch (URISyntaxException e) {
       LOG.warn("Unable to create URI from " + fileName, e);
+    } catch (IOException e) {
+      LOG.warn("Unable to get FileSystem for " + fileName, e);
     }
     return false;
   }

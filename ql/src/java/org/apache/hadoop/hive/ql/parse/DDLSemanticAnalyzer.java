@@ -2556,7 +2556,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
           // do best effor to determine if this is a local file
           String scheme = new URI(currentLocation).getScheme();
           if (scheme != null) {
-            isLocal = scheme.equals("file");
+            isLocal = FileUtils.isLocalFile(conf, currentLocation);
           }
         } catch (URISyntaxException e) {
           LOG.warn("Unable to create URI from " + currentLocation, e);
@@ -3189,7 +3189,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   private void addLocationToOutputs(String newLocation) {
-    outputs.add(new WriteEntity(new Path(newLocation), FileUtils.hasLocalFileScheme(newLocation)));
+    outputs.add(new WriteEntity(new Path(newLocation), FileUtils.isLocalFile(conf, newLocation)));
   }
 
   /**
