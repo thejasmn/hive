@@ -166,11 +166,11 @@ POSTHOOK: Lineage: table2.b SIMPLE [(src)src.FieldSchema(name:value, type:string
 100	val_100
 #### A masked pattern was here ####
 PREHOOK: type: CREATETABLE
-PREHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 PREHOOK: Output: database:default
 #### A masked pattern was here ####
 POSTHOOK: type: CREATETABLE
-POSTHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@table4
 POSTHOOK: Lineage: table1.a SIMPLE [(src)src.FieldSchema(name:key, type:string, comment:default), ]
@@ -179,11 +179,11 @@ POSTHOOK: Lineage: table2.a SIMPLE [(src)src.FieldSchema(name:key, type:string, 
 POSTHOOK: Lineage: table2.b SIMPLE [(src)src.FieldSchema(name:value, type:string, comment:default), ]
 #### A masked pattern was here ####
 PREHOOK: type: CREATETABLE
-PREHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 PREHOOK: Output: database:default
 #### A masked pattern was here ####
 POSTHOOK: type: CREATETABLE
-POSTHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@table5
 POSTHOOK: Lineage: table1.a SIMPLE [(src)src.FieldSchema(name:key, type:string, comment:default), ]
@@ -270,11 +270,11 @@ POSTHOOK: Lineage: table2.a SIMPLE [(src)src.FieldSchema(name:key, type:string, 
 POSTHOOK: Lineage: table2.b SIMPLE [(src)src.FieldSchema(name:value, type:string, comment:default), ]
 #### A masked pattern was here ####
 PREHOOK: type: CREATETABLE
-PREHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 PREHOOK: Output: database:default
 #### A masked pattern was here ####
 POSTHOOK: type: CREATETABLE
-POSTHOOK: Input: /home/hortonth/hive-thejas/data/files/ext_test
+#### A masked pattern was here ####
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@table4
 POSTHOOK: Lineage: table1.a SIMPLE [(src)src.FieldSchema(name:key, type:string, comment:default), ]
