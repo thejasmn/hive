@@ -1423,7 +1423,6 @@ privObjectType
 @init {pushMsg("privilege object type type", state);}
 @after {popMsg(state);}
     : KW_DATABASE -> ^(TOK_DB_TYPE)
-    | KW_VIEW -> ^(TOK_TABLE_TYPE)
     | KW_TABLE? -> ^(TOK_TABLE_TYPE)
     ;
 
