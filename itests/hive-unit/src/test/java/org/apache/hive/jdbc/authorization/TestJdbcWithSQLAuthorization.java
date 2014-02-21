@@ -62,27 +62,35 @@ public class TestJdbcWithSQLAuthorization {
   @Test
   public void testAuthorization1() throws Exception {
 
-    String tableName = "TestJdbcSQLAuth1";
-
+    String tableName1 = "test_jdbc_sql_auth1";
+    String tableName2 = "test_jdbc_sql_auth2";
+    // using different blocks so that jdbc variables are not accidently re-used
+    // between the two actions
     {
-      // create table as user1
+      // create tables as user1
       Connection hs2Conn = getConnection("user1");
 
       Statement stmt = hs2Conn.createStatement();
 
-      // create table
-      stmt.execute("create table " + tableName + "(i int) ");
+      // create tables
+      stmt.execute("create table " + tableName1 + "(i int) ");
+      stmt.execute("create table " + tableName2 + "(i int) ");
       stmt.close();
       hs2Conn.close();
     }
-    // using different blocks so that jdbc variables are not accidently re-used
-    // between the two actions
     {
-      // try dropping table as user2
+      // try dropping table1 as user1 - should succeed
+      Connection hs2Conn = getConnection("user1");
+      Statement stmt = hs2Conn.createStatement();
+      stmt.execute("drop table " + tableName1);
+    }
+
+    {
+      // try dropping table as user2 - should fail
       Connection hs2Conn = getConnection("user2");
       try {
         Statement stmt = hs2Conn.createStatement();
-        stmt.execute("drop table " + tableName);
+        stmt.execute("drop table " + tableName2);
         fail("Exception due to authorization failure is expected");
       } catch (SQLException e) {
         String msg = e.getMessage();
@@ -91,7 +99,7 @@ public class TestJdbcWithSQLAuthorization {
         // couple
         // the error message with test
         assertTrue("Checking permission denied error", msg.contains("user2"));
-        assertTrue("Checking permission denied error", msg.contains(tableName.toLowerCase()));
+        assertTrue("Checking permission denied error", msg.contains(tableName2));
         assertTrue("Checking permission denied error", msg.contains("OBJECT OWNERSHIP"));
       }
     }
