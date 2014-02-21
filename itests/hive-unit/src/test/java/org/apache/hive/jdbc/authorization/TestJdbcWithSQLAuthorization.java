@@ -36,6 +36,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * Test SQL standard authorization with jdbc/hiveserver2
+ */
 public class TestJdbcWithSQLAuthorization {
   private static MiniHS2 miniHS2 = null;
 
@@ -55,8 +58,9 @@ public class TestJdbcWithSQLAuthorization {
 
   @AfterClass
   public static void afterTest() throws Exception {
-    if (miniHS2.isStarted())
+    if (miniHS2.isStarted()) {
       miniHS2.stop();
+    }
   }
 
   @Test
@@ -64,8 +68,8 @@ public class TestJdbcWithSQLAuthorization {
 
     String tableName1 = "test_jdbc_sql_auth1";
     String tableName2 = "test_jdbc_sql_auth2";
-    // using different blocks so that jdbc variables are not accidently re-used
-    // between the two actions
+    // using different code blocks so that jdbc variables are not accidently re-used
+    // between the actions. Different connection/statement object should be used for each action.
     {
       // create tables as user1
       Connection hs2Conn = getConnection("user1");
@@ -79,7 +83,7 @@ public class TestJdbcWithSQLAuthorization {
       hs2Conn.close();
     }
     {
-      // try dropping table1 as user1 - should succeed
+      // try dropping table as user1 - should succeed
       Connection hs2Conn = getConnection("user1");
       Statement stmt = hs2Conn.createStatement();
       stmt.execute("drop table " + tableName1);
@@ -96,8 +100,7 @@ public class TestJdbcWithSQLAuthorization {
         String msg = e.getMessage();
         System.err.println("Got SQLException with message " + msg);
         // check parts of the error, not the whole string so as not to tightly
-        // couple
-        // the error message with test
+        // couple the error message with test
         assertTrue("Checking permission denied error", msg.contains("user2"));
         assertTrue("Checking permission denied error", msg.contains(tableName2));
         assertTrue("Checking permission denied error", msg.contains("OBJECT OWNERSHIP"));
