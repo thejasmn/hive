@@ -95,8 +95,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   private List<HiveRole> getRolesFromMS() throws HiveAuthzPluginException {
     List<Role> roles;
     try {
-      roles = metastoreClientFactory.getHiveMetastoreClient().
-        list_roles(currentUserName, PrincipalType.USER);
+      roles = metastoreClientFactory.getHiveMetastoreClient().list_roles(currentUserName,
+          PrincipalType.USER);
       Map<String, HiveRole> name2Rolesmap = new HashMap<String, HiveRole>();
       getAllRoleAncestors(name2Rolesmap, roles);
       List<HiveRole> currentRoles = new ArrayList<HiveRole>(roles.size());
@@ -109,8 +109,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       }
       return currentRoles;
     } catch (Exception e) {
-        throw new HiveAuthzPluginException("Failed to retrieve roles for "+
-            currentUserName + ": " + e.getMessage(), e);
+      throw new HiveAuthzPluginException("Failed to retrieve roles for " + currentUserName + ": "
+          + e.getMessage(), e);
     }
   }
 
