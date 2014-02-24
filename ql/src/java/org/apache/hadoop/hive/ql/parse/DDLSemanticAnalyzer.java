@@ -702,6 +702,24 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       return;
     }
 
+    // if cascade=true, then we need to authorize the drop table action as well
+    if (ifCascade) {
+      // add the tables as well to outputs
+      List<String> tableNames;
+      // get names of all tables under this dbName
+      try {
+        tableNames = db.getAllTables(dbName);
+      } catch (HiveException e) {
+        throw new SemanticException(e);
+      }
+      // add tables to outputs
+      if (tableNames != null) {
+        for (String tableName : tableNames) {
+          Table table = getTable(dbName, tableName, true);
+          outputs.add(new WriteEntity(table));
+        }
+      }
+    }
     inputs.add(new ReadEntity(database));
     outputs.add(new WriteEntity(database));
 
