@@ -71,7 +71,7 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.CREATEDATABASE,
         new InOutPrivs(ADMIN_PRIV_AR, OWNER_INS_SEL_DEL_NOGRANT_AR));
 
-    op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(OWNER_PRIV_AR, null));
+    op2Priv.put(HiveOperationType.DROPDATABASE, new InOutPrivs(null, OWNER_PRIV_AR));
     // this should be database usage privilege once it is supported
     op2Priv.put(HiveOperationType.SWITCHDATABASE, new InOutPrivs(null, null));
 
