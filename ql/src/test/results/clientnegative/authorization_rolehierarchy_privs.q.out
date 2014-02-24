@@ -60,9 +60,9 @@ PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
 POSTHOOK: type: SHOW_ROLES
 PUBLIC
-role3
-role2
 role1
+role2
+role3
 
 PREHOOK: query: select * from t1
 PREHOOK: type: QUERY
@@ -89,9 +89,9 @@ PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
 POSTHOOK: type: SHOW_ROLES
 PUBLIC
-role3
-role2
 role1
+role2
+role3
 
 PREHOOK: query: select * from t1
 PREHOOK: type: QUERY
@@ -133,11 +133,11 @@ PREHOOK: query: show current roles
 PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
 POSTHOOK: type: SHOW_ROLES
-role4
 PUBLIC
-role3
-role2
 role1
+role2
+role3
+role4
 
 PREHOOK: query: select * from t1
 PREHOOK: type: QUERY
@@ -169,11 +169,11 @@ PREHOOK: query: show current roles
 PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
 POSTHOOK: type: SHOW_ROLES
-role4
-role3
 PUBLIC
-role2
 role1
+role2
+role3
+role4
 
 PREHOOK: query: select * from t1
 PREHOOK: type: QUERY
@@ -201,9 +201,9 @@ PREHOOK: query: show current roles
 PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
 POSTHOOK: type: SHOW_ROLES
-role4
 PUBLIC
-role2
 role1
+role2
+role4
 
 FAILED: HiveAccessControlException Permission denied. Principal [name=user1, type=USER] does not have following privileges on Object [type=TABLE_OR_VIEW, name=default.t1] : [SELECT]
