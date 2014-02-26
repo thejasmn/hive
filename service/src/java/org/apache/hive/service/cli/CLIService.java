@@ -34,6 +34,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.SystemVariables;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.metadata.Hive;
@@ -414,7 +415,10 @@ public class CLIService extends CompositeService implements ICLIService {
 
   // create the give Path if doesn't exists and make it writable
   private void setupStagingDir(String dirPath, boolean isLocal) throws IOException {
-    Path scratchDir = new Path(dirPath);
+    Path scratchDir = getStaticPath(new Path(dirPath));
+    if (scratchDir == null) {
+      return;
+    }
     FileSystem fs;
     if (isLocal) {
       fs = FileSystem.getLocal(hiveConf);
@@ -426,5 +430,17 @@ public class CLIService extends CompositeService implements ICLIService {
       FsPermission fsPermission = new FsPermission((short)0777);
       fs.setPermission(scratchDir, fsPermission);
     }
+  }
+
+  // DOWNLOADED_RESOURCES_DIR for example, which is by default ${system:java.io.tmpdir}/${hive.session.id}_resources,
+  // {system:java.io.tmpdir} would be already evaluated but ${hive.session.id} would be not in here.
+  // for that case, this returns evaluatd parts only, in this case, "/tmp"
+  // what for ${hive.session.id}_resources/${system:java.io.tmpdir}? just don't do that.
+  private Path getStaticPath(Path path) {
+    Path current = path;
+    for (; current != null && SystemVariables.containsVar(current.getName());
+        current = current.getParent()) {
+    }
+    return current;
   }
 }
