@@ -27,17 +27,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.security.auth.login.LoginException;
 
+import static org.apache.hadoop.hive.conf.Validator.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1013,7 +1012,15 @@ public class HiveConf extends Configuration {
     }
 
     public String typeString() {
-      return type.typeString();
+      return valType.typeString();
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    public boolean isExcluded() {
+      return excluded;
     }
 
     @Override
@@ -1034,23 +1041,38 @@ public class HiveConf extends Configuration {
       return val + (Shell.WINDOWS ? ".cmd" : "");
     }
 
+    public String getDefaultValue() {
+      return valType.defaultValueString(this);
+    }
+
     enum VarType {
-      STRING { @Override
-      void checkType(String value) throws Exception { } },
-      INT { @Override
-      void checkType(String value) throws Exception { Integer.valueOf(value); } },
-      LONG { @Override
-      void checkType(String value) throws Exception { Long.valueOf(value); } },
-      FLOAT { @Override
-      void checkType(String value) throws Exception { Float.valueOf(value); } },
-      BOOLEAN { @Override
-      void checkType(String value) throws Exception { Boolean.valueOf(value); } };
+      STRING {
+        void checkType(String value) throws Exception { }
+        String defaultValueString(ConfVars confVar) { return confVar.defaultStrVal; }
+      },
+      INT {
+        void checkType(String value) throws Exception { Integer.valueOf(value); }
+        String defaultValueString(ConfVars confVar) { return String.valueOf(confVar.defaultIntVal); }
+      },
+      LONG {
+        void checkType(String value) throws Exception { Long.valueOf(value); }
+        String defaultValueString(ConfVars confVar) { return String.valueOf(confVar.defaultLongVal); }
+      },
+      FLOAT {
+        void checkType(String value) throws Exception { Float.valueOf(value); }
+        String defaultValueString(ConfVars confVar) { return String.valueOf(confVar.defaultFloatVal); }
+      },
+      BOOLEAN {
+        void checkType(String value) throws Exception { Boolean.valueOf(value); }
+        String defaultValueString(ConfVars confVar) { return String.valueOf(confVar.defaultBoolVal); }
+      };
 
       boolean isType(String value) {
         try { checkType(value); } catch (Exception e) { return false; }
         return true;
       }
       String typeString() { return name().toUpperCase();}
+      abstract String defaultValueString(ConfVars confVar);
       abstract void checkType(String value) throws Exception;
     }
   }
@@ -1180,7 +1202,7 @@ public class HiveConf extends Configuration {
 
   public static String getVar(Configuration conf, ConfVars var) {
     assert (var.valClass == String.class) : var.varname;
-    return conf.get(var.varname, var.defaultVal);
+    return conf.get(var.varname, var.defaultStrVal);
   }
 
   public static String getVar(Configuration conf, ConfVars var, String defaultVal) {
@@ -1333,11 +1355,12 @@ public class HiveConf extends Configuration {
    */
   private static void applyDefaultNonNullConfVars(Configuration conf) {
     for (ConfVars var : ConfVars.values()) {
-      if (var.defaultVal == null) {
+      String defaultValue = var.getDefaultValue();
+      if (defaultValue == null) {
         // Don't override ConfVars with null values
         continue;
       }
-      conf.set(var.varname, var.defaultVal);
+      conf.set(var.varname, defaultValue);
     }
   }
 
@@ -1411,91 +1434,6 @@ public class HiveConf extends Configuration {
       return -1;
     } else {
       return Integer.parseInt(m.group(1));
-    }
-  }
-
-  /**
-   * validate value for a ConfVar, return non-null string for fail message
-   */
-  public static interface Validator {
-    String validate(String value);
-  }
-
-  public static class StringsValidator implements Validator {
-    private final Set<String> expected = new LinkedHashSet<String>();
-    private StringsValidator(String... values) {
-      for (String value : values) {
-        expected.add(value.toLowerCase());
-      }
-    }
-    @Override
-    public String validate(String value) {
-      if (value == null || !expected.contains(value.toLowerCase())) {
-        return "Invalid value.. expects one of " + expected;
-      }
-      return null;
-    }
-  }
-
-  public static class LongRangeValidator implements Validator {
-    private final long lower, upper;
-
-    public LongRangeValidator(long lower, long upper) {
-      this.lower = lower;
-      this.upper = upper;
-    }
-
-    @Override
-    public String validate(String value) {
-      try {
-        if(value == null) {
-          return "Value cannot be null";
-        }
-        value = value.trim();
-        long lvalue = Long.parseLong(value);
-        if (lvalue < lower || lvalue > upper) {
-          return "Invalid value  " + value + ", which should be in between " + lower + " and " + upper;
-        }
-      } catch (NumberFormatException e) {
-        return e.toString();
-      }
-      return null;
-    }
-  }
-
-  public static class PatternValidator implements Validator {
-    private final List<Pattern> expected = new ArrayList<Pattern>();
-    private PatternValidator(String... values) {
-      for (String value : values) {
-        expected.add(Pattern.compile(value));
-      }
-    }
-    @Override
-    public String validate(String value) {
-      if (value == null) {
-        return "Invalid value.. expects one of patterns " + expected;
-      }
-      for (Pattern pattern : expected) {
-        if (pattern.matcher(value).matches()) {
-          return null;
-        }
-      }
-      return "Invalid value.. expects one of patterns " + expected;
-    }
-  }
-
-  public static class RatioValidator implements Validator {
-    @Override
-    public String validate(String value) {
-      try {
-        float fvalue = Float.valueOf(value);
-        if (fvalue <= 0 || fvalue >= 1) {
-          return "Invalid ratio " + value + ", which should be in between 0 to 1";
-        }
-      } catch (NumberFormatException e) {
-        return e.toString();
-      }
-      return null;
     }
   }
 
