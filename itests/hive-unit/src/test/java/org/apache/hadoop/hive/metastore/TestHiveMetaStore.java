@@ -2784,6 +2784,12 @@ public abstract class TestHiveMetaStore extends TestCase {
     assertEquals(db.getOwnerType(), PrincipalType.ROLE);
   }
 
+  /**
+   * Test changing owner and owner type of a database
+   * @throws NoSuchObjectException
+   * @throws MetaException
+   * @throws TException
+   */
   @Test
   public void testDBOwnerChange() throws NoSuchObjectException, MetaException, TException {
     final String dbName = "alterDbOwner";
