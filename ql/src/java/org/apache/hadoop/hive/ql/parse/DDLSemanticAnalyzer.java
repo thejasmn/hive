@@ -70,10 +70,9 @@ import org.apache.hadoop.hive.ql.index.HiveIndexHandler;
 import org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat;
 import org.apache.hadoop.hive.ql.io.RCFileInputFormat;
 import org.apache.hadoop.hive.ql.lib.Node;
-import org.apache.hadoop.hive.ql.lockmgr.HiveTxnManager;
-import org.apache.hadoop.hive.ql.lockmgr.LockException;
-import org.apache.hadoop.hive.ql.lockmgr.TxnManagerFactory;
-import org.apache.hadoop.hive.ql.metadata.*;
+import org.apache.hadoop.hive.ql.metadata.Hive;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.parse.authorization.AuthorizationParseUtils;
@@ -442,6 +441,10 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(ctx.getLocalTmpPath());
       analyzeShowRoleGrant(ast);
       break;
+    case HiveParser.TOK_DESC_ROLE:
+      ctx.setResFile(ctx.getLocalTmpPath());
+      analyzeDescribeRole(ast);
+      break;
     case HiveParser.TOK_SHOW_ROLES:
       ctx.setResFile(ctx.getLocalTmpPath());
       analyzeShowRoles(ast);
@@ -553,7 +556,26 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         createShowRoleGrantTask(ast, ctx.getResFile(), getInputs(), getOutputs());
     if(task != null) {
       rootTasks.add(task);
-      setFetchTask(createFetchTask(RoleDDLDesc.getRoleDescSchema()));
+      setFetchTask(createFetchTask(RoleDDLDesc.getRoleShowGrantSchema()));
+    }
+  }
+
+  private void analyzeDescribeRole(ASTNode ast) throws SemanticException {
+    Task<DDLWork> roleDDLTask = (Task<DDLWork>) hiveAuthorizationTaskFactory
+        .createDescribeRoleTask(ast, ctx.getResFile(), getInputs(), getOutputs());
+
+    if (roleDDLTask != null) {
+      rootTasks.add(roleDDLTask);
+
+      // find the output schema based on isExtended flag
+      RoleDDLDesc roleDDLDesc = roleDDLTask.getWork().getRoleDDLDesc();
+      String schema;
+      if (roleDDLDesc.isExtended()) {
+        schema = RoleDDLDesc.getRoleDescribeSchemaExtended();
+      } else {
+        schema = RoleDDLDesc.getRoledescribeschema();
+      }
+      setFetchTask(createFetchTask(schema));
     }
   }
 

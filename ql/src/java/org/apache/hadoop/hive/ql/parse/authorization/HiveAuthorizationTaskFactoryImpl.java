@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.ql.plan.PrivilegeDesc;
 import org.apache.hadoop.hive.ql.plan.PrivilegeObjectDesc;
 import org.apache.hadoop.hive.ql.plan.RevokeDesc;
 import org.apache.hadoop.hive.ql.plan.RoleDDLDesc;
+import org.apache.hadoop.hive.ql.plan.RoleDDLDesc.RoleOperation;
 import org.apache.hadoop.hive.ql.plan.ShowGrantDesc;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 import org.apache.hadoop.hive.ql.security.authorization.PrivilegeRegistry;
@@ -333,5 +334,27 @@ public class HiveAuthorizationTaskFactoryImpl implements HiveAuthorizationTaskFa
     RoleDDLDesc ddlDesc = new RoleDDLDesc(null, RoleDDLDesc.RoleOperation.SHOW_CURRENT_ROLE);
     ddlDesc.setResFile(resFile.toString());
     return TaskFactory.get(new DDLWork(inputs, outputs, ddlDesc), conf);
+  }
+
+  @Override
+  public Task<? extends Serializable> createDescribeRoleTask(ASTNode ast, Path resFile,
+      HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs) throws SemanticException {
+    String roleName;
+    boolean isExtended;
+
+    if (ast.getChildCount() == 1) {
+      roleName = ast.getChild(0).getText();
+      isExtended = false;
+    } else if (ast.getChildCount() == 2) {
+      roleName = ast.getChild(0).getText();
+      isExtended = true;
+    } else {
+      // the parser should not allow this
+      throw new AssertionError("Unexpected Tokens at DESCRIBE FUNCTION");
+    }
+
+    RoleDDLDesc roleDDLDesc = new RoleDDLDesc(roleName, isExtended, RoleOperation.DESCRIBE_ROLE);
+    roleDDLDesc.setResFile(resFile.toString());
+    return TaskFactory.get(new DDLWork(inputs, outputs, roleDDLDesc), conf);
   }
 }

@@ -46,6 +46,7 @@ public final class SemanticAnalyzerFactory {
     commandType.put(HiveParser.TOK_DROPTABLE, HiveOperation.DROPTABLE);
     commandType.put(HiveParser.TOK_DESCTABLE, HiveOperation.DESCTABLE);
     commandType.put(HiveParser.TOK_DESCFUNCTION, HiveOperation.DESCFUNCTION);
+    commandType.put(HiveParser.TOK_DESC_ROLE, HiveOperation.DESCROLE);
     commandType.put(HiveParser.TOK_MSCK, HiveOperation.MSCK);
     commandType.put(HiveParser.TOK_ALTERTABLE_ADDCOLS, HiveOperation.ALTERTABLE_ADDCOLS);
     commandType.put(HiveParser.TOK_ALTERTABLE_REPLACECOLS, HiveOperation.ALTERTABLE_REPLACECOLS);
@@ -164,6 +165,7 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_DESCDATABASE:
       case HiveParser.TOK_DESCTABLE:
       case HiveParser.TOK_DESCFUNCTION:
+      case HiveParser.TOK_DESC_ROLE:
       case HiveParser.TOK_MSCK:
       case HiveParser.TOK_ALTERTABLE_ADDCOLS:
       case HiveParser.TOK_ALTERTABLE_RENAMECOL:

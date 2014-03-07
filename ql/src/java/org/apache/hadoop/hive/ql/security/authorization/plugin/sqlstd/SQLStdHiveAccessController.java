@@ -49,6 +49,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeInfo
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRole;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRoleGrant;
 import org.apache.thrift.TException;
 
 /**
@@ -510,5 +511,11 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       }
     }
     return true;
+  }
+
+  @Override
+  public List<HiveRoleGrant> getPrincipalsInRoleInfo(String roleName) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

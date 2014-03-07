@@ -39,29 +39,54 @@ public class RoleDDLDesc extends DDLDesc implements Serializable {
 
   private String roleOwnerName;
 
+  private boolean isExtended;
+
   /**
    * thrift ddl for the result of show roles.
    */
   private static final String roleNameSchema = "role#string";
 
   /**
-   * thrift ddl for the result of show role.
+   * thrift ddl for the result of show role grant principalName
    */
-  private static final String roleDescSchema =
+  private static final String roleShowGrantSchema =
       "role,create_time,principal_name,principal_type,grant_option,grant_time,grantor#" +
       "string:bigint:string:string:boolean:bigint:string";
+
+  /**
+   * thrift ddl for the result of describe role roleName
+   */
+  private static final String roleDescribeSchema =
+      "principal_name,principal_type,grant_option#" +
+      "string:string:boolean";
+
+  /**
+   * thrift ddl for the result of describe role extended roleName
+   */
+  private static final String roleDescribeSchemaExtended =
+      "principal_name,principal_type,grant_option,grantor,grantor_type,grant_time#" +
+      "string:string:boolean:string:string:bigint";
 
   public static String getRoleNameSchema() {
     return roleNameSchema;
   }
 
-  public static String getRoleDescSchema() {
-    return roleDescSchema;
+  public static String getRoleShowGrantSchema() {
+    return roleShowGrantSchema;
+  }
+
+  public static String getRoledescribeschema() {
+    return roleDescribeSchema;
+  }
+
+  public static String getRoleDescribeSchemaExtended() {
+    return roleDescribeSchemaExtended;
   }
 
   public static enum RoleOperation {
     DROP_ROLE("drop_role"), CREATE_ROLE("create_role"), SHOW_ROLE_GRANT("show_role_grant"),
-    SHOW_ROLES("show_roles"), SET_ROLE("set_role"), SHOW_CURRENT_ROLE("show_current_role");
+    SHOW_ROLES("show_roles"), SET_ROLE("set_role"), SHOW_CURRENT_ROLE("show_current_role"),
+    DESCRIBE_ROLE("describe_role");
     private String operationName;
 
     private RoleOperation() {
@@ -94,6 +119,11 @@ public class RoleDDLDesc extends DDLDesc implements Serializable {
     this.principalType = principalType;
     this.operation = operation;
     this.roleOwnerName = roleOwnerName;
+  }
+
+  public RoleDDLDesc(String roleName, boolean isExtended, RoleOperation roleOp) {
+    this(roleName, PrincipalType.USER, roleOp, null);
+    this.isExtended = isExtended;
   }
 
   @Explain(displayName = "name")
@@ -144,6 +174,10 @@ public class RoleDDLDesc extends DDLDesc implements Serializable {
 
   public void setRoleOwnerName(String roleOwnerName) {
     this.roleOwnerName = roleOwnerName;
+  }
+
+  public boolean isExtended() {
+    return isExtended;
   }
 
 }

@@ -33,6 +33,7 @@ public enum HiveOperation {
   DROPTABLE ("DROPTABLE", null, new Privilege[]{Privilege.DROP}),
   DESCTABLE("DESCTABLE", null, null),
   DESCFUNCTION("DESCFUNCTION", null, null),
+  DESCROLE("DESCROLE", null, null),
   MSCK("MSCK", null, null),
   ALTERTABLE_ADDCOLS("ALTERTABLE_ADDCOLS", new Privilege[]{Privilege.ALTER_METADATA}, null),
   ALTERTABLE_REPLACECOLS("ALTERTABLE_REPLACECOLS", new Privilege[]{Privilege.ALTER_METADATA}, null),
