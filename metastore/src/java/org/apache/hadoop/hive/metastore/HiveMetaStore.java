@@ -4028,6 +4028,42 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
+    public List<RolePrincipalGrant> get_principals_in_role(String role_name) throws MetaException,
+        TException {
+      incrementCounter("get_principals_in_role");
+
+      List<RolePrincipalGrant> result = new ArrayList<RolePrincipalGrant>();
+      try {
+        List<MRoleMap> roleMaps = getMS().listRoleMembers(role_name);
+        if (roleMaps != null) {
+          for (MRoleMap roleMap : roleMaps) {
+
+            String mapRoleName = roleMap.getRole().getRoleName();
+            if (!role_name.equals(mapRoleName)) {
+              // should not happen
+              throw new AssertionError("Role name " + mapRoleName + " does not match role name arg "
+                  + role_name);
+            }
+            RolePrincipalGrant rolePrinGrant = new RolePrincipalGrant(role_name,
+                roleMap.getPrincipalName(),
+                PrincipalType.valueOf(roleMap.getPrincipalType()),
+                roleMap.getGrantOption(),
+                roleMap.getAddTime(),
+                roleMap.getGrantor()
+                //,roleMap.getGrantorType()
+                );
+            result.add(rolePrinGrant);
+          }
+        }
+        return result;
+      } catch (MetaException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
     public boolean create_role(final Role role)
         throws MetaException, TException {
       incrementCounter("create_role");
