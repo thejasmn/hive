@@ -19,6 +19,7 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Evolving;
+import org.apache.hadoop.hive.metastore.api.RolePrincipalGrant;
 
 import com.google.common.collect.ComparisonChain;
 
@@ -38,6 +39,17 @@ public class HiveRoleGrant implements Comparable<HiveRoleGrant> {
   private String grantorType;
 
   public HiveRoleGrant() {}
+
+  public HiveRoleGrant(RolePrincipalGrant thriftRoleGrant) {
+    this.roleName = thriftRoleGrant.getRoleName();
+    this.principalName = thriftRoleGrant.getPrincipalName();
+    this.principalType = thriftRoleGrant.getPrincipalType().name();
+    this.grantOption = thriftRoleGrant.isGrantOption();
+    this.grantTime = thriftRoleGrant.getGrantTime();
+    this.grantor = thriftRoleGrant.getGrantorName();
+    this.grantorType = thriftRoleGrant.getGrantorPrincipalType().name();
+
+  }
 
   public String getRoleName() {
     return roleName;

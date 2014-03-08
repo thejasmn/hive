@@ -66,5 +66,5 @@ public interface HiveAccessController {
 
   List<HiveRole> getCurrentRoles() throws HiveAuthzPluginException;
 
-  List<HiveRoleGrant> getPrincipalsInRoleInfo(String roleName);
+  List<HiveRoleGrant> getPrincipalsInRoleInfo(String roleName) throws HiveAuthzPluginException, HiveAccessControlException;
 }
