@@ -284,6 +284,7 @@ TOK_REVOKE_ROLE;
 TOK_SHOW_ROLE_GRANT;
 TOK_SHOW_ROLES;
 TOK_SHOW_SET_ROLE;
+TOK_SHOW_ROLE_PRINCIPALS;
 TOK_SHOWINDEXES;
 TOK_SHOWDBLOCKS;
 TOK_INDEXCOMMENT;
@@ -678,6 +679,7 @@ ddlStatement
     | revokePrivileges
     | showGrants
     | showRoleGrants
+    | showRolePrincipals
     | showRoles
     | grantRole
     | revokeRole
@@ -1391,6 +1393,7 @@ showRoleGrants
     -> ^(TOK_SHOW_ROLE_GRANT principalName)
     ;
 
+
 showRoles
 @init {pushMsg("show roles", state);}
 @after {popMsg(state);}
@@ -1418,6 +1421,14 @@ showGrants
     : KW_SHOW KW_GRANT principalName? (KW_ON privilegeIncludeColObject)?
     -> ^(TOK_SHOW_GRANT principalName? privilegeIncludeColObject?)
     ;
+
+showRolePrincipals
+@init {pushMsg("show role principals", state);}
+@after {popMsg(state);}
+    : KW_SHOW KW_ROLE KW_PRINCIPALS roleName=identifier
+    -> ^(TOK_SHOW_ROLE_PRINCIPALS $roleName)
+    ;
+
 
 privilegeIncludeColObject
 @init {pushMsg("privilege object including columns", state);}
