@@ -936,7 +936,8 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         outStream.close();
         outStream = null;
       } else if (operation.equals(RoleDDLDesc.RoleOperation.SHOW_ROLE_PRINCIPALS)) {
-        throw new HiveException("Describe role is currently unsupported in this authorization mode");
+        throw new HiveException("Show role principals is not currently supported in "
+            + "authorization mode V1");
       }
       else {
         throw new HiveException("Unkown role operation "
