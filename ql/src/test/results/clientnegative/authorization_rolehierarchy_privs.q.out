@@ -1,13 +1,13 @@
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: ----------
 -- create the following user, role mapping
 -- user1 -> role1 -> role2 -> role3
@@ -56,9 +56,9 @@ POSTHOOK: query: grant select on t1 to role role3
 POSTHOOK: type: GRANT_PRIVILEGE
 POSTHOOK: Output: default@t1
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 role1
 role2
@@ -73,9 +73,9 @@ POSTHOOK: type: QUERY
 POSTHOOK: Input: default@t1
 #### A masked pattern was here ####
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 
 PREHOOK: query: grant select on t1 to role role2
@@ -85,9 +85,9 @@ POSTHOOK: query: grant select on t1 to role role2
 POSTHOOK: type: GRANT_PRIVILEGE
 POSTHOOK: Output: default@t1
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 role1
 role2
@@ -102,13 +102,13 @@ POSTHOOK: type: QUERY
 POSTHOOK: Input: default@t1
 #### A masked pattern was here ####
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 ADMIN
 
 PREHOOK: query: revoke select on table t1 from role role2
@@ -130,9 +130,9 @@ PREHOOK: type: GRANT_ROLE
 POSTHOOK: query: grant role3 to role role4
 POSTHOOK: type: GRANT_ROLE
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 role1
 role2
@@ -148,15 +148,15 @@ POSTHOOK: type: QUERY
 POSTHOOK: Input: default@t1
 #### A masked pattern was here ####
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: -- Revoke role3 from hierarchy one at a time and check permissions
 -- after revoking from both, select should fail
 revoke role3 from role role2
@@ -166,9 +166,9 @@ POSTHOOK: query: -- Revoke role3 from hierarchy one at a time and check permissi
 revoke role3 from role role2
 POSTHOOK: type: REVOKE_ROLE
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 role1
 role2
@@ -184,23 +184,23 @@ POSTHOOK: type: QUERY
 POSTHOOK: Input: default@t1
 #### A masked pattern was here ####
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: revoke role3 from role role4
 PREHOOK: type: REVOKE_ROLE
 POSTHOOK: query: revoke role3 from role role4
 POSTHOOK: type: REVOKE_ROLE
 PREHOOK: query: show current roles
-PREHOOK: type: SET_ROLE
+PREHOOK: type: SHOW_ROLES
 POSTHOOK: query: show current roles
-POSTHOOK: type: SET_ROLE
+POSTHOOK: type: SHOW_ROLES
 PUBLIC
 role1
 role2
