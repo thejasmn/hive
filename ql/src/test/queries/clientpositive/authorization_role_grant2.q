@@ -17,6 +17,7 @@ show role principals src_role_wadmin;
 set user.name=user2;
 set role src_role_wadmin;
 grant  src_role_wadmin to user user3;
+show role grant user user3;
 
 set user.name=hive_admin_user;
 set role ADMIN;
