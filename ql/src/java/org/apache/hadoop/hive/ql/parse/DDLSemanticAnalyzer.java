@@ -471,7 +471,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
    case HiveParser.TOK_EXCHANGEPARTITION:
       analyzeExchangePartition(ast);
       break;
-   case HiveParser.TOK_SHOW_SET_ROLE:
+   case HiveParser.TOK_SET_ROLE:
      analyzeSetShowRole(ast);
      break;
     default:
@@ -566,11 +566,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
     if (roleDDLTask != null) {
       rootTasks.add(roleDDLTask);
-
-      // find the output schema based on isExtended flag
-      RoleDDLDesc roleDDLDesc = roleDDLTask.getWork().getRoleDDLDesc();
-      String schema = RoleDDLDesc.getShowRolePrincipalsSchema();
-      setFetchTask(createFetchTask(schema));
+      setFetchTask(createFetchTask(RoleDDLDesc.getShowRolePrincipalsSchema()));
     }
   }
 

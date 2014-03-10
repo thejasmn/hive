@@ -1,7 +1,7 @@
 PREHOOK: query: set role NONE
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role NONE
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: SELECT TRANSFORM (*) USING 'cat' AS (key, value) FROM src
 PREHOOK: type: QUERY
 PREHOOK: Input: default@src

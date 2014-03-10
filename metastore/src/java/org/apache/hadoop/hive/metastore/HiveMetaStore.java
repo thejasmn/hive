@@ -4893,8 +4893,8 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         List<MRoleMap> roleMaps = getMS().listRoleMembers(role_name);
         if (roleMaps != null) {
+          //convert each MRoleMap object into a thrift RolePrincipalGrant object
           for (MRoleMap roleMap : roleMaps) {
-
             String mapRoleName = roleMap.getRole().getRoleName();
             if (!role_name.equals(mapRoleName)) {
               // should not happen

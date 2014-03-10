@@ -1,7 +1,7 @@
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: -- the test verifies that authorization is happening with privileges of the current roles
 
 -- grant privileges with grant option for table to role2 
@@ -33,12 +33,12 @@ PREHOOK: query: -- switch to user2
 
 -- by default all roles should be in current roles, and grant to new user should work
 show current roles
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: -- switch to user2
 
 -- by default all roles should be in current roles, and grant to new user should work
 show current roles
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PUBLIC
 role2
 
@@ -49,9 +49,9 @@ POSTHOOK: query: grant all on table tpriv_current_role to user user3
 POSTHOOK: type: GRANT_PRIVILEGE
 POSTHOOK: Output: default@tpriv_current_role
 PREHOOK: query: set role role2
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role role2
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: -- switch to role2, grant should work
 grant all on table tpriv_current_role to user user4
 PREHOOK: type: GRANT_PRIVILEGE
@@ -69,9 +69,9 @@ default	tpriv_current_role			user4	USER	INSERT	false	-1	user2
 default	tpriv_current_role			user4	USER	SELECT	false	-1	user2
 default	tpriv_current_role			user4	USER	UPDATE	false	-1	user2
 PREHOOK: query: set role PUBLIC
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role PUBLIC
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: -- set role to public, should fail as role2 is not one of the current roles
 grant all on table tpriv_current_role to user user5
 PREHOOK: type: GRANT_PRIVILEGE

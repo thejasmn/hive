@@ -1,11 +1,11 @@
 PREHOOK: query: set role ADMIN
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: show current roles
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: show current roles
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 ADMIN
 
 PREHOOK: query: create role r1
@@ -13,13 +13,13 @@ PREHOOK: type: CREATEROLE
 POSTHOOK: query: create role r1
 POSTHOOK: type: CREATEROLE
 PREHOOK: query: set role NONE
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: set role NONE
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PREHOOK: query: show current roles
-PREHOOK: type: SHOW_ROLES
+PREHOOK: type: SET_ROLE
 POSTHOOK: query: show current roles
-POSTHOOK: type: SHOW_ROLES
+POSTHOOK: type: SET_ROLE
 PUBLIC
 
 PREHOOK: query: drop role r1
