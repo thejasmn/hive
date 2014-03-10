@@ -46,7 +46,6 @@ public final class SemanticAnalyzerFactory {
     commandType.put(HiveParser.TOK_DROPTABLE, HiveOperation.DROPTABLE);
     commandType.put(HiveParser.TOK_DESCTABLE, HiveOperation.DESCTABLE);
     commandType.put(HiveParser.TOK_DESCFUNCTION, HiveOperation.DESCFUNCTION);
-    commandType.put(HiveParser.TOK_DESC_ROLE, HiveOperation.DESCROLE);
     commandType.put(HiveParser.TOK_MSCK, HiveOperation.MSCK);
     commandType.put(HiveParser.TOK_ALTERTABLE_ADDCOLS, HiveOperation.ALTERTABLE_ADDCOLS);
     commandType.put(HiveParser.TOK_ALTERTABLE_REPLACECOLS, HiveOperation.ALTERTABLE_REPLACECOLS);
@@ -97,6 +96,7 @@ public final class SemanticAnalyzerFactory {
     commandType.put(HiveParser.TOK_GRANT_ROLE, HiveOperation.GRANT_ROLE);
     commandType.put(HiveParser.TOK_REVOKE_ROLE, HiveOperation.REVOKE_ROLE);
     commandType.put(HiveParser.TOK_SHOW_ROLES, HiveOperation.SHOW_ROLES);
+    commandType.put(HiveParser.TOK_SHOW_ROLE_PRINCIPALS, HiveOperation.SHOW_ROLE_PRINCIPALS);
     commandType.put(HiveParser.TOK_SHOW_SET_ROLE, HiveOperation.SHOW_ROLES);
     commandType.put(HiveParser.TOK_SHOW_ROLE_GRANT, HiveOperation.SHOW_ROLE_GRANT);
     commandType.put(HiveParser.TOK_ALTERDATABASE_PROPERTIES, HiveOperation.ALTERDATABASE);
@@ -165,7 +165,6 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_DESCDATABASE:
       case HiveParser.TOK_DESCTABLE:
       case HiveParser.TOK_DESCFUNCTION:
-      case HiveParser.TOK_DESC_ROLE:
       case HiveParser.TOK_MSCK:
       case HiveParser.TOK_ALTERTABLE_ADDCOLS:
       case HiveParser.TOK_ALTERTABLE_RENAMECOL:
@@ -214,6 +213,7 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_GRANT_ROLE:
       case HiveParser.TOK_REVOKE_ROLE:
       case HiveParser.TOK_SHOW_ROLE_GRANT:
+      case HiveParser.TOK_SHOW_ROLE_PRINCIPALS:
       case HiveParser.TOK_SHOW_ROLES:
       case HiveParser.TOK_ALTERDATABASE_PROPERTIES:
       case HiveParser.TOK_ALTERDATABASE_OWNER:
@@ -221,6 +221,7 @@ public final class SemanticAnalyzerFactory {
       case HiveParser.TOK_TRUNCATETABLE:
       case HiveParser.TOK_EXCHANGEPARTITION:
       case HiveParser.TOK_SHOW_SET_ROLE:
+
         return new DDLSemanticAnalyzer(conf);
       case HiveParser.TOK_ALTERTABLE_PARTITION:
         HiveOperation commandType = null;

@@ -935,7 +935,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         }
         outStream.close();
         outStream = null;
-      } else if (operation.equals(RoleDDLDesc.RoleOperation.DESCRIBE_ROLE)) {
+      } else if (operation.equals(RoleDDLDesc.RoleOperation.SHOW_ROLE_PRINCIPALS)) {
         throw new HiveException("Describe role is currently unsupported in this authorization mode");
       }
       else {
@@ -989,10 +989,10 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     case SET_ROLE:
       authorizer.setCurrentRole(roleDDLDesc.getName());
       break;
-    case DESCRIBE_ROLE:
+    case SHOW_ROLE_PRINCIPALS:
       testMode = conf.getBoolVar(HiveConf.ConfVars.HIVE_IN_TEST);
       List<HiveRoleGrant> roleGrants = authorizer.getPrincipalsInRoleInfo(roleDDLDesc.getName());
-      writeToFile(writeHiveRoleGrantInfo(roleGrants, roleDDLDesc.isExtended(), testMode), roleDDLDesc.getResFile());
+      writeToFile(writeHiveRoleGrantInfo(roleGrants, testMode), roleDDLDesc.getResFile());
       break;
     default:
       throw new HiveException("Unkown role operation "
@@ -1002,8 +1002,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return 0;
   }
 
-  private String writeHiveRoleGrantInfo(List<HiveRoleGrant> roleGrants, boolean isExtended,
-      boolean testMode) {
+  private String writeHiveRoleGrantInfo(List<HiveRoleGrant> roleGrants, boolean testMode) {
     if (roleGrants == null || roleGrants.isEmpty()) {
       return "";
     }
@@ -1013,14 +1012,12 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     for (HiveRoleGrant roleGrant : roleGrants) {
       // schema:
       // principal_name,principal_type,grant_option,grantor,grantor_type,grant_time
-      appendNonNull(builder, roleGrant.getPrincipalName());
+      appendNonNull(builder, roleGrant.getPrincipalName(), true);
       appendNonNull(builder, roleGrant.getPrincipalType());
       appendNonNull(builder, roleGrant.isGrantOption());
-      if (isExtended) {
-        appendNonNull(builder, roleGrant.getGrantor());
-        appendNonNull(builder, roleGrant.getGrantorType());
-        appendNonNull(builder, testMode ? -1 : roleGrant.getGrantTime() * 1000L);
-      }
+      appendNonNull(builder, roleGrant.getGrantor());
+      appendNonNull(builder, roleGrant.getGrantorType());
+      appendNonNull(builder, testMode ? -1 : roleGrant.getGrantTime() * 1000L);
     }
     return builder.toString();
   }

@@ -441,9 +441,9 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       ctx.setResFile(ctx.getLocalTmpPath());
       analyzeShowRoleGrant(ast);
       break;
-    case HiveParser.TOK_DESC_ROLE:
+    case HiveParser.TOK_SHOW_ROLE_PRINCIPALS:
       ctx.setResFile(ctx.getLocalTmpPath());
-      analyzeDescribeRole(ast);
+      analyzeShowRolePrincipals(ast);
       break;
     case HiveParser.TOK_SHOW_ROLES:
       ctx.setResFile(ctx.getLocalTmpPath());
@@ -560,21 +560,16 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
   }
 
-  private void analyzeDescribeRole(ASTNode ast) throws SemanticException {
+  private void analyzeShowRolePrincipals(ASTNode ast) throws SemanticException {
     Task<DDLWork> roleDDLTask = (Task<DDLWork>) hiveAuthorizationTaskFactory
-        .createDescribeRoleTask(ast, ctx.getResFile(), getInputs(), getOutputs());
+        .createShowRolePrincipalsTask(ast, ctx.getResFile(), getInputs(), getOutputs());
 
     if (roleDDLTask != null) {
       rootTasks.add(roleDDLTask);
 
       // find the output schema based on isExtended flag
       RoleDDLDesc roleDDLDesc = roleDDLTask.getWork().getRoleDDLDesc();
-      String schema;
-      if (roleDDLDesc.isExtended()) {
-        schema = RoleDDLDesc.getRoleDescribeSchemaExtended();
-      } else {
-        schema = RoleDDLDesc.getRoledescribeschema();
-      }
+      String schema = RoleDDLDesc.getShowRolePrincipalsSchema();
       setFetchTask(createFetchTask(schema));
     }
   }

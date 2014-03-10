@@ -131,6 +131,7 @@ public class HiveAuthorizationTaskFactoryImpl implements HiveAuthorizationTaskFa
         principalDesc, userName, PrincipalType.USER, grantOption);
     return TaskFactory.get(new DDLWork(inputs, outputs, grantDesc), conf);
   }
+
   @Override
   public Task<? extends Serializable> createRevokeTask(ASTNode ast, HashSet<ReadEntity> inputs,
       HashSet<WriteEntity> outputs) throws SemanticException {
@@ -337,23 +338,18 @@ public class HiveAuthorizationTaskFactoryImpl implements HiveAuthorizationTaskFa
   }
 
   @Override
-  public Task<? extends Serializable> createDescribeRoleTask(ASTNode ast, Path resFile,
+  public Task<? extends Serializable> createShowRolePrincipalsTask(ASTNode ast, Path resFile,
       HashSet<ReadEntity> inputs, HashSet<WriteEntity> outputs) throws SemanticException {
     String roleName;
-    boolean isExtended;
 
     if (ast.getChildCount() == 1) {
       roleName = ast.getChild(0).getText();
-      isExtended = false;
-    } else if (ast.getChildCount() == 2) {
-      roleName = ast.getChild(0).getText();
-      isExtended = true;
     } else {
       // the parser should not allow this
-      throw new AssertionError("Unexpected Tokens at DESCRIBE FUNCTION");
+      throw new AssertionError("Unexpected Tokens in SHOW ROLE PRINCIPALS");
     }
 
-    RoleDDLDesc roleDDLDesc = new RoleDDLDesc(roleName, isExtended, RoleOperation.DESCRIBE_ROLE);
+    RoleDDLDesc roleDDLDesc = new RoleDDLDesc(roleName, RoleOperation.SHOW_ROLE_PRINCIPALS);
     roleDDLDesc.setResFile(resFile.toString());
     return TaskFactory.get(new DDLWork(inputs, outputs, roleDDLDesc), conf);
   }
