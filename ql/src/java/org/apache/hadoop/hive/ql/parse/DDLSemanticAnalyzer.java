@@ -471,7 +471,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
    case HiveParser.TOK_EXCHANGEPARTITION:
       analyzeExchangePartition(ast);
       break;
-   case HiveParser.TOK_SET_ROLE:
+   case HiveParser.TOK_SHOW_SET_ROLE:
      analyzeSetShowRole(ast);
      break;
     default:
