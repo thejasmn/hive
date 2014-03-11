@@ -1423,7 +1423,7 @@ showGrants
 showRolePrincipals
 @init {pushMsg("show role principals", state);}
 @after {popMsg(state);}
-    : KW_SHOW KW_ROLE KW_PRINCIPALS roleName=identifier
+    : KW_SHOW KW_PRINCIPALS roleName=identifier
     -> ^(TOK_SHOW_ROLE_PRINCIPALS $roleName)
     ;
 

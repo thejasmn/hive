@@ -4890,6 +4890,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       incrementCounter("get_principals_in_role");
       String role_name = request.getRoleName();
       List<RolePrincipalGrant> rolePrinGrantList = new ArrayList<RolePrincipalGrant>();
+      Exception ex = null;
       try {
         List<MRoleMap> roleMaps = getMS().listRoleMembers(role_name);
         if (roleMaps != null) {
@@ -4913,12 +4914,16 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             rolePrinGrantList.add(rolePrinGrant);
           }
         }
-        return new GetPrincipalsInRoleResponse(rolePrinGrantList);
+
       } catch (MetaException e) {
         throw e;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        ex = e;
+        rethrowException(e);
+      } finally {
+        endFunction("get_principals_in_role", ex == null, ex);
       }
+      return new GetPrincipalsInRoleResponse(rolePrinGrantList);
     }
   }
 
