@@ -12,7 +12,7 @@ set role ADMIN;
 create role src_role_wadmin;
 grant  src_role_wadmin to user user2 with admin option;
 show role grant user user2;
-show role principals src_role_wadmin;
+show principals src_role_wadmin;
 
 set user.name=user2;
 set role src_role_wadmin;
@@ -21,7 +21,7 @@ show role grant user user3;
 
 set user.name=hive_admin_user;
 set role ADMIN;
-show role principals src_role_wadmin;
+show principals src_role_wadmin;
 
 set user.name=user2;
 set role src_role_wadmin;
@@ -30,4 +30,4 @@ show role grant user user3;
 
 set user.name=hive_admin_user;
 set role ADMIN;
-show role principals src_role_wadmin;
+show principals src_role_wadmin;
