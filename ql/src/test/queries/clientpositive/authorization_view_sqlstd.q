@@ -31,6 +31,7 @@ set user.name=user1;
 
 grant all on table vt2 to user user2;
 show grant user user2 on table vt2;
+show grant user user2 on all;
 
 revoke all on vt2 from user user2;
 show grant user user2 on table vt2;

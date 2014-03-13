@@ -91,6 +91,15 @@ default	vt2			user2	USER	DELETE	false	-1	user1
 default	vt2			user2	USER	INSERT	false	-1	user1
 default	vt2			user2	USER	SELECT	false	-1	user1
 default	vt2			user2	USER	UPDATE	false	-1	user1
+PREHOOK: query: show grant user user2 on all
+PREHOOK: type: SHOW_GRANT
+POSTHOOK: query: show grant user user2 on all
+POSTHOOK: type: SHOW_GRANT
+default	vt1			user2	USER	SELECT	false	-1	user1
+default	vt2			user2	USER	DELETE	false	-1	user1
+default	vt2			user2	USER	INSERT	false	-1	user1
+default	vt2			user2	USER	SELECT	false	-1	user1
+default	vt2			user2	USER	UPDATE	false	-1	user1
 PREHOOK: query: revoke all on vt2 from user user2
 PREHOOK: type: REVOKE_PRIVILEGE
 PREHOOK: Output: default@vt2
