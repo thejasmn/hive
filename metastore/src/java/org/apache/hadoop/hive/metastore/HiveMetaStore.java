@@ -80,6 +80,8 @@ import org.apache.hadoop.hive.metastore.api.GetOpenTxnsInfoResponse;
 import org.apache.hadoop.hive.metastore.api.GetOpenTxnsResponse;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleResponse;
+import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalRequest;
+import org.apache.hadoop.hive.metastore.api.GetRoleGrantsForPrincipalResponse;
 import org.apache.hadoop.hive.metastore.api.HeartbeatRequest;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -4013,11 +4015,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           for (MRoleMap roleMap : roleMaps) {
             MRole mrole = roleMap.getRole();
             Role role = new Role(mrole.getRoleName(), mrole.getCreateTime(), mrole.getOwnerName());
-            role.setPrincipalName(roleMap.getPrincipalName());
-            role.setPrincipalType(roleMap.getPrincipalType());
-            role.setGrantOption(roleMap.getGrantOption());
-            role.setGrantTime(roleMap.getAddTime());
-            role.setGrantor(roleMap.getGrantor());
+//            role.setPrincipalName(roleMap.getPrincipalName());
+//            role.setPrincipalType(roleMap.getPrincipalType());
+//            role.setGrantOption(roleMap.getGrantOption());
+//            role.setGrantTime(roleMap.getAddTime());
+//            role.setGrantor(roleMap.getGrantor());
             result.add(role);
           }
         }
@@ -4923,6 +4925,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         endFunction("get_principals_in_role", ex == null, ex);
       }
       return new GetPrincipalsInRoleResponse(rolePrinGrantList);
+    }
+
+    @Override
+    public GetRoleGrantsForPrincipalResponse get_role_grants_for_principal(
+        GetRoleGrantsForPrincipalRequest request) throws MetaException, TException {
+      // TODO Auto-generated method stub
+      return null;
     }
   }
 

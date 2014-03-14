@@ -3422,11 +3422,11 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     for (Role role : roles) {
       appendNonNull(builder, role.getRoleName(), true);
       appendNonNull(builder, testMode ? -1 : role.getCreateTime() * 1000L);
-      appendNonNull(builder, role.getPrincipalName());
-      appendNonNull(builder, role.getPrincipalType());
-      appendNonNull(builder, role.isGrantOption());
-      appendNonNull(builder, testMode ? -1 : role.getGrantTime() * 1000L);
-      appendNonNull(builder, role.getGrantor());
+//      appendNonNull(builder, role.getPrincipalName());
+//      appendNonNull(builder, role.getPrincipalType());
+//      appendNonNull(builder, role.isGrantOption());
+//      appendNonNull(builder, testMode ? -1 : role.getGrantTime() * 1000L);
+//      appendNonNull(builder, role.getGrantor());
     }
     return builder.toString();
   }
