@@ -152,20 +152,20 @@ struct RolePrincipalGrant {
 }
 
 struct GetRoleGrantsForPrincipalRequest {
-  1: string principal_name,
-  2: PrincipalType principal_type
+  1: required string principal_name,
+  2: required PrincipalType principal_type
 }
 
 struct GetRoleGrantsForPrincipalResponse {
-  1: list<RolePrincipalGrant> principalGrants;
+  1: required list<RolePrincipalGrant> principalGrants;
 }
 
 struct GetPrincipalsInRoleRequest {
-  1: string roleName;
+  1: required string roleName;
 }
 
 struct GetPrincipalsInRoleResponse {
-  1: list<RolePrincipalGrant> principalGrants;
+  1: required list<RolePrincipalGrant> principalGrants;
 }
 
 // namespace for tables
