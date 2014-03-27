@@ -4015,11 +4015,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           for (MRoleMap roleMap : roleMaps) {
             MRole mrole = roleMap.getRole();
             Role role = new Role(mrole.getRoleName(), mrole.getCreateTime(), mrole.getOwnerName());
-//            role.setPrincipalName(roleMap.getPrincipalName());
-//            role.setPrincipalType(roleMap.getPrincipalType());
-//            role.setGrantOption(roleMap.getGrantOption());
-//            role.setGrantTime(roleMap.getAddTime());
-//            role.setGrantor(roleMap.getGrantor());
             result.add(role);
           }
         }
@@ -4889,33 +4884,10 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         throws MetaException, TException {
 
       incrementCounter("get_principals_in_role");
-      String role_name = request.getRoleName();
-      List<RolePrincipalGrant> rolePrinGrantList = new ArrayList<RolePrincipalGrant>();
       Exception ex = null;
+      List<MRoleMap> roleMaps = null;
       try {
-        List<MRoleMap> roleMaps = getMS().listRoleMembers(role_name);
-        if (roleMaps != null) {
-          //convert each MRoleMap object into a thrift RolePrincipalGrant object
-          for (MRoleMap roleMap : roleMaps) {
-            String mapRoleName = roleMap.getRole().getRoleName();
-            if (!role_name.equals(mapRoleName)) {
-              // should not happen
-              throw new AssertionError("Role name " + mapRoleName + " does not match role name arg "
-                  + role_name);
-            }
-            RolePrincipalGrant rolePrinGrant = new RolePrincipalGrant(
-                role_name,
-                roleMap.getPrincipalName(),
-                PrincipalType.valueOf(roleMap.getPrincipalType()),
-                roleMap.getGrantOption(),
-                roleMap.getAddTime(),
-                roleMap.getGrantor(),
-                PrincipalType.valueOf(roleMap.getGrantorType())
-                );
-            rolePrinGrantList.add(rolePrinGrant);
-          }
-        }
-
+        roleMaps = getMS().listRoleMembers(request.getRoleName());
       } catch (MetaException e) {
         throw e;
       } catch (Exception e) {
@@ -4924,17 +4896,54 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } finally {
         endFunction("get_principals_in_role", ex == null, ex);
       }
-      return new GetPrincipalsInRoleResponse(rolePrinGrantList);
+      return new GetPrincipalsInRoleResponse(getRolePrincipalGrants(roleMaps));
     }
 
     @Override
     public GetRoleGrantsForPrincipalResponse get_role_grants_for_principal(
         GetRoleGrantsForPrincipalRequest request) throws MetaException, TException {
-      // TODO Auto-generated method stub
-      return null;
-    }
-  }
 
+      incrementCounter("get_role_grants_for_principal");
+      Exception ex = null;
+      List<MRoleMap> roleMaps = null;
+      try {
+        roleMaps = getMS().listRoles(request.getPrincipal_name(), request.getPrincipal_type());
+      } catch (MetaException e) {
+        throw e;
+      } catch (Exception e) {
+        ex = e;
+        rethrowException(e);
+      } finally {
+        endFunction("get_role_grants_for_principal", ex == null, ex);
+      }
+      return new GetRoleGrantsForPrincipalResponse(getRolePrincipalGrants(roleMaps));
+    }
+
+    /**
+     * Convert each MRoleMap object into a thrift RolePrincipalGrant object
+     * @param roleMaps
+     * @return
+     */
+    private List<RolePrincipalGrant> getRolePrincipalGrants(List<MRoleMap> roleMaps) {
+      List<RolePrincipalGrant> rolePrinGrantList = new ArrayList<RolePrincipalGrant>();
+      if (roleMaps != null) {
+        for (MRoleMap roleMap : roleMaps) {
+          RolePrincipalGrant rolePrinGrant = new RolePrincipalGrant(
+              roleMap.getRole().getRoleName(),
+              roleMap.getPrincipalName(),
+              PrincipalType.valueOf(roleMap.getPrincipalType()),
+              roleMap.getGrantOption(),
+              roleMap.getAddTime(),
+              roleMap.getGrantor(),
+              PrincipalType.valueOf(roleMap.getGrantorType())
+              );
+          rolePrinGrantList.add(rolePrinGrant);
+        }
+      }
+      return rolePrinGrantList;
+    }
+
+  }
 
   public static IHMSHandler newHMSHandler(String name, HiveConf hiveConf) throws MetaException {
     return RetryingHMSHandler.getProxy(hiveConf, name);

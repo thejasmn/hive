@@ -31,11 +31,6 @@ public class HiveRole implements Comparable<HiveRole> {
   private String roleName;
   private int createTime;
   private String ownerName;
-  private String principalName;
-  private String principalType;
-  private boolean grantOption;
-  private int grantTime;
-  private String grantor;
 
   public HiveRole() {}
 
@@ -43,11 +38,6 @@ public class HiveRole implements Comparable<HiveRole> {
     roleName = role.getRoleName();
     createTime = role.getCreateTime();
     ownerName = role.getOwnerName();
-    principalName = role.getPrincipalName();
-    principalType = role.getPrincipalType();
-    grantOption = role.isGrantOption();
-    grantTime = role.getGrantTime();
-    grantor = role.getGrantor();
   }
 
   public String getRoleName() {
@@ -74,45 +64,6 @@ public class HiveRole implements Comparable<HiveRole> {
     this.ownerName = ownerName;
   }
 
-  public String getPrincipalName() {
-    return principalName;
-  }
-
-  public void setPrincipalName(String principalName) {
-    this.principalName = principalName;
-  }
-
-  public String getPrincipalType() {
-    return principalType;
-  }
-
-  public void setPrincipalType(String principalType) {
-    this.principalType = principalType;
-  }
-
-  public boolean isGrantOption() {
-    return grantOption;
-  }
-
-  public void setGrantOption(boolean grantOption) {
-    this.grantOption = grantOption;
-  }
-
-  public int getGrantTime() {
-    return grantTime;
-  }
-
-  public void setGrantTime(int grantTime) {
-    this.grantTime = grantTime;
-  }
-
-  public String getGrantor() {
-    return grantor;
-  }
-
-  public void setGrantor(String grantor) {
-    this.grantor = grantor;
-  }
 
   @Override
   public int compareTo(HiveRole other) {
@@ -121,14 +72,7 @@ public class HiveRole implements Comparable<HiveRole> {
     }
     return ComparisonChain.start().compare(roleName, other.roleName)
         .compare(createTime, other.createTime)
-        .compare(principalName, other.principalName)
-        .compare(principalType, other.principalType)
-        .compare(grantOption, other.grantOption)
-        .compare(grantTime, other.grantTime)
-        .compare(grantor, other.grantor)
         .result();
-
   }
-
 
 }
