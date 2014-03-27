@@ -4916,7 +4916,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } finally {
         endFunction("get_role_grants_for_principal", ex == null, ex);
       }
-      return new GetRoleGrantsForPrincipalResponse(getRolePrincipalGrants(roleMaps));
+
+      List<RolePrincipalGrant> roleGrantsList = getRolePrincipalGrants(roleMaps);
+      // all users by default belongs to public role
+      roleGrantsList.add(new RolePrincipalGrant(PUBLIC, request.getPrincipal_name(), request
+          .getPrincipal_type(), false, 0, null, null));
+      return new GetRoleGrantsForPrincipalResponse(roleGrantsList);
     }
 
     /**

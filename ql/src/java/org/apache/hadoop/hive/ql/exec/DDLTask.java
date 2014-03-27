@@ -933,7 +933,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       } else if (operation.equals(RoleDDLDesc.RoleOperation.SHOW_ROLE_GRANT)) {
         boolean testMode = conf.getBoolVar(HiveConf.ConfVars.HIVE_IN_TEST);
         List<RolePrincipalGrant> roleGrants = db.getRoleGrantInfoForPrincipal(roleDDLDesc.getName(), roleDDLDesc.getPrincipalType());
-        writeToFile(writeRoleInfo(roleGrants, testMode), roleDDLDesc.getResFile());
+        writeToFile(writeRoleGrantsInfo(roleGrants, testMode), roleDDLDesc.getResFile());
       } else if (operation.equals(RoleDDLDesc.RoleOperation.SHOW_ROLES)) {
         List<String> roleNames = db.getAllRoleNames();
         //sort the list to get sorted (deterministic) output (for ease of testing)
@@ -985,7 +985,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
       boolean testMode = conf.getBoolVar(HiveConf.ConfVars.HIVE_IN_TEST);
       List<HiveRoleGrant> roles = authorizer.getRoleGrantInfoForPrincipal(
           new HivePrincipal(roleDDLDesc.getName(), getHivePrincipalType(roleDDLDesc.getPrincipalType())));
-      writeToFile(writeHiveRoleInfo(roles, testMode), roleDDLDesc.getResFile());
+      writeToFile(writeRolesGrantedInfo(roles, testMode), roleDDLDesc.getResFile());
       break;
     case SHOW_ROLES:
       List<String> allRoles = authorizer.getAllRoles();
@@ -3407,7 +3407,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return builder.toString();
   }
 
-  static String writeRoleInfo(List<RolePrincipalGrant> roleGrants, boolean testMode) {
+  static String writeRoleGrantsInfo(List<RolePrincipalGrant> roleGrants, boolean testMode) {
     if (roleGrants == null || roleGrants.isEmpty()) {
       return "";
     }
@@ -3416,8 +3416,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     Collections.sort(roleGrants);
     for (RolePrincipalGrant roleGrant : roleGrants) {
       appendNonNull(builder, roleGrant.getRoleName(), true);
-      appendNonNull(builder, roleGrant.getPrincipalName());
-      appendNonNull(builder, roleGrant.getPrincipalType());
       appendNonNull(builder, roleGrant.isGrantOption());
       appendNonNull(builder, testMode ? -1 : roleGrant.getGrantTime() * 1000L);
       appendNonNull(builder, roleGrant.getGrantorName());
@@ -3425,7 +3423,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     return builder.toString();
   }
 
-  static String writeHiveRoleInfo(List<HiveRoleGrant> roles, boolean testMode) {
+  static String writeRolesGrantedInfo(List<HiveRoleGrant> roles, boolean testMode) {
     if (roles == null || roles.isEmpty()) {
       return "";
     }
@@ -3434,8 +3432,6 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
     Collections.sort(roles);
     for (HiveRoleGrant role : roles) {
       appendNonNull(builder, role.getRoleName(), true);
-      appendNonNull(builder, role.getPrincipalName());
-      appendNonNull(builder, role.getPrincipalType());
       appendNonNull(builder, role.isGrantOption());
       appendNonNull(builder, testMode ? -1 : role.getGrantTime() * 1000L);
       appendNonNull(builder, role.getGrantor());
