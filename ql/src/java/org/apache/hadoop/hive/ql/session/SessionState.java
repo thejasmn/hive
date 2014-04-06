@@ -58,7 +58,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveUtils;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransformHook;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactoryImpl;
@@ -371,34 +370,26 @@ public class SessionState {
     }
 
     try {
-      authenticator = HiveUtils.getAuthenticator(getConf(),
+      authenticator = HiveUtils.getAuthenticator(conf,
           HiveConf.ConfVars.HIVE_AUTHENTICATOR_MANAGER);
       authenticator.setSessionState(this);
 
-      authorizer = HiveUtils.getAuthorizeProviderManager(getConf(),
+      authorizer = HiveUtils.getAuthorizeProviderManager(conf,
           HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER, authenticator, true);
 
       if (authorizer == null) {
         // if it was null, the new authorization plugin must be specified in
         // config
-        HiveAuthorizerFactory authorizerFactory = HiveUtils.getAuthorizerFactory(getConf(),
+        HiveAuthorizerFactory authorizerFactory = HiveUtils.getAuthorizerFactory(conf,
             HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER);
 
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
-            getConf(), authenticator);
-        // grant all privileges for table to its owner
-        getConf().setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "INSERT,SELECT,UPDATE,DELETE");
-        String hooks = getConf().getVar(ConfVars.PREEXECHOOKS).trim();
-        if (hooks.isEmpty()) {
-          hooks = DisallowTransformHook.class.getName();
-        } else {
-          hooks = hooks + "," +DisallowTransformHook.class.getName();
-        }
-        LOG.debug("Configuring hooks : " + hooks);
-        getConf().setVar(ConfVars.PREEXECHOOKS, hooks);
-      }
+            conf, authenticator);
 
-      createTableGrants = CreateTableAutomaticGrant.create(getConf());
+        authorizerV2.applyAuthorizationConfigPolicy(conf);
+        // create the create table grants with new config
+        createTableGrants = CreateTableAutomaticGrant.create(conf);
+      }
 
     } catch (HiveException e) {
       throw new RuntimeException(e);
@@ -1013,6 +1004,21 @@ public class SessionState {
 
   public String getUserName() {
     return userName;
+  }
+
+  /**
+   * If authorization mode is v2, then pass it through authorizer so that it can apply
+   * any security configuration changes.
+   * @param hiveConf
+   * @return
+   * @throws HiveException
+   */
+  public void applyAuthorizationPolicy() throws HiveException {
+    if(!isAuthorizationModeV2()){
+      // auth v1 interface does not have this functionality
+      return;
+    }
+    authorizerV2.applyAuthorizationConfigPolicy(conf);
   }
 
 }

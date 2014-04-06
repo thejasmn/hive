@@ -24,8 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.GetPrincipalsInRoleRequest;
@@ -43,6 +46,7 @@ import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.RolePrincipalGrant;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransformHook;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
@@ -76,6 +80,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       + "have it as current role, for this action.";
   private final String HAS_ADMIN_PRIV_MSG = "grantor need to have ADMIN privileges on role being"
       + " granted and have it as a current role for this action.";
+  public static final Log LOG = LogFactory.getLog(SQLStdHiveAccessController.class);
 
   SQLStdHiveAccessController(HiveMetastoreClientFactory metastoreClientFactory, HiveConf conf,
       HiveAuthenticationProvider authenticator) throws HiveAuthzPluginException {
@@ -521,6 +526,23 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       throw new HiveAuthzPluginException("Error getting role grant information for user "
           + principal.getName() + ": " + e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void applyAuthorizationConfigPolicy(HiveConf hiveConf) {
+    // grant all privileges for table to its owner
+    hiveConf.setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "INSERT,SELECT,UPDATE,DELETE");
+
+    // Configure PREEXECHOOKS with DisallowTransformHook to disallow transform queries
+    String hooks = hiveConf.getVar(ConfVars.PREEXECHOOKS).trim();
+    if (hooks.isEmpty()) {
+      hooks = DisallowTransformHook.class.getName();
+    } else {
+      hooks = hooks + "," +DisallowTransformHook.class.getName();
+    }
+    LOG.debug("Configuring hooks : " + hooks);
+    hiveConf.setVar(ConfVars.PREEXECHOOKS, hooks);
+
   }
 
 }
