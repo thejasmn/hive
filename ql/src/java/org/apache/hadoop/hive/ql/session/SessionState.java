@@ -1029,7 +1029,7 @@ public class SessionState {
 
     authorizerV2.applyAuthorizationConfigPolicy(conf);
     // set a marker that this conf has been processed.
-    conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, Boolean.TRUE.toString());
+    conf.set(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, Boolean.TRUE.toString());
 
   }
 

@@ -1631,6 +1631,8 @@ public class HiveConf extends Configuration {
   }
 
   /**
+   * Set if whitelist check is enabled for parameter modification
+   *
    * @param isEnabled
    */
   @LimitedPrivate(value = { "Currently only for use by HiveAuthorizer" })
@@ -1638,12 +1640,17 @@ public class HiveConf extends Configuration {
     this.isWhiteListRestrictionEnabled = isEnabled;
   }
 
+  /**
+   * Add config parameter name to whitelist of parameters that can be modified
+   *
+   * @param paramname
+   */
   @LimitedPrivate(value = { "Currently only for use by HiveAuthorizer" })
-  public void addToModifiableWhiteList(String varname) {
-    if (varname == null) {
+  public void addToModifiableWhiteList(String paramname) {
+    if (paramname == null) {
       return;
     }
-    modWhiteList.add(varname);
+    modWhiteList.add(paramname);
   }
 
   /**
