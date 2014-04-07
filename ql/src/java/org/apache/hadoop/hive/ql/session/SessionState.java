@@ -160,6 +160,9 @@ public class SessionState {
 
   private String currentDatabase;
 
+  private final String CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER =
+      "hive.internal.ss.authz.settings.applied.marker";
+
   /**
    * Lineage state.
    */
@@ -1018,7 +1021,16 @@ public class SessionState {
       // auth v1 interface does not have this functionality
       return;
     }
+
+    // avoid processing the same config multiple times, check marker
+    if (conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, "").equals(Boolean.TRUE.toString())) {
+      return;
+    }
+
     authorizerV2.applyAuthorizationConfigPolicy(conf);
+    // set a marker that this conf has been processed.
+    conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, Boolean.TRUE.toString());
+
   }
 
 }
