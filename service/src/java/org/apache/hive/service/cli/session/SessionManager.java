@@ -82,12 +82,11 @@ public class SessionManager extends CompositeService {
     super.init(hiveConf);
   }
 
-  private void applyAuthorizationConfigPolicy(HiveConf hiveConf2) throws HiveException {
+  private void applyAuthorizationConfigPolicy(HiveConf newHiveConf) throws HiveException {
     // authorization setup using SessionState should be revisited eventually, as
     // authorization and authentication are not session specific settings
-    SessionState ss = SessionState.start(hiveConf);
+    SessionState ss = SessionState.start(newHiveConf);
     ss.applyAuthorizationPolicy();
-    hiveConf = ss.getConf();
   }
 
   @Override
