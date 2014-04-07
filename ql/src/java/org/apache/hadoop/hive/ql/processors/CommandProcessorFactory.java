@@ -58,6 +58,9 @@ public final class CommandProcessorFactory {
       conf = new HiveConf();
     }
     Set<String> availableCommands = new HashSet<String>();
+    for (String availableCommand : conf.getVar(HiveConf.ConfVars.HIVE_SECURITY_COMMAND_WHITELIST).split(",")) {
+      availableCommands.add(availableCommand.toLowerCase().trim());
+    }
     if (!availableCommands.contains(cmd[0].trim().toLowerCase())) {
       throw new SQLException("Insufficient privileges to execute " + cmd[0], "42000");
     }
