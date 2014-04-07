@@ -533,7 +533,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   /**
    * Default list of modifiable config parameters for sql standard authorization
    */
-  private static final String [] defaultModWhiteListSqlStdAuth = new String [] {
+  static final String [] defaultModWhiteListSqlStdAuth = new String [] {
       ConfVars.BYTESPERREDUCER.varname,
       ConfVars.MAXREDUCERS.varname,
       ConfVars.HIVEMAPSIDEAGGREGATE.varname,
