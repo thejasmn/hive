@@ -28,6 +28,8 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransform
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.junit.Test;
 
+import com.google.common.base.Joiner;
+
 /**
  * Test SQLStdHiveAccessController
  */
@@ -55,8 +57,18 @@ public class TestSQLStdHiveAccessController {
     assertTrue("Check for transform query disabling hook",
         processedConf.getVar(ConfVars.PREEXECHOOKS).contains(DisallowTransformHook.class.getName()));
 
+    verifyParamSettability(SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth, processedConf);
+
+  }
+
+  /**
+   * Verify that params in settableParams can be modified, and other random ones can't be modified
+   * @param settableParams
+   * @param processedConf
+   */
+  private void verifyParamSettability(String [] settableParams, HiveConf processedConf) {
     // verify that the whitlelist params can be set
-    for (String param : SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth) {
+    for (String param : settableParams) {
       try {
         processedConf.verifyAndSet(param, "dummy");
       } catch (IllegalArgumentException e) {
@@ -71,8 +83,30 @@ public class TestSQLStdHiveAccessController {
     for (ConfVars metaVar : HiveConf.metaVars) {
       assertConfModificationException(processedConf, metaVar.varname);
     }
+  }
+
+  /**
+   * Test that modifying HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST config works
+   * @throws HiveAuthzPluginException
+   */
+  @Test
+  public void checkConfigProcessingCustomSetWhitelist() throws HiveAuthzPluginException {
+
+    HiveConf processedConf = new HiveConf();
+    // add custom value, including one from the default, one new one
+    String [] settableParams = {SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth[0], "abcs.dummy.test.param"};
+    processedConf.setVar(HiveConf.ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST,
+        Joiner.on(",").join(settableParams));
+
+
+    SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
+        processedConf, new HadoopDefaultAuthenticator());
+    accessController.applyAuthorizationConfigPolicy(processedConf);
+    verifyParamSettability(settableParams, processedConf);
+
 
   }
+
 
   private void assertConfModificationException(HiveConf processedConf, String param) {
     boolean caughtEx = false;
