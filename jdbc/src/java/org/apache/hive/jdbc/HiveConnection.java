@@ -322,6 +322,7 @@ public class HiveConnection implements java.sql.Connection {
    */
   private TTransport createBinaryTransport() throws SQLException {
     try {
+      System.err.println("auth type " + sessConfMap.get(HIVE_AUTH_TYPE));
       // handle secure connection if specified
       if (!HIVE_AUTH_SIMPLE.equals(sessConfMap.get(HIVE_AUTH_TYPE))) {
         // If Kerberos
@@ -345,6 +346,7 @@ public class HiveConnection implements java.sql.Connection {
         } else {
           // If there's a delegation token available then use token based connection
           String tokenStr = getClientDelegationToken(sessConfMap);
+          System.err.println("tokenStr " + tokenStr);
           if (tokenStr != null) {
             transport = KerberosSaslHelper.getTokenTransport(tokenStr,
                 host, HiveAuthFactory.getSocketTransport(host, port, loginTimeout), saslProps);
@@ -356,11 +358,14 @@ public class HiveConnection implements java.sql.Connection {
               // get SSL socket
               String sslTrustStore = sessConfMap.get(HIVE_SSL_TRUST_STORE);
               String sslTrustStorePassword = sessConfMap.get(HIVE_SSL_TRUST_STORE_PASSWORD);
+              System.err.println("sslTrustStore " + sslTrustStore);
+              System.err.println("sslTrustStorePassword " + sslTrustStorePassword);
               if (sslTrustStore == null || sslTrustStore.isEmpty()) {
                 transport = HiveAuthFactory.getSSLSocket(host, port, loginTimeout);
               } else {
                 transport = HiveAuthFactory.getSSLSocket(host, port, loginTimeout,
                     sslTrustStore, sslTrustStorePassword);
+                System.err.println("got ssl socket ");
               }
             } else {
               // get non-SSL socket transport
@@ -368,6 +373,7 @@ public class HiveConnection implements java.sql.Connection {
             }
             // Overlay the SASL transport on top of the base socket transport (SSL or non-SSL)
             transport = PlainSaslHelper.getPlainTransport(userName, passwd, transport);
+            System.err.println("Overlay the SASL transport ");
           }
         }
       } else {
