@@ -168,7 +168,7 @@ public class SQLOperation extends ExecuteStatementOperation {
   @Override
   public void run() throws HiveSQLException {
     setState(OperationState.PENDING);
-    HiveConf opConfig = getConfigForOperation();
+    final HiveConf opConfig = getConfigForOperation();
     prepare(opConfig);
     if (!shouldRunAsync()) {
       runInternal(opConfig);
@@ -196,7 +196,7 @@ public class SQLOperation extends ExecuteStatementOperation {
               Hive.set(sessionHive);
               SessionState.setCurrentSessionState(parentSessionState);
               try {
-                runInternal(getConfigForOperation());
+                runInternal(opConfig);
               } catch (HiveSQLException e) {
                 setOperationException(e);
                 LOG.error("Error running hive query: ", e);
