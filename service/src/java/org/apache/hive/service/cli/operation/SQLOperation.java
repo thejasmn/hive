@@ -187,7 +187,7 @@ public class SQLOperation extends ExecuteStatementOperation {
 
         @Override
         public void run() {
-          PrivilegedExceptionAction<Object> pea = new PrivilegedExceptionAction<Object>() {
+          PrivilegedExceptionAction<Object> doAsAction = new PrivilegedExceptionAction<Object>() {
             @Override
             public Object run() throws HiveSQLException {
 
@@ -205,7 +205,7 @@ public class SQLOperation extends ExecuteStatementOperation {
             }
           };
           try {
-            ShimLoader.getHadoopShims().doAs(currentUGI, pea);
+            ShimLoader.getHadoopShims().doAs(currentUGI, doAsAction);
           } catch (Exception e) {
             setOperationException(new HiveSQLException(e));
             LOG.error("Error: ", e);
