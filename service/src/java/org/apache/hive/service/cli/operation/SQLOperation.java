@@ -199,7 +199,7 @@ public class SQLOperation extends ExecuteStatementOperation {
                 runInternal(getConfigForOperation());
               } catch (HiveSQLException e) {
                 setOperationException(e);
-                LOG.error("Error: ", e);
+                LOG.error("Error running hive query: ", e);
               }
               return null;
             }
@@ -208,7 +208,7 @@ public class SQLOperation extends ExecuteStatementOperation {
             ShimLoader.getHadoopShims().doAs(currentUGI, doAsAction);
           } catch (Exception e) {
             setOperationException(new HiveSQLException(e));
-            LOG.error("Error: ", e);
+            LOG.error("Error running hive query as user : " + currentUGI.getShortUserName(), e);
           }
         }
       };
