@@ -620,7 +620,9 @@ public class HadoopThriftAuthBridge20S extends HadoopThriftAuthBridge {
               }
             });
           } else {
-            remoteUser.set(endUser);
+            // use the short user name for the request
+            UserGroupInformation endUserUgi = UserGroupInformation.createRemoteUser(endUser);
+            remoteUser.set(endUserUgi.getShortUserName());
             return wrapped.process(inProt, outProt);
           }
         } catch (RuntimeException rte) {
