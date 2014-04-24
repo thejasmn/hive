@@ -105,8 +105,7 @@ public class TestJdbcWithMiniKdc {
   public void testConnection() throws Exception {
     miniHiveKdc.loginUser(MiniHiveKdc.HIVE_TEST_USER_1);
     hs2Conn = DriverManager.getConnection(miniHS2.getJdbcURL());
-    verifyProperty(SESSION_USER_NAME, miniHiveKdc.
-        getFullyQualifiedUserPrincipal(MiniHiveKdc.HIVE_TEST_USER_1));
+    verifyProperty(SESSION_USER_NAME, MiniHiveKdc.HIVE_TEST_USER_1);
   }
 
   /***

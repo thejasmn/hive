@@ -35,28 +35,31 @@ import org.apache.hive.jdbc.miniHS2.MiniHS2;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestJdbcWithMiniKdcSQLAuth {
+public abstract class JdbcWithMiniKdcSQLAuth {
 
 
   private static MiniHS2 miniHS2 = null;
   private static MiniHiveKdc miniHiveKdc = null;
   private Connection hs2Conn;
+  protected static HiveConf hiveConf = new HiveConf();
 
-  @BeforeClass
-  public static void beforeTest() throws Exception {
+  public static void beforeTestBase() throws Exception {
+    System.err.println("Testing using HS2 mode:"
+        + hiveConf.getVar(ConfVars.HIVE_SERVER2_TRANSPORT_MODE));
+
     Class.forName(MiniHS2.getJdbcDriverName());
-    HiveConf conf = new HiveConf();
-    conf.setVar(ConfVars.HIVE_AUTHORIZATION_MANAGER, SQLStdHiveAuthorizerFactory.class.getName());
-    conf.setVar(ConfVars.HIVE_AUTHENTICATOR_MANAGER, SessionStateUserAuthenticator.class.getName());
-    conf.setBoolVar(ConfVars.HIVE_AUTHORIZATION_ENABLED, true);
-    conf.setBoolVar(ConfVars.HIVE_SUPPORT_CONCURRENCY, false);
-    conf.setBoolVar(ConfVars.HIVE_SERVER2_ENABLE_DOAS, false);
+    hiveConf.setVar(ConfVars.HIVE_AUTHORIZATION_MANAGER,
+        SQLStdHiveAuthorizerFactory.class.getName());
+    hiveConf.setVar(ConfVars.HIVE_AUTHENTICATOR_MANAGER,
+        SessionStateUserAuthenticator.class.getName());
+    hiveConf.setBoolVar(ConfVars.HIVE_AUTHORIZATION_ENABLED, true);
+    hiveConf.setBoolVar(ConfVars.HIVE_SUPPORT_CONCURRENCY, false);
+    hiveConf.setBoolVar(ConfVars.HIVE_SERVER2_ENABLE_DOAS, false);
 
-    miniHiveKdc = MiniHiveKdc.getMiniHiveKdc(conf);
-    miniHS2 = MiniHiveKdc.getMiniHS2WithKerb(miniHiveKdc, conf);
+    miniHiveKdc = MiniHiveKdc.getMiniHiveKdc(hiveConf);
+    miniHS2 = MiniHiveKdc.getMiniHS2WithKerb(miniHiveKdc, hiveConf);
     miniHS2.start(new HashMap<String, String>());
 
   }
