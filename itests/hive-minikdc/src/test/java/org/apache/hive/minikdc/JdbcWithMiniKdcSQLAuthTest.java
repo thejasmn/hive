@@ -37,7 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-public abstract class JdbcWithMiniKdcSQLAuth {
+public abstract class JdbcWithMiniKdcSQLAuthTest {
 
 
   private static MiniHS2 miniHS2 = null;
