@@ -27,6 +27,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.Context;
 import org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.plan.ExprNodeConstantDesc;
@@ -36,6 +37,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFFromUtcTimestamp;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.mapred.JobConf;
+import org.junit.Test;
 
 public class TestUtilities extends TestCase {
 
@@ -105,5 +107,18 @@ public class TestUtilities extends TestCase {
       assertEquals("Invalid table name " + tablename, ex.getMessage());
     }
   }
+
+  @Test
+  public void testFSUmaskReset() throws Exception {
+    // ensure that FS Umask is not reset (HIVE-7001)
+    final String FS_MASK_PARAM = "fs.permissions.umask-mode";
+    final String FS_MASK_VAL = "055";
+    HiveConf conf = new HiveConf();
+    conf.set(FS_MASK_PARAM, FS_MASK_VAL);
+    Context ctx = new Context(conf);
+    ctx.getLocalTmpPath();
+    assertEquals(conf.get(FS_MASK_PARAM), FS_MASK_VAL);
+  }
+
 
 }
