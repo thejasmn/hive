@@ -2,7 +2,7 @@ set hive.security.authorization.manager=org.apache.hadoop.hive.ql.security.autho
 set hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateConfigUserAuthenticator;
 
 ----------------------------------------
--- granting role to a role that does not exist should fail
+-- granting object privilege to a role that does not exist should fail
 ----------------------------------------
 create table t1(i int);
 grant ALL on t1 to role nosuchrole;

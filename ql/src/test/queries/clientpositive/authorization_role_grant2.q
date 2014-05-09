@@ -9,7 +9,7 @@ set role ADMIN;
 ----------------------------------------
 -- role granting with admin option
 ----------------------------------------
--- Also test case sensitivity of role name 
+-- Also test case sensitivity of role name
 
 create role srC_role_wadmin;
 create role src_roLe2;
