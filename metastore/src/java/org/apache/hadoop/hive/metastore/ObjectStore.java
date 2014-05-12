@@ -3040,6 +3040,7 @@ public class ObjectStore implements RawStore, Configurable {
     boolean success = false;
     boolean commited = false;
     try {
+      openTransaction();
       MRoleMap roleMap = null;
       try {
         roleMap = this.getMSecurityUserRoleMap(userName, principalType, role
@@ -3053,7 +3054,6 @@ public class ObjectStore implements RawStore, Configurable {
       if (principalType == PrincipalType.ROLE) {
         validateRole(userName);
       }
-      openTransaction();
       MRole mRole = getMRole(role.getRoleName());
       long now = System.currentTimeMillis()/1000;
       MRoleMap roleMember = new MRoleMap(userName, principalType.toString(),
