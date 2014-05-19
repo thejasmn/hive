@@ -103,6 +103,7 @@ import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationUtils;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivObjectActionType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
@@ -739,11 +740,28 @@ public class Driver implements CommandProcessor {
         default:
           throw new AssertionError("Unexpected object type");
       }
-
-      HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType, dbname, tableURI);
+      HivePrivObjectActionType actionType = getActionType(privObject);
+      HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType, dbname, tableURI,
+          actionType);
       hivePrivobjs.add(hPrivObject);
     }
     return hivePrivobjs;
+  }
+
+  private HivePrivObjectActionType getActionType(Entity privObject) {
+    HivePrivObjectActionType actionType = HivePrivObjectActionType.DEFAULT;
+    if (privObject instanceof WriteEntity) {
+      switch (((WriteEntity) privObject).getWriteType()) {
+      case INSERT:
+        return HivePrivObjectActionType.INSERT;
+      case INSERT_OVERWRITE:
+        return HivePrivObjectActionType.INSERT_OVERWRITE;
+      default:
+        // Ignore other types for purposes of authorization
+        break;
+      }
+    }
+    return actionType;
   }
 
   private HiveOperationType getHiveOperationType(HiveOperation op) {
