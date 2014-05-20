@@ -18,6 +18,7 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class Operation2Privilege {
     INPUT, OUTPUT
   };
 
-  public static class PrivRequirement {
+  private static class PrivRequirement {
 
     private final SQLPrivTypeGrant[] reqPrivs;
     // The following fields specify the criteria on objects for this priv to be required
@@ -48,7 +49,7 @@ public class Operation2Privilege {
       this(privs, ioType, (HivePrivObjectActionType) null);
     }
 
-    public PrivRequirement(SQLPrivTypeGrant[] privs, IOType ioType,
+    private PrivRequirement(SQLPrivTypeGrant[] privs, IOType ioType,
         HivePrivObjectActionType actionType) {
       this.reqPrivs = privs;
       this.ioType = ioType;
@@ -69,15 +70,15 @@ public class Operation2Privilege {
       return privReqs;
     }
 
-    public SQLPrivTypeGrant[] getReqPrivs() {
+    private SQLPrivTypeGrant[] getReqPrivs() {
       return reqPrivs;
     }
 
-    public IOType getIOType() {
+    private IOType getIOType() {
       return ioType;
     }
 
-    public HivePrivObjectActionType getActionType() {
+    private HivePrivObjectActionType getActionType() {
       return actionType;
     }
 
@@ -248,10 +249,15 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, PrivRequirement.newIOPrivRequirement
 (SEL_NOGRANT_AR, null));
 
-    // QUERY,LOAD op can contain an insert & ovewrite, so require insert+delete privileges on output
-    op2Priv.put(HiveOperationType.QUERY, PrivRequirement.newIOPrivRequirement
-(SEL_NOGRANT_AR,
-        arr(SQLPrivTypeGrant.INSERT_NOGRANT, SQLPrivTypeGrant.DELETE_NOGRANT)));
+    // QUERY,LOAD op can contain an insert & overwrite,
+    // require delete privilege if this is an insert-overwrite
+    op2Priv.put(HiveOperationType.QUERY,
+        arr(
+            new PrivRequirement(SEL_NOGRANT_AR, IOType.INPUT),
+            new PrivRequirement(INS_NOGRANT_AR, IOType.OUTPUT, null),
+            new PrivRequirement(DEL_NOGRANT_AR, IOType.OUTPUT, HivePrivObjectActionType.INSERT_OVERWRITE)
+            )
+        );
 
     op2Priv.put(HiveOperationType.LOAD, PrivRequirement.newIOPrivRequirement
 (OWNER_INS_SEL_DEL_NOGRANT_AR,
@@ -334,7 +340,7 @@ public class Operation2Privilege {
   }
 
   /**
-   * Convenience method so that creation of this array in InOutPrivs constructor
+   * Convenience method so that creation of this array in PrivRequirement constructor
    * is not too verbose
    *
    * @param grantList
@@ -344,8 +350,13 @@ public class Operation2Privilege {
     return grantList;
   }
 
-  public static List<PrivRequirement> getPrivRequirement(HiveOperationType opType) {
-    return op2Priv.get(opType);
+  /**
+   * Convenience method so that creation of list of PrivRequirement is not too verbose
+   * @param privReqList
+   * @return
+   */
+  private static List<PrivRequirement> arr(PrivRequirement... privReqList){
+    return Arrays.asList(privReqList);
   }
 
   /**
@@ -359,7 +370,7 @@ public class Operation2Privilege {
    */
   public static RequiredPrivileges getRequiredPrivs(HiveOperationType hiveOpType,
       HivePrivilegeObject hObj, IOType ioType) {
-    List<PrivRequirement> opPrivs = Operation2Privilege.getPrivRequirement(hiveOpType);
+    List<PrivRequirement> opPrivs = op2Priv.get(hiveOpType);
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
 
     // Find the PrivRequirements that match on IOType and ActionType, and add
