@@ -62,6 +62,7 @@ import org.apache.hadoop.hive.ql.hooks.PostExecute;
 import org.apache.hadoop.hive.ql.hooks.PreExecute;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity;
+import org.apache.hadoop.hive.ql.hooks.WriteEntity.WriteType;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLock;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLockMode;
 import org.apache.hadoop.hive.ql.lockmgr.HiveLockObj;
@@ -751,14 +752,17 @@ public class Driver implements CommandProcessor {
   private HivePrivObjectActionType getActionType(Entity privObject) {
     HivePrivObjectActionType actionType = HivePrivObjectActionType.DEFAULT;
     if (privObject instanceof WriteEntity) {
-      switch (((WriteEntity) privObject).getWriteType()) {
-      case INSERT:
-        return HivePrivObjectActionType.INSERT;
-      case INSERT_OVERWRITE:
-        return HivePrivObjectActionType.INSERT_OVERWRITE;
-      default:
-        // Ignore other types for purposes of authorization
-        break;
+      WriteType writeType = ((WriteEntity) privObject).getWriteType();
+      if (writeType != null) {
+        switch (writeType) {
+        case INSERT:
+          return HivePrivObjectActionType.INSERT;
+        case INSERT_OVERWRITE:
+          return HivePrivObjectActionType.INSERT_OVERWRITE;
+        default:
+          // Ignore other types for purposes of authorization
+          break;
+        }
       }
     }
     return actionType;
