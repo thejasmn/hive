@@ -360,8 +360,9 @@ public class Operation2Privilege {
   }
 
   /**
-   * Get the privileges required for this operation on hive object when it is
-   * IOType
+   * Get the privileges required for this operation (hiveOpType) on hive object (hObj) when its
+   * IOType is ioType. Looks at the action type in hObj to find privileges that are applicable
+   * to that action.
    *
    * @param hiveOpType
    * @param hObj
@@ -381,8 +382,9 @@ public class Operation2Privilege {
         continue;
       }
       if (opPriv.getActionType() != null) {
-        // if action type is specified, the action type of the hive object has
-        // to match
+        // if action in PrivRequirement is null, it means that
+        // the privileges are required irrespective of hObj's action type
+        // If it is not null, action type has to match
         if (hObj.getActionType() != opPriv.getActionType()) {
           continue;
         }

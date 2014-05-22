@@ -53,7 +53,7 @@ public class HivePrivilegeObject {
   };
 
   public enum HivePrivObjectActionType {
-    DEFAULT, INSERT, INSERT_OVERWRITE
+    OTHER, INSERT, INSERT_OVERWRITE
   };
   private final HivePrivilegeObjectType type;
   private final String dbname;
@@ -61,7 +61,7 @@ public class HivePrivilegeObject {
   private final HivePrivObjectActionType actionType;
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI){
-    this(type, dbname, tableViewURI, HivePrivObjectActionType.DEFAULT);
+    this(type, dbname, tableViewURI, HivePrivObjectActionType.OTHER);
   }
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI,
