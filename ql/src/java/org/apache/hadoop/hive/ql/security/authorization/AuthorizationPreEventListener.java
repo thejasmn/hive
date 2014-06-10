@@ -176,7 +176,7 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
       throws InvalidOperationException, MetaException {
     try {
       for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
-      authorizer.authorize(new Database(context.getDatabase()),
+        authorizer.authorize(new Database(context.getDatabase()),
             HiveOperation.CREATEDATABASE.getInputRequiredPrivileges(),
             HiveOperation.CREATEDATABASE.getOutputRequiredPrivileges());
       }
@@ -237,7 +237,7 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
     try {
       for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
-      authorizer.authorize(new TableWrapper(context.getOldTable()),
+        authorizer.authorize(new TableWrapper(context.getOldTable()),
             null,
             new Privilege[]{Privilege.ALTER_METADATA});
       }

@@ -20,7 +20,8 @@ package org.apache.hadoop.hive.ql.security.authorization;
 
 
 /**
- * Optional interface that can be implemented by {@link HiveMetastoreAuthorizationProvider}
+ * Optional interface that can be implemented by classes that also
+ * implement {@link HiveMetastoreAuthorizationProvider}
  *
  */
 public interface HiveMetastoreAuthzAPIAuthorizer {
