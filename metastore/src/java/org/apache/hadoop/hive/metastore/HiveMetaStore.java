@@ -194,6 +194,11 @@ import com.google.common.collect.Lists;
 public class HiveMetaStore extends ThriftHiveMetastore {
   public static final Log LOG = LogFactory.getLog(HiveMetaStore.class);
 
+  // boolean that tells if the HiveMetaStore (remote) server is being used.
+  // Can be used to determine if the calls to metastore api (HMSHandler) are being made with
+  // embedded metastore or a remote one
+  private static boolean isMetaStoreRemote = false;
+
   /** A fixed date format to be used for hive partition column values. */
   public static final DateFormat PARTITION_DATE_FORMAT;
   static {
@@ -4965,6 +4970,13 @@ public class HiveMetaStore extends ThriftHiveMetastore {
   }
 
   /**
+   * @return true if remote metastore has been created
+   */
+  public static boolean isMetaStoreRemote() {
+    return isMetaStoreRemote;
+  }
+
+  /**
    * Renew a delegation token to extend its lifetime.
    *
    * @param tokenStrForm
@@ -5029,6 +5041,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
    * @param args
    */
   public static void main(String[] args) throws Throwable {
+    isMetaStoreRemote = true;
     HiveMetastoreCli cli = new HiveMetastoreCli();
     cli.parse(args);
     final boolean isCliVerbose = cli.isVerbose();

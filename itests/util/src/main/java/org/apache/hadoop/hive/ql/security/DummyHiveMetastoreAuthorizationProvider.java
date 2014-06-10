@@ -33,6 +33,9 @@ import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 
+/**
+ * Dummy implementation for use by unit tests
+ */
 public class DummyHiveMetastoreAuthorizationProvider implements HiveMetastoreAuthorizationProvider {
 
 
