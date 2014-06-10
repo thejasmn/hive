@@ -23,7 +23,7 @@ import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 public class PreAuthorizationCallEvent extends PreEventContext {
 
   public PreAuthorizationCallEvent (HMSHandler handler) {
-    super(PreEventType.AUTHORIZATION_CALL, handler);
+    super(PreEventType.AUTHORIZATION_API_CALL, handler);
   }
 
 }
