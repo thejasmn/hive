@@ -33,7 +33,7 @@ import org.apache.hadoop.hive.ql.metadata.Table;
  * If this authorizer is used, it allows authorization api to be invoked only in embedded
  * metastore mode.
  */
-public class AuthorizationAPIAuthorizerEmbedOnly extends HiveAuthorizationProviderBase
+public class MetaStoreAuthzAPIAuthorizerEmbedOnly extends HiveAuthorizationProviderBase
     implements HiveMetastoreAuthorizationProvider, HiveMetastoreAuthzAPIAuthorizer {
 
   public static final String errMsg = "Metastore Authorization api invocation for "

@@ -9,7 +9,7 @@ public class TestAuthzApiEmbedAuthorizerInRemote extends TestAuthorizationApiAut
 
   @BeforeClass
   public static void setup() throws Exception {
-    isRemoteMetastoreMode = true; // remote metsatore mode
+    isRemoteMetastoreMode = true; // remote metastore mode
     TestAuthorizationApiAuthorizer.setup();
   }
 

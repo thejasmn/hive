@@ -34,7 +34,7 @@ import org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizati
 import org.apache.hadoop.hive.ql.security.authorization.Privilege;
 
 /**
- * Dummy implementation for use by unit tests
+ * Dummy implementation for use by unit tests. Tracks the calls context in {@link AuthCallContext}
  */
 public class DummyHiveMetastoreAuthorizationProvider implements HiveMetastoreAuthorizationProvider {
 

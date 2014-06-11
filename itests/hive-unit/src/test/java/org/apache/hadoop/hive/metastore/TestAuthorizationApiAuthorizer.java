@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.hadoop.hive.cli.CliSessionState;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.HiveObjectRef;
@@ -32,14 +31,13 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.Role;
-import org.apache.hadoop.hive.ql.security.authorization.AuthorizationAPIAuthorizerEmbedOnly;
+import org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly;
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener;
-import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.junit.Test;
 
 /**
- * Test case for {@link AuthorizationAPIAuthorizerEmbedOnly} The authorizer is
+ * Test case for {@link MetaStoreAuthzAPIAuthorizerEmbedOnly} The authorizer is
  * supposed to allow api calls for metastore in embedded mode while disallowing
  * them in remote metastore mode. Note that this is an abstract class, the
  * subclasses that set the mode and the tests here get run as part of their
@@ -55,7 +53,7 @@ public abstract class TestAuthorizationApiAuthorizer {
     System.setProperty("hive.metastore.pre.event.listeners",
         AuthorizationPreEventListener.class.getName());
     System.setProperty("hive.security.metastore.authorization.manager",
-        AuthorizationAPIAuthorizerEmbedOnly.class.getName());
+        MetaStoreAuthzAPIAuthorizerEmbedOnly.class.getName());
 
     hiveConf = new HiveConf();
     if (isRemoteMetastoreMode) {
@@ -68,7 +66,6 @@ public abstract class TestAuthorizationApiAuthorizer {
     hiveConf.set(HiveConf.ConfVars.POSTEXECHOOKS.varname, "");
     hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
 
-    SessionState.start(new CliSessionState(hiveConf));
     msc = new HiveMetaStoreClient(hiveConf, null);
 
   }
@@ -77,11 +74,17 @@ public abstract class TestAuthorizationApiAuthorizer {
     public void invoke() throws Exception;
   }
 
-  private void testFunction(FunctionInvoker revokeInvoker) throws Exception {
+  /**
+   * Test the if authorization failed/passed for FunctionInvoker that invokes a metastore client
+   * api call
+   * @param mscFunctionInvoker
+   * @throws Exception
+   */
+  private void testFunction(FunctionInvoker mscFunctionInvoker) throws Exception {
     boolean caughtEx = false;
     try {
       try {
-        revokeInvoker.invoke();
+        mscFunctionInvoker.invoke();
       } catch (RuntimeException e) {
         // A hack to verify that authorization check passed. Exception can be thrown be cause
         // the functions are not being called with valid params.
@@ -92,12 +95,12 @@ public abstract class TestAuthorizationApiAuthorizer {
             exStackString.contains("org.apache.hadoop.hive.metastore.ObjectStore"));
         // If its not an exception caused by auth check, ignore it
       }
-      assertFalse("Auth Exception should have been thrown in remote mode", isRemoteMetastoreMode);
+      assertFalse("Authz Exception should have been thrown in remote mode", isRemoteMetastoreMode);
       System.err.println("No auth exception thrown");
     } catch (MetaException e) {
       System.err.println("Caught exception");
       caughtEx = true;
-      assertTrue(e.getMessage().contains(AuthorizationAPIAuthorizerEmbedOnly.errMsg));
+      assertTrue(e.getMessage().contains(MetaStoreAuthzAPIAuthorizerEmbedOnly.errMsg));
     }
     if (!isRemoteMetastoreMode) {
       assertFalse("No exception should be thrown in embedded mode", caughtEx);
@@ -131,7 +134,6 @@ public abstract class TestAuthorizationApiAuthorizer {
     FunctionInvoker invoker = new FunctionInvoker() {
       @Override
       public void invoke() throws Exception {
-        System.err.println("Running grant role");
         msc.grant_role(null, null, null, null, null, true);
       }
     };
