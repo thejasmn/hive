@@ -18,9 +18,9 @@
 
 package org.apache.hadoop.hive.ql.security;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-import junit.framework.TestCase;
+import java.util.List;
 
 import org.apache.hadoop.hive.cli.CliSessionState;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -32,21 +32,22 @@ import org.apache.hadoop.hive.ql.security.DummyHiveMetastoreAuthorizationProvide
 import org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.shims.ShimLoader;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Test case for verifying that multiple
  * {@link org.apache.hadoop.hive.metastore.AuthorizationPreEventListener}s can
  * be set and they get called.
  */
-public class TestMultiAuthorizationPreEventListener extends TestCase {
-  private HiveConf clientHiveConf;
-  private HiveMetaStoreClient msc;
-  private Driver driver;
+public class TestMultiAuthorizationPreEventListener {
+  private static HiveConf clientHiveConf;
+  private static HiveMetaStoreClient msc;
+  private static Driver driver;
 
-  @Override
-  protected void setUp() throws Exception {
+  @BeforeClass
+  public static void setUp() throws Exception {
 
-    super.setUp();
 
     int port = MetaStoreUtils.findFreePort();
 
@@ -63,32 +64,18 @@ public class TestMultiAuthorizationPreEventListener extends TestCase {
 
     MetaStoreUtils.startMetaStore(port, ShimLoader.getHadoopThriftAuthBridge());
 
-    clientHiveConf = new HiveConf(this.getClass());
+    clientHiveConf = new HiveConf();
 
     clientHiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, "thrift://localhost:" + port);
-    clientHiveConf.setIntVar(HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES, 3);
     clientHiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
-
-    clientHiveConf.set(HiveConf.ConfVars.PREEXECHOOKS.varname, "");
-    clientHiveConf.set(HiveConf.ConfVars.POSTEXECHOOKS.varname, "");
-
 
     SessionState.start(new CliSessionState(clientHiveConf));
     msc = new HiveMetaStoreClient(clientHiveConf, null);
     driver = new Driver(clientHiveConf);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
-
-  private void validateCreateDb(Database expectedDb, Database actualDb) {
-    assertEquals(expectedDb.getName(), actualDb.getName());
-    assertEquals(expectedDb.getLocationUri(), actualDb.getLocationUri());
-  }
-
-  public void testListener() throws Exception {
+  @Test
+  public void testMultipleAuthorizationListners() throws Exception {
     String dbName = "hive" + this.getClass().getSimpleName().toLowerCase();
     List<AuthCallContext> authCalls = DummyHiveMetastoreAuthorizationProvider.authCalls;
     int listSize = 0;
@@ -115,5 +102,12 @@ public class TestMultiAuthorizationPreEventListener extends TestCase {
     assertEquals(callType,authCalls.get(listSize-1).type);
     return (authCalls.get(listSize-1).authObjects.get(0));
   }
+
+
+  private void validateCreateDb(Database expectedDb, Database actualDb) {
+    assertEquals(expectedDb.getName(), actualDb.getName());
+    assertEquals(expectedDb.getLocationUri(), actualDb.getLocationUri());
+  }
+
 
 }
