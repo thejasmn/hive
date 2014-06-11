@@ -5030,7 +5030,6 @@ public class HiveMetaStore extends ThriftHiveMetastore {
    * @param args
    */
   public static void main(String[] args) throws Throwable {
-    isMetaStoreRemote = true;
     HiveMetastoreCli cli = new HiveMetastoreCli();
     cli.parse(args);
     final boolean isCliVerbose = cli.isVerbose();
@@ -5127,7 +5126,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       HiveConf conf, Lock startLock, Condition startCondition,
       MetaStoreThread.BooleanPointer startedServing) throws Throwable {
     try {
-
+      isMetaStoreRemote = true;
       // Server will create new threads up to max as necessary. After an idle
       // period, it will destory threads to keep the number of threads in the
       // pool to min.

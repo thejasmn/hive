@@ -18,6 +18,9 @@
 
 package org.apache.hadoop.hive.ql.security.authorization;
 
+import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+
 
 /**
  * Optional interface that can be implemented by classes that also
@@ -29,6 +32,6 @@ public interface HiveMetastoreAuthzAPIAuthorizer {
   /**
    * Authorize authorization api call.
    */
-  void authorizeAuthorizationApiInvocation();
+  void authorizeAuthorizationApiInvocation() throws HiveException, AuthorizationException;
 
 }

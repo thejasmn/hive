@@ -162,12 +162,19 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
   }
 
-  private void authorizeAuthorizationAPICall() {
+  private void authorizeAuthorizationAPICall() throws InvalidOperationException, MetaException {
     for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
       // Not all authorizers need to implement this interface.
       // Authorization is checked only if it does.
-      if(authorizer instanceof HiveMetastoreAuthzAPIAuthorizer){
-        ((HiveMetastoreAuthzAPIAuthorizer)authorizer).authorizeAuthorizationApiInvocation();
+      if (!(authorizer instanceof HiveMetastoreAuthzAPIAuthorizer)) {
+        continue;
+      }
+      try {
+        ((HiveMetastoreAuthzAPIAuthorizer) authorizer).authorizeAuthorizationApiInvocation();
+      } catch (AuthorizationException e) {
+        throw invalidOperationException(e);
+      } catch (HiveException e) {
+        throw metaException(e);
       }
     }
   }

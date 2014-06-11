@@ -30,14 +30,17 @@ import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 
 /**
- *
+ * If this authorizer is used, it allows authorization api to be invoked only in embedded
+ * metastore mode.
  */
-public class AuthorizationAPIAuthorizationProvider extends HiveAuthorizationProviderBase
+public class AuthorizationAPIAuthorizerEmbedOnly extends HiveAuthorizationProviderBase
     implements HiveMetastoreAuthorizationProvider, HiveMetastoreAuthzAPIAuthorizer {
+
+  public static final String errMsg = "Metastore Authorization api invocation for "
+      + "remote metastore is disabled in this configuration.";
 
   @Override
   public void init(Configuration conf) throws HiveException {
-    setConf(conf);
   }
 
   @Override
@@ -77,10 +80,9 @@ public class AuthorizationAPIAuthorizationProvider extends HiveAuthorizationProv
   }
 
   @Override
-  public void authorizeAuthorizationApiInvocation() {
+  public void authorizeAuthorizationApiInvocation() throws AuthorizationException {
     if (HiveMetaStore.isMetaStoreRemote()) {
-      throw new AuthorizationException("Metastore Authorization api invocation for "
-          + "remote metastore is disabled in this configuration.");
+      throw new AuthorizationException(errMsg);
     }
   }
 
