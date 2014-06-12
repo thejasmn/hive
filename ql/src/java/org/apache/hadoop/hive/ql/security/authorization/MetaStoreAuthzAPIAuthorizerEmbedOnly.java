@@ -34,7 +34,7 @@ import org.apache.hadoop.hive.ql.metadata.Table;
  * metastore mode.
  */
 public class MetaStoreAuthzAPIAuthorizerEmbedOnly extends HiveAuthorizationProviderBase
-    implements HiveMetastoreAuthorizationProvider, HiveMetastoreAuthzAPIAuthorizer {
+    implements HiveMetastoreAuthorizationProvider {
 
   public static final String errMsg = "Metastore Authorization api invocation for "
       + "remote metastore is disabled in this configuration.";

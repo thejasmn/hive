@@ -47,7 +47,8 @@ public class DummyHiveMetastoreAuthorizationProvider implements HiveMetastoreAut
     DB,
     TABLE,
     PARTITION,
-    TABLE_AND_PARTITION
+    TABLE_AND_PARTITION,
+    AUTHORIZATION
   };
 
   class AuthCallContext {
@@ -203,6 +204,13 @@ public class DummyHiveMetastoreAuthorizationProvider implements HiveMetastoreAut
   public void setMetaStoreHandler(HMSHandler handler) {
     debugLog("DHMAP.setMetaStoreHandler");
   }
+
+  @Override
+  public void authorizeAuthorizationApiInvocation() throws HiveException, AuthorizationException {
+    debugLog("DHMAP.authorizeauthapi");
+    authCalls.add(new AuthCallContext(AuthCallContextType.AUTHORIZATION, null, null));
+  }
+
 
 
 }
