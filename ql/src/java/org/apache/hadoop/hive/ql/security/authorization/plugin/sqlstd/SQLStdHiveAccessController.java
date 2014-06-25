@@ -372,6 +372,39 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public List<HivePrivilegeInfo> showPrivileges(HivePrincipal principal, HivePrivilegeObject privObj)
       throws HiveAuthzPluginException {
     try {
+
+      // First authorize the call
+      if (principal == null) {
+        // only the admin is allowed to list privileges for any user
+        if (!isUserAdmin()) {
+          throw new HiveAccessControlException("User : " + currentUserName + " has to specify"
+              + " a user name or role in the show grant." + ADMIN_ONLY_MSG);
+        }
+      } else {
+        //principal is specified, authorize on it
+        if (!isUserAdmin()) {
+          // if user is not an admin user, allow the request only if the user is
+          // requesting for privileges for themselves or a role they belong to
+          switch (principal.getType()) {
+          case USER:
+            if (principal.getName().equals(currentUserName)) {
+              throw new HiveAccessControlException("User : " + currentUserName + " is not"
+                  + " allowed check privileges of another user:" + principal.getName() + ". "
+                  + ADMIN_ONLY_MSG);
+            }
+            break;
+          case ROLE:
+            if (!userBelongsToRole(principal.getName())) {
+              throw new HiveAccessControlException("User : " + currentUserName + " is not"
+                  + " allowed check privileges of a role it does not belong to:"
+                  + principal.getName() + ADMIN_ONLY_MSG);
+            }
+            break;
+          default:
+            throw new AssertionError("Unexpected principal type " + principal.getType());
+          }
+        }
+      }
       IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
       List<HivePrivilegeInfo> resPrivInfos = new ArrayList<HivePrivilegeInfo>();
       String principalName = principal == null ? null : principal.getName();
@@ -414,6 +447,22 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       throw new HiveAuthzPluginException("Error showing privileges: "+ e.getMessage(), e);
     }
 
+  }
+
+  /**
+   * @param roleName
+   * @return true if roleName is the name of one of the roles (including the role hierarchy)
+   * that the user belongs to.
+   * @throws HiveAuthzPluginException
+   */
+  private boolean userBelongsToRole(String roleName) throws HiveAuthzPluginException {
+    for (HiveRoleGrant role : getRolesFromMS()) {
+      // set to one of the roles user belongs to.
+      if (role.getRoleName().equalsIgnoreCase(roleName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private HivePrivilegeObjectType getPluginObjType(HiveObjectType objectType)
