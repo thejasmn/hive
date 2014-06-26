@@ -378,7 +378,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
         // only the admin is allowed to list privileges for any user
         if (!isUserAdmin()) {
           throw new HiveAccessControlException("User : " + currentUserName + " has to specify"
-              + " a user name or role in the show grant." + ADMIN_ONLY_MSG);
+              + " a user name or role in the show grant. " + ADMIN_ONLY_MSG);
         }
       } else {
         //principal is specified, authorize on it
@@ -387,17 +387,17 @@ public class SQLStdHiveAccessController implements HiveAccessController {
           // requesting for privileges for themselves or a role they belong to
           switch (principal.getType()) {
           case USER:
-            if (principal.getName().equals(currentUserName)) {
+            if (!principal.getName().equals(currentUserName)) {
               throw new HiveAccessControlException("User : " + currentUserName + " is not"
-                  + " allowed check privileges of another user:" + principal.getName() + ". "
+                  + " allowed check privileges of another user : " + principal.getName() + ". "
                   + ADMIN_ONLY_MSG);
             }
             break;
           case ROLE:
             if (!userBelongsToRole(principal.getName())) {
               throw new HiveAccessControlException("User : " + currentUserName + " is not"
-                  + " allowed check privileges of a role it does not belong to:"
-                  + principal.getName() + ADMIN_ONLY_MSG);
+                  + " allowed check privileges of a role it does not belong to : "
+                  + principal.getName() + ". " + ADMIN_ONLY_MSG);
             }
             break;
           default:
@@ -429,6 +429,15 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
         // result object
         HiveObjectRef msObjRef = msObjPriv.getHiveObject();
+
+        if (!isSupportedObjectType(msObjRef.getObjectType())) {
+          // metastore returns object type such as global GLOBAL
+          // when no object is specified.
+          // such privileges are not applicable to this authorization mode, so
+          // ignore them
+          continue;
+        }
+
         HivePrivilegeObject resPrivObj = new HivePrivilegeObject(
             getPluginObjType(msObjRef.getObjectType()), msObjRef.getDbName(),
             msObjRef.getObjectName());
@@ -472,12 +481,18 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       return HivePrivilegeObjectType.DATABASE;
     case TABLE:
       return HivePrivilegeObjectType.TABLE_OR_VIEW;
-    case COLUMN:
-    case GLOBAL:
-    case PARTITION:
-      throw new HiveAuthzPluginException("Unsupported object type " + objectType);
     default:
       throw new AssertionError("Unexpected object type " + objectType);
+    }
+  }
+
+  private boolean isSupportedObjectType(HiveObjectType objectType) {
+    switch (objectType) {
+    case DATABASE:
+    case TABLE:
+      return true;
+    default:
+      return false;
     }
   }
 
