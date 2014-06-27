@@ -9,7 +9,10 @@ set role admin;
 -- test show grant authorization
 
 create role roleA;
+create role roleB;
+
 grant role roleA to user userA;
+grant role roleB to role roleA;
 
 set user.name=user1;
 
@@ -19,6 +22,7 @@ create table t2(i int, j int, k int);
 
 grant select on t1 to role roleA;
 grant insert on t2 to role roleA;
+grant insert on t2 to role roleB;
 
 grant insert,delete on t1 to user userA;
 grant select,insert on t2 to user userA;
@@ -40,5 +44,10 @@ set user.name=userA;
 show grant role roleA on table t1;
 show grant role roleA;
 
+show grant role roleB on table t1;
+show grant role roleB;
+
 show grant user userA on table t1;
 show grant user userA;
+
+
