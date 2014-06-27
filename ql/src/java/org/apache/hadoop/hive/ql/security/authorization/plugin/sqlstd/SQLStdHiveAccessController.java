@@ -383,26 +383,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       } else {
         //principal is specified, authorize on it
         if (!isUserAdmin()) {
-          // if user is not an admin user, allow the request only if the user is
-          // requesting for privileges for themselves or a role they belong to
-          switch (principal.getType()) {
-          case USER:
-            if (!principal.getName().equals(currentUserName)) {
-              throw new HiveAccessControlException("User : " + currentUserName + " is not"
-                  + " allowed check privileges of another user : " + principal.getName() + ". "
-                  + ADMIN_ONLY_MSG);
-            }
-            break;
-          case ROLE:
-            if (!userBelongsToRole(principal.getName())) {
-              throw new HiveAccessControlException("User : " + currentUserName + " is not"
-                  + " allowed check privileges of a role it does not belong to : "
-                  + principal.getName() + ". " + ADMIN_ONLY_MSG);
-            }
-            break;
-          default:
-            throw new AssertionError("Unexpected principal type " + principal.getType());
-          }
+          ensureShowGrantAllowed(principal);
         }
       }
       IMetaStoreClient mClient = metastoreClientFactory.getHiveMetastoreClient();
@@ -456,6 +437,30 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       throw new HiveAuthzPluginException("Error showing privileges: "+ e.getMessage(), e);
     }
 
+  }
+
+  private void ensureShowGrantAllowed(HivePrincipal principal)
+      throws HiveAccessControlException, HiveAuthzPluginException {
+    // if user is not an admin user, allow the request only if the user is
+    // requesting for privileges for themselves or a role they belong to
+    switch (principal.getType()) {
+    case USER:
+      if (!principal.getName().equals(currentUserName)) {
+        throw new HiveAccessControlException("User : " + currentUserName + " is not"
+            + " allowed check privileges of another user : " + principal.getName() + ". "
+            + ADMIN_ONLY_MSG);
+      }
+      break;
+    case ROLE:
+      if (!userBelongsToRole(principal.getName())) {
+        throw new HiveAccessControlException("User : " + currentUserName + " is not"
+            + " allowed check privileges of a role it does not belong to : "
+            + principal.getName() + ". " + ADMIN_ONLY_MSG);
+      }
+      break;
+    default:
+      throw new AssertionError("Unexpected principal type " + principal.getType());
+    }
   }
 
   /**
@@ -526,7 +531,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       +roleName);
   }
 
-  public List<HiveRoleGrant> getCurrentRoles() throws HiveAuthzPluginException {
+  private List<HiveRoleGrant> getCurrentRoles() throws HiveAuthzPluginException {
     initUserRoles();
     return currentRoles;
   }
@@ -580,6 +585,11 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   public List<HiveRoleGrant> getRoleGrantInfoForPrincipal(HivePrincipal principal)
       throws HiveAuthzPluginException, HiveAccessControlException {
     try {
+      // first authorize the call
+      if (!isUserAdmin()) {
+        ensureShowGrantAllowed(principal);
+      }
+
       List<RolePrincipalGrant> roleGrants = getRoleGrants(principal.getName(),
           AuthorizationUtils.getThriftPrincipalType(principal.getType()));
       List<HiveRoleGrant> hiveRoleGrants = new ArrayList<HiveRoleGrant>(roleGrants.size());
