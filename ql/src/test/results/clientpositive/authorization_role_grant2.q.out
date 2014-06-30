@@ -60,16 +60,16 @@ PREHOOK: type: GRANT_ROLE
 POSTHOOK: query: -- grant role to another role
 grant src_role_wadmin to role sRc_role2
 POSTHOOK: type: GRANT_ROLE
+PREHOOK: query: set role ADMIN
+PREHOOK: type: SHOW_ROLES
+POSTHOOK: query: set role ADMIN
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: show role grant role src_Role2
 PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant role src_Role2
 POSTHOOK: type: SHOW_ROLE_GRANT
 role	grant_option	grant_time	grantor
 src_role_wadmin	false	-1	user2
-PREHOOK: query: set role ADMIN
-PREHOOK: type: SHOW_ROLES
-POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: show principals src_ROle_wadmin
 PREHOOK: type: SHOW_ROLE_PRINCIPALS
 POSTHOOK: query: show principals src_ROle_wadmin
@@ -100,15 +100,15 @@ PREHOOK: type: REVOKE_ROLE
 POSTHOOK: query: -- revoke role from role
 revoke src_rolE_wadmin from role sRc_role2
 POSTHOOK: type: REVOKE_ROLE
+PREHOOK: query: set role ADMIN
+PREHOOK: type: SHOW_ROLES
+POSTHOOK: query: set role ADMIN
+POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: show role grant role sRc_role2
 PREHOOK: type: SHOW_ROLE_GRANT
 POSTHOOK: query: show role grant role sRc_role2
 POSTHOOK: type: SHOW_ROLE_GRANT
 role	grant_option	grant_time	grantor
-PREHOOK: query: set role ADMIN
-PREHOOK: type: SHOW_ROLES
-POSTHOOK: query: set role ADMIN
-POSTHOOK: type: SHOW_ROLES
 PREHOOK: query: show principals src_role_wadmin
 PREHOOK: type: SHOW_ROLE_PRINCIPALS
 POSTHOOK: query: show principals src_role_wadmin
