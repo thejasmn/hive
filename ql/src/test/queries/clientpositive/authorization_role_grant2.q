@@ -32,8 +32,16 @@ grant src_role_wadmin to role sRc_role2;
 
 set user.name=hive_admin_user;
 set role ADMIN;
+grant src_role2 to user user3;
 
-show role grant role src_Role2;;
+set user.name=user3;
+-- as user3 belings to src_role2 hierarchy, its should be able to run show grant on it
+show role grant role src_Role2;
+
+set user.name=hive_admin_user;
+set role ADMIN;
+
+
 
 show principals src_ROle_wadmin;
 
