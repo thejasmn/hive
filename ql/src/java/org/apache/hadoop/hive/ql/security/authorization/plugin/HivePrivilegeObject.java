@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
+import java.util.List;
+
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
 
@@ -49,7 +51,7 @@ public class HivePrivilegeObject {
   }
 
   public enum HivePrivilegeObjectType {
-    DATABASE, TABLE_OR_VIEW, PARTITION, LOCAL_URI, DFS_URI
+    DATABASE, TABLE_OR_VIEW, PARTITION, LOCAL_URI, DFS_URI, COMMAND_PARAMS
   };
 
   public enum HivePrivObjectActionType {
@@ -58,6 +60,7 @@ public class HivePrivilegeObject {
   private final HivePrivilegeObjectType type;
   private final String dbname;
   private final String tableviewname;
+  private final List<String> commandParams;
   private final HivePrivObjectActionType actionType;
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI){
@@ -66,10 +69,26 @@ public class HivePrivilegeObject {
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI,
       HivePrivObjectActionType actionType) {
+    this(type, dbname, tableViewURI, actionType, null);
+  }
+
+  /**
+   * Create HivePrivilegeObject of type {@link HivePrivilegeObjectType.COMMAND_PARAMS}
+   * @param cmdParams
+   * @return
+   */
+  public static HivePrivilegeObject createHivePrivilegeObject(List<String> cmdParams) {
+    return new HivePrivilegeObject(HivePrivilegeObjectType.COMMAND_PARAMS, null, null, null,
+        cmdParams);
+  }
+
+  public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI,
+      HivePrivObjectActionType actionType, List<String> commandParams) {
     this.type = type;
     this.dbname = dbname;
     this.tableviewname = tableViewURI;
     this.actionType = actionType;
+    this.commandParams = commandParams;
   }
 
   public HivePrivilegeObjectType getType() {
@@ -86,5 +105,9 @@ public class HivePrivilegeObject {
 
   public HivePrivObjectActionType getActionType() {
     return actionType;
+  }
+
+  public List<String> getCommandParams() {
+    return commandParams;
   }
 }
