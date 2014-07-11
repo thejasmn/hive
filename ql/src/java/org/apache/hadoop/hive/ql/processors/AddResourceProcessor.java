@@ -57,7 +57,7 @@ public class AddResourceProcessor implements CommandProcessor {
     }
 
     CommandProcessorResponse authErrResp =
-        CommandUtil.authorizeCommand(ss, HiveOperationType.COMPILE, Arrays.asList(command));
+        CommandUtil.authorizeCommand(ss, HiveOperationType.ADD, Arrays.asList(command));
     if(authErrResp != null){
       // there was an authorization issue
       return authErrResp;
@@ -67,7 +67,7 @@ public class AddResourceProcessor implements CommandProcessor {
       ss.add_resources(t,
           Arrays.asList(Arrays.copyOfRange(tokens, 1, tokens.length)));
     } catch (Exception e) {
-      return new CommandProcessorResponse(1, e.getMessage(), null);
+      return CommandProcessorResponse.create(e);
     }
     return new CommandProcessorResponse(0);
   }

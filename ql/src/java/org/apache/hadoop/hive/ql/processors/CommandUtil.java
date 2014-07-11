@@ -41,9 +41,8 @@ class CommandUtil {
   static CommandProcessorResponse authorizeCommand(SessionState ss, HiveOperationType type,
       List<String> command) {
     if (ss.isAuthorizationModeV2()) {
-      HivePrivilegeObject commandObj = HivePrivilegeObject.createHivePrivilegeObject(command);
       try {
-        ss.getAuthorizerV2().checkPrivileges(type, Arrays.asList(commandObj), null);
+        authorizeCommandThrowEx(ss, type, command);
         // authorized to perform action
         return null;
       } catch (HiveAuthzPluginException e) {
@@ -54,5 +53,19 @@ class CommandUtil {
     }
     return null;
   }
+  /**
+   * Authorize command. Throws exception if the check fails
+   * @param ss
+   * @param type
+   * @param command
+   * @throws HiveAuthzPluginException
+   * @throws HiveAccessControlException
+   */
+  static void authorizeCommandThrowEx(SessionState ss, HiveOperationType type,
+      List<String> command) throws HiveAuthzPluginException, HiveAccessControlException {
+    HivePrivilegeObject commandObj = HivePrivilegeObject.createHivePrivilegeObject(command);
+    ss.getAuthorizerV2().checkPrivileges(type, Arrays.asList(commandObj), null);
+  }
+
 
 }

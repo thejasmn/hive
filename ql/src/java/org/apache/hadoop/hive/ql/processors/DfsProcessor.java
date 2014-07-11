@@ -69,7 +69,7 @@ public class DfsProcessor implements CommandProcessor {
 
       String[] tokens = command.split("\\s+");
       CommandProcessorResponse authErrResp =
-          CommandUtil.authorizeCommand(ss, HiveOperationType.COMPILE, Arrays.asList(tokens));
+          CommandUtil.authorizeCommand(ss, HiveOperationType.DFS, Arrays.asList(tokens));
       if(authErrResp != null){
         // there was an authorization issue
         return authErrResp;

@@ -36,7 +36,7 @@ public class ResetProcessor implements CommandProcessor {
     SessionState ss = SessionState.get();
 
     CommandProcessorResponse authErrResp =
-        CommandUtil.authorizeCommand(ss, HiveOperationType.COMPILE, Arrays.asList(command));
+        CommandUtil.authorizeCommand(ss, HiveOperationType.RESET, Arrays.asList(command));
     if(authErrResp != null){
       // there was an authorization issue
       return authErrResp;
