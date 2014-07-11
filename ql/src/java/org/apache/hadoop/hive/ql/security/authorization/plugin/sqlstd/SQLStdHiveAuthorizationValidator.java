@@ -34,7 +34,6 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal.HivePrincipalType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.Operation2Privilege.IOType;
 
 public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValidator {
@@ -87,18 +86,24 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
           ioType);
 
       // find available privileges
-      RequiredPrivileges availPrivs;
-      if (hiveObj.getType() == HivePrivilegeObjectType.LOCAL_URI
-          || hiveObj.getType() == HivePrivilegeObjectType.DFS_URI) {
+      RequiredPrivileges availPrivs = null;
+      switch (hiveObj.getType()) {
+      case LOCAL_URI:
+      case DFS_URI:
         availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(new Path(hiveObj.getTableViewURI()),
             conf, userName);
-      } else if (hiveObj.getType() == HivePrivilegeObjectType.PARTITION) {
+        break;
+      case PARTITION:
         // sql std authorization is managing privileges at the table/view levels
         // only
         // ignore partitions
         continue;
-      } else {
-        // get the privileges that this user has on the object
+      case COMMAND_PARAMS:
+        // operations that have objects of type COMMAND_PARAMS are authorized
+        // solely on the type
+        // Assume no available privileges
+        break;
+      default:
         availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(metastoreClient, userName,
             hiveObj, privController.getCurrentRoleNames(), privController.isUserAdmin());
       }
