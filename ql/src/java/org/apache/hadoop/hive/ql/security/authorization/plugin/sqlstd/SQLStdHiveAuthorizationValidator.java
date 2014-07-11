@@ -111,7 +111,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       // Verify that there are no missing privileges
       Collection<SQLPrivTypeGrant> missingPriv = requiredPrivs.findMissingPrivs(availPrivs);
       SQLAuthorizationUtils.assertNoMissingPrivilege(missingPriv, new HivePrincipal(userName,
-          HivePrincipalType.USER), hiveObj);
+          HivePrincipalType.USER), hiveObj, hiveOpType);
 
     }
   }
