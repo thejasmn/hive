@@ -359,7 +359,7 @@ public class SQLAuthorizationUtils {
 
       String errMsg = "Permission denied. " + hivePrincipal
           + " does not have following privileges on " + hivePrivObject +
-          "for operation " + opType + " : " + sortedmissingPrivs;
+          " for operation " + opType + " : " + sortedmissingPrivs;
       throw new HiveAccessControlException(errMsg.toString());
     }
   }
