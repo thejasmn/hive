@@ -22,7 +22,6 @@ import static org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_NULL_FOR
 import static org.apache.hadoop.hive.serde.serdeConstants.STRING_TYPE_NAME;
 import static org.apache.hadoop.hive.serde2.MetadataTypedColumnsetSerDe.defaultNullString;
 import static org.apache.hadoop.hive.conf.SystemVariables.*;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
@@ -32,9 +31,6 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.hadoop.hive.ql.parse.VariableSubstitution;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 
 /**
@@ -238,46 +234,35 @@ public class SetProcessor implements CommandProcessor {
   public CommandProcessorResponse run(String command) {
     SessionState ss = SessionState.get();
 
-    try {
-      String nwcmd = command.trim();
+    String nwcmd = command.trim();
+    if (nwcmd.equals("")) {
+      dumpOptions(ss.getConf().getChangedProperties());
+      return createProcessorSuccessResponse();
+    }
 
-      if (nwcmd.equals("")) {
-        CommandUtil.authorizeCommandThrowEx(ss, HiveOperationType.SET, Arrays.asList(nwcmd));
-        dumpOptions(ss.getConf().getChangedProperties());
-        return createProcessorSuccessResponse();
+    if (nwcmd.equals("-v")) {
+      dumpOptions(ss.getConf().getAllProperties());
+      return createProcessorSuccessResponse();
+    }
+
+    String[] part = new String[2];
+    int eqIndex = nwcmd.indexOf('=');
+
+    if (nwcmd.contains("=")){
+      if (eqIndex == nwcmd.length() - 1) { //x=
+        part[0] = nwcmd.substring(0, nwcmd.length() - 1);
+        part[1] = "";
+      } else { //x=y
+        part[0] = nwcmd.substring(0, eqIndex).trim();
+        part[1] = nwcmd.substring(eqIndex + 1).trim();
       }
-
-      if (nwcmd.equals("-v")) {
-        CommandUtil.authorizeCommandThrowEx(ss, HiveOperationType.SET, Arrays.asList(nwcmd));
-        dumpOptions(ss.getConf().getAllProperties());
-        return createProcessorSuccessResponse();
+      if (part[0].equals("silent")) {
+        ss.setIsSilent(getBoolean(part[1]));
+        return new CommandProcessorResponse(0);
       }
-
-      String[] part = new String[2];
-      int eqIndex = nwcmd.indexOf('=');
-
-      if (nwcmd.contains("=")) {
-        if (eqIndex == nwcmd.length() - 1) { // x=
-          part[0] = nwcmd.substring(0, nwcmd.length() - 1);
-          part[1] = "";
-        } else { // x=y
-          part[0] = nwcmd.substring(0, eqIndex).trim();
-          part[1] = nwcmd.substring(eqIndex + 1).trim();
-        }
-        CommandUtil.authorizeCommandThrowEx(ss, HiveOperationType.SET, Arrays.asList(part));
-        if (part[0].equals("silent")) {
-          ss.setIsSilent(getBoolean(part[1]));
-          return new CommandProcessorResponse(0);
-        }
-        return executeSetVariable(part[0], part[1]);
-      } else {
-        CommandUtil.authorizeCommandThrowEx(ss, HiveOperationType.SET, Arrays.asList(nwcmd));
-        return getVariable(nwcmd);
-      }
-    } catch (HiveAuthzPluginException e) {
-      return CommandProcessorResponse.create(e);
-    } catch (HiveAccessControlException e) {
-      return CommandProcessorResponse.create(e);
+      return executeSetVariable(part[0],part[1]);
+    } else {
+      return getVariable(nwcmd);
     }
 
   }
