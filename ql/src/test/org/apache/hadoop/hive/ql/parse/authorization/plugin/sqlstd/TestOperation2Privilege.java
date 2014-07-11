@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.hive.ql.parse.authorization.plugin.sqlstd;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.Set;
@@ -43,6 +44,8 @@ public class TestOperation2Privilege {
             + operationType);
       }
     }
+    assertEquals("Check if Operation2Privilege, HiveOperationType have same number of instances",
+        operationMapKeys.size(), HiveOperationType.values().length);
   }
 
 }

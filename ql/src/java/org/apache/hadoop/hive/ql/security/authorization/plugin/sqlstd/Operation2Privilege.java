@@ -318,9 +318,9 @@ public class Operation2Privilege {
 (ADMIN_PRIV_AR, ADMIN_PRIV_AR));
     op2Priv.put(HiveOperationType.ADD, PrivRequirement.newIOPrivRequirement
 (ADMIN_PRIV_AR, ADMIN_PRIV_AR));
-
-
-
+    // set command is currently not authorized through the API
+    op2Priv.put(HiveOperationType.SET, PrivRequirement.newIOPrivRequirement
+(null, null));
 
     // The following actions are authorized through SQLStdHiveAccessController,
     // and it is not using this privilege mapping, but it might make sense to move it here

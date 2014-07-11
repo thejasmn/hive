@@ -119,7 +119,6 @@ public enum HiveOperationType {
   RESET,
   DFS,
   ADD,
-  DELETE,
   COMPILE
 
 }
