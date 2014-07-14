@@ -40,6 +40,10 @@ class CommandUtil {
    */
   static CommandProcessorResponse authorizeCommand(SessionState ss, HiveOperationType type,
       List<String> command) {
+    if (ss == null) {
+      // ss can be null in unit tests
+      return null;
+    }
     if (ss.isAuthorizationModeV2()) {
       try {
         authorizeCommandThrowEx(ss, type, command);
