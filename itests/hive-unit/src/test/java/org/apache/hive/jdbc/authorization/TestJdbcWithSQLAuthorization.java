@@ -130,8 +130,8 @@ public class TestJdbcWithSQLAuthorization {
         String msg = "Principal [name=user1, type=USER] does not have following "
             + "privileges on Object [type=COMMAND_PARAMS, name=null] for operation "
             + "DFS : [ADMIN PRIVILEGE]";
-        assertTrue("Checking error message content",
-            e.getMessage().contains("Insufficient privileges to execute"));
+        assertTrue("Checking content of error message:" + e.getMessage(),
+            e.getMessage().contains(msg));
       }
       finally {
         stmt.close();
