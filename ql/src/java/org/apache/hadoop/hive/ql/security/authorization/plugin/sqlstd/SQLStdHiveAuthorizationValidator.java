@@ -28,6 +28,7 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizationValidator;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
@@ -57,8 +58,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
-      List<HivePrivilegeObject> outputHObjs) throws HiveAuthzPluginException,
-      HiveAccessControlException {
+      List<HivePrivilegeObject> outputHObjs, HiveAuthzContext context)
+      throws HiveAuthzPluginException, HiveAccessControlException {
 
     if (LOG.isDebugEnabled()) {
       String msg = "Checking privileges for operation " + hiveOpType + " by user "
