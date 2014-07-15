@@ -51,10 +51,12 @@ import org.mockito.Mockito;
  */
 public class TestHS2AuthzContext {
   private static MiniHS2 miniHS2 = null;
-  static ArgumentCaptor<HiveAuthzContext> contextCapturer = ArgumentCaptor
-      .forClass(HiveAuthzContext.class);
   static HiveAuthorizer mockedAuthorizer;
 
+  /**
+   * This factory creates a mocked HiveAuthorizer class.
+   * Use the mocked class to capture the argument passed to it in the test case.
+   */
   static class MockedHiveAuthorizerFactory implements HiveAuthorizerFactory {
     @Override
     public HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
@@ -95,6 +97,9 @@ public class TestHS2AuthzContext {
     stmt.execute(cmd);
     stmt.close();
     hs2Conn.close();
+
+    ArgumentCaptor<HiveAuthzContext> contextCapturer = ArgumentCaptor
+        .forClass(HiveAuthzContext.class);
 
     verify(mockedAuthorizer).checkPrivileges(any(HiveOperationType.class),
         Matchers.anyListOf(HivePrivilegeObject.class),
