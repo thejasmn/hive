@@ -694,11 +694,10 @@ public class Driver implements CommandProcessor {
     authzContextBuilder.setSessionString(ss.getSessionId());
     authzContextBuilder.setCommandString(command);
 
-
     HiveOperationType hiveOpType = getHiveOperationType(op);
     List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs);
     List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs);
-    ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs);
+    ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs, authzContextBuilder.build());
     return;
   }
 

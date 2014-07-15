@@ -1139,14 +1139,14 @@ public class SessionState {
   }
 
   /**
-   * @return ip address of user running the query
+   * @return ip address for user running the query
    */
   public String getUserIpAddress() {
     return userIpAddress;
   }
 
   /**
-   * set the ip address of user running the query
+   * set the ip address for user running the query
    * @param userIpAddress
    */
   public void setUserIpAddress(String userIpAddress) {

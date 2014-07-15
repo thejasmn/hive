@@ -64,7 +64,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     if (LOG.isDebugEnabled()) {
       String msg = "Checking privileges for operation " + hiveOpType + " by user "
           + authenticator.getUserName() + " on " + " input objects " + inputHObjs
-          + " and output objects " + outputHObjs;
+          + " and output objects " + outputHObjs + ". Context Info: " + context;
       LOG.debug(msg);
     }
 
