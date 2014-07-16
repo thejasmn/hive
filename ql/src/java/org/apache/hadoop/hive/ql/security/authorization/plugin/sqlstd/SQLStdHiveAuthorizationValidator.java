@@ -79,6 +79,10 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       IMetaStoreClient metastoreClient, String userName, IOType ioType)
       throws HiveAuthzPluginException, HiveAccessControlException {
 
+    if (hiveObjects == null) {
+      return;
+    }
+
     // Compare required privileges and available privileges for each hive object
     for (HivePrivilegeObject hiveObj : hiveObjects) {
 
@@ -86,7 +90,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
           ioType);
 
       // find available privileges
-      RequiredPrivileges availPrivs = null;
+      RequiredPrivileges availPrivs = new RequiredPrivileges(); //start with an empty priv set;
       switch (hiveObj.getType()) {
       case LOCAL_URI:
       case DFS_URI:
@@ -101,7 +105,10 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       case COMMAND_PARAMS:
         // operations that have objects of type COMMAND_PARAMS are authorized
         // solely on the type
-        // Assume no available privileges
+        // Assume no available privileges, unless in admin role
+        if (privController.isUserAdmin()) {
+          availPrivs.addPrivilege(SQLPrivTypeGrant.ADMIN_PRIV);
+        }
         break;
       default:
         availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(metastoreClient, userName,

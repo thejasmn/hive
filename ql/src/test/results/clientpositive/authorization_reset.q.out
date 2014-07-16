@@ -1,0 +1,8 @@
+PREHOOK: query: -- running a sql query to initialize the authorization - not needed in real HS2 mode
+use default
+PREHOOK: type: SWITCHDATABASE
+POSTHOOK: query: -- running a sql query to initialize the authorization - not needed in real HS2 mode
+use default
+POSTHOOK: type: SWITCHDATABASE
+hive.metastore.server.min.threads=101
+hive.metastore.server.min.threads=200
