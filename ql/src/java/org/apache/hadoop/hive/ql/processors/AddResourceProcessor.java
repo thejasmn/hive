@@ -57,7 +57,7 @@ public class AddResourceProcessor implements CommandProcessor {
     }
 
     CommandProcessorResponse authErrResp =
-        CommandUtil.authorizeCommand(ss, HiveOperationType.ADD, Arrays.asList(command));
+        CommandUtil.authorizeCommand(ss, HiveOperationType.ADD, Arrays.asList(tokens));
     if(authErrResp != null){
       // there was an authorization issue
       return authErrResp;

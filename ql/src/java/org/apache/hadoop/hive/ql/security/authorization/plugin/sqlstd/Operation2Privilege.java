@@ -313,10 +313,12 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.DFS, PrivRequirement.newIOPrivRequirement
 (ADMIN_PRIV_AR, ADMIN_PRIV_AR));
     op2Priv.put(HiveOperationType.RESET, PrivRequirement.newIOPrivRequirement
-(ADMIN_PRIV_AR, ADMIN_PRIV_AR));
+(null, null));
     op2Priv.put(HiveOperationType.COMPILE, PrivRequirement.newIOPrivRequirement
 (ADMIN_PRIV_AR, ADMIN_PRIV_AR));
     op2Priv.put(HiveOperationType.ADD, PrivRequirement.newIOPrivRequirement
+(ADMIN_PRIV_AR, ADMIN_PRIV_AR));
+    op2Priv.put(HiveOperationType.DELETE, PrivRequirement.newIOPrivRequirement
 (ADMIN_PRIV_AR, ADMIN_PRIV_AR));
     // set command is currently not authorized through the API
     op2Priv.put(HiveOperationType.SET, PrivRequirement.newIOPrivRequirement
