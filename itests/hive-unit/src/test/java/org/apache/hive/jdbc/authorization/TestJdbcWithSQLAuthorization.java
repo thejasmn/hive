@@ -128,7 +128,7 @@ public class TestJdbcWithSQLAuthorization {
       } catch (SQLException e){
         caughtException = true;
         String msg = "Principal [name=user1, type=USER] does not have following "
-            + "privileges on Object [type=COMMAND_PARAMS, name=null] for operation "
+            + "privileges on Object [type=COMMAND_PARAMS, name=[-ls, /tmp/]] for operation "
             + "DFS : [ADMIN PRIVILEGE]";
         assertTrue("Checking content of error message:" + e.getMessage(),
             e.getMessage().contains(msg));
