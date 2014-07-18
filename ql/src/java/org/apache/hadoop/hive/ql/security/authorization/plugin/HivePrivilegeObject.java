@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -116,13 +117,14 @@ public class HivePrivilegeObject {
     }
 
     // get the string representing action type if its non default action type
-    String actionTypeStr;
-    switch (actionType) {
-    case INSERT:
-    case INSERT_OVERWRITE:
-      actionTypeStr = ", action=" + actionType;
-    default:
-      actionTypeStr = "";
+    String actionTypeStr ="";
+    if (actionType != null) {
+      switch (actionType) {
+      case INSERT:
+      case INSERT_OVERWRITE:
+        actionTypeStr = ", action=" + actionType;
+      default:
+      }
     }
 
     return "Object [type=" + type + ", name=" + name + actionTypeStr + "]";
