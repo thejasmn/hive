@@ -80,6 +80,8 @@ public class AuthorizationUtils {
     case PARTITION:
     case DUMMYPARTITION: //need to determine if a different type is needed for dummy partitions
       return HivePrivilegeObjectType.PARTITION;
+    case FUNCTION:
+      return HivePrivilegeObjectType.FUNCTION;
     default:
       return null;
     }
@@ -161,7 +163,7 @@ public class AuthorizationUtils {
       return null;
     }
     HiveObjectType objType = getThriftHiveObjType(privObj.getType());
-    return new HiveObjectRef(objType, privObj.getDbname(), privObj.getTableViewURI(), null, null);
+    return new HiveObjectRef(objType, privObj.getDbname(), privObj.getObjectName(), null, null);
   }
 
   public static HivePrivObjectActionType getActionType(Entity privObject) {

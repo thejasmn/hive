@@ -260,7 +260,7 @@ public class SQLAuthorizationUtils {
       Table thriftTableObj = null;
       try {
         thriftTableObj = metastoreClient.getTable(hivePrivObject.getDbname(),
-            hivePrivObject.getTableViewURI());
+            hivePrivObject.getObjectName());
       } catch (Exception e) {
         throwGetObjErr(e, hivePrivObject);
       }

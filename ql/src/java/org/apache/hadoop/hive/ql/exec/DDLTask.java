@@ -739,7 +739,7 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
         //only grantInfo is used
         HiveObjectPrivilege thriftObjectPriv = new HiveObjectPrivilege(new HiveObjectRef(
             AuthorizationUtils.getThriftHiveObjType(privObj.getType()),privObj.getDbname(),
-            privObj.getTableViewURI(),null,null), principal.getName(),
+            privObj.getObjectName(),null,null), principal.getName(),
             AuthorizationUtils.getThriftPrincipalType(principal.getType()), grantInfo);
         privList.add(thriftObjectPriv);
       }

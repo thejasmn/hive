@@ -38,11 +38,12 @@ public class HivePrivilegeObject {
       name = dbname;
       break;
     case TABLE_OR_VIEW:
-      name = (dbname == null ? "" : dbname + ".") + tableviewname;
+      name = (dbname == null ? "" : dbname + ".") + objectName;
       break;
     case LOCAL_URI:
     case DFS_URI:
-      name = tableviewname;
+    case FUNCTION:
+      name = objectName;
       break;
     case COMMAND_PARAMS:
       name = commandParams.toString();
@@ -55,7 +56,7 @@ public class HivePrivilegeObject {
   }
 
   public enum HivePrivilegeObjectType {
-    DATABASE, TABLE_OR_VIEW, PARTITION, LOCAL_URI, DFS_URI, COMMAND_PARAMS
+    DATABASE, TABLE_OR_VIEW, PARTITION, LOCAL_URI, DFS_URI, COMMAND_PARAMS, FUNCTION
   };
 
   public enum HivePrivObjectActionType {
@@ -63,7 +64,7 @@ public class HivePrivilegeObject {
   };
   private final HivePrivilegeObjectType type;
   private final String dbname;
-  private final String tableviewname;
+  private final String objectName;
   private final List<String> commandParams;
   private final HivePrivObjectActionType actionType;
 
@@ -71,7 +72,7 @@ public class HivePrivilegeObject {
     this(type, dbname, tableViewURI, HivePrivObjectActionType.OTHER);
   }
 
-  public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI,
+  public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String objectName,
       HivePrivObjectActionType actionType) {
     this(type, dbname, tableViewURI, actionType, null);
   }
@@ -90,7 +91,7 @@ public class HivePrivilegeObject {
       HivePrivObjectActionType actionType, List<String> commandParams) {
     this.type = type;
     this.dbname = dbname;
-    this.tableviewname = tableViewURI;
+    this.objectName = objectName;
     this.actionType = actionType;
     this.commandParams = commandParams;
   }
@@ -103,8 +104,11 @@ public class HivePrivilegeObject {
     return dbname;
   }
 
-  public String getTableViewURI() {
-    return tableviewname;
+  /**
+   * @return name of table/view/uri/function name
+   */
+  public String getObjectName() {
+    return objectName;
   }
 
   public HivePrivObjectActionType getActionType() {
