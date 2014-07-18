@@ -29,31 +29,6 @@ import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
 @Unstable
 public class HivePrivilegeObject {
 
-  @Override
-  public String toString() {
-    String name = null;
-    switch (type) {
-    case DATABASE:
-      name = dbname;
-      break;
-    case TABLE_OR_VIEW:
-      name = (dbname == null ? "" : dbname + ".") + objectName;
-      break;
-    case LOCAL_URI:
-    case DFS_URI:
-    case FUNCTION:
-      name = objectName;
-      break;
-    case COMMAND_PARAMS:
-      name = commandParams.toString();
-      break;
-    case PARTITION:
-      break;
-    }
-    return "Object [type=" + type + ", name=" + name + "]";
-
-  }
-
   public enum HivePrivilegeObjectType {
     DATABASE, TABLE_OR_VIEW, PARTITION, LOCAL_URI, DFS_URI, COMMAND_PARAMS, FUNCTION
   };
@@ -117,4 +92,40 @@ public class HivePrivilegeObject {
   public List<String> getCommandParams() {
     return commandParams;
   }
+
+  @Override
+  public String toString() {
+    String name = null;
+    switch (type) {
+    case DATABASE:
+      name = dbname;
+      break;
+    case TABLE_OR_VIEW:
+      name = (dbname == null ? "" : dbname + ".") + objectName;
+      break;
+    case LOCAL_URI:
+    case DFS_URI:
+    case FUNCTION:
+      name = objectName;
+      break;
+    case COMMAND_PARAMS:
+      name = commandParams.toString();
+      break;
+    case PARTITION:
+      break;
+    }
+
+    // get the string representing action type if its non default action type
+    String actionTypeStr;
+    switch (actionType) {
+    case INSERT:
+    case INSERT_OVERWRITE:
+      actionTypeStr = ", action=" + actionType;
+    default:
+      actionTypeStr = "";
+    }
+
+    return "Object [type=" + type + ", name=" + name + actionTypeStr + "]";
+  }
+
 }

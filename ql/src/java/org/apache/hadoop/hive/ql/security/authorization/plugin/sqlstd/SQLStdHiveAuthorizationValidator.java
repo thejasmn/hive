@@ -76,7 +76,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     checkPrivileges(hiveOpType, inputHObjs, metastoreClient, userName, IOType.INPUT, deniedMessages);
     checkPrivileges(hiveOpType, outputHObjs, metastoreClient, userName, IOType.OUTPUT, deniedMessages);
 
-    SQLAuthorizationUtils.assertNoDeniedPermissions(deniedMessages);
+    SQLAuthorizationUtils.assertNoDeniedPermissions(new HivePrincipal(userName,
+        HivePrincipalType.USER), hiveOpType, deniedMessages);
   }
 
   private void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> hiveObjects,
@@ -121,8 +122,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
 
       // Verify that there are no missing privileges
       Collection<SQLPrivTypeGrant> missingPriv = requiredPrivs.findMissingPrivs(availPrivs);
-      SQLAuthorizationUtils.findMissingPrivileges(missingPriv, new HivePrincipal(userName,
-          HivePrincipalType.USER), hiveObj, hiveOpType, deniedMessages);
+      SQLAuthorizationUtils.addMissingPrivMsg(missingPriv, hiveObj, deniedMessages);
 
     }
   }

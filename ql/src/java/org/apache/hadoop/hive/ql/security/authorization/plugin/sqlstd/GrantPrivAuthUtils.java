@@ -67,9 +67,9 @@ public class GrantPrivAuthUtils {
     // check if required privileges is subset of available privileges
     List<String> deniedMessages = new ArrayList<String>();
     Collection<SQLPrivTypeGrant> missingPrivs = reqPrivileges.findMissingPrivs(availPrivs);
-    SQLAuthorizationUtils.findMissingPrivileges(missingPrivs, new HivePrincipal(userName,
-        HivePrincipalType.USER), hivePrivObject, opType, deniedMessages);
-    SQLAuthorizationUtils.assertNoDeniedPermissions(deniedMessages);
+    SQLAuthorizationUtils.addMissingPrivMsg(missingPrivs, hivePrivObject, deniedMessages);
+    SQLAuthorizationUtils.assertNoDeniedPermissions(new HivePrincipal(userName,
+        HivePrincipalType.USER), opType, deniedMessages);
   }
 
   private static RequiredPrivileges getGrantRequiredPrivileges(List<HivePrivilege> hivePrivileges)

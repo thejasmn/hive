@@ -348,18 +348,14 @@ public class SQLAuthorizationUtils {
     }
   }
 
-  public static void findMissingPrivileges(Collection<SQLPrivTypeGrant> missingPrivs,
-      HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject, HiveOperationType opType,
-      List<String> deniedMessages) {
+  public static void addMissingPrivMsg(Collection<SQLPrivTypeGrant> missingPrivs,
+      HivePrivilegeObject hivePrivObject, List<String> deniedMessages) {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       // sort the privileges so that error message is deterministic (for tests)
       List<SQLPrivTypeGrant> sortedmissingPrivs = new ArrayList<SQLPrivTypeGrant>(missingPrivs);
       Collections.sort(sortedmissingPrivs);
-
-      String errMsg = hivePrincipal
-          + " does not have following privileges on " + hivePrivObject +
-          " for operation " + opType + " : " + sortedmissingPrivs;
+      String errMsg = sortedmissingPrivs + " on " + hivePrivObject;
       deniedMessages.add(errMsg);
     }
   }
@@ -401,10 +397,13 @@ public class SQLAuthorizationUtils {
     return availPrivs;
   }
 
-  public static void assertNoDeniedPermissions(List<String> deniedMessages)
-      throws HiveAccessControlException {
+  public static void assertNoDeniedPermissions(HivePrincipal hivePrincipal,
+      HiveOperationType hiveOpType, List<String> deniedMessages) throws HiveAccessControlException {
     if (deniedMessages.size() != 0) {
-      String errorMessage = "Permission denied: " + deniedMessages;
+      Collections.sort(deniedMessages);
+      String errorMessage = "Permission denied: " + hivePrincipal
+          + " does not have following privileges for operation " + hiveOpType + " "
+          + deniedMessages;
       throw new HiveAccessControlException(errorMessage);
     }
   }
