@@ -348,19 +348,19 @@ public class SQLAuthorizationUtils {
     }
   }
 
-  public static void assertNoMissingPrivilege(Collection<SQLPrivTypeGrant> missingPrivs,
-      HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject, HiveOperationType opType)
-      throws HiveAccessControlException {
+  public static void findMissingPrivileges(Collection<SQLPrivTypeGrant> missingPrivs,
+      HivePrincipal hivePrincipal, HivePrivilegeObject hivePrivObject, HiveOperationType opType,
+      List<String> deniedMessages) {
     if (missingPrivs.size() != 0) {
       // there are some required privileges missing, create error message
       // sort the privileges so that error message is deterministic (for tests)
       List<SQLPrivTypeGrant> sortedmissingPrivs = new ArrayList<SQLPrivTypeGrant>(missingPrivs);
       Collections.sort(sortedmissingPrivs);
 
-      String errMsg = "Permission denied. " + hivePrincipal
+      String errMsg = hivePrincipal
           + " does not have following privileges on " + hivePrivObject +
           " for operation " + opType + " : " + sortedmissingPrivs;
-      throw new HiveAccessControlException(errMsg.toString());
+      deniedMessages.add(errMsg);
     }
   }
 
@@ -399,6 +399,14 @@ public class SQLAuthorizationUtils {
       throw new HiveAuthzPluginException(msg, e);
     }
     return availPrivs;
+  }
+
+  public static void assertNoDeniedPermissions(List<String> deniedMessages)
+      throws HiveAccessControlException {
+    if (deniedMessages.size() != 0) {
+      String errorMessage = "Permission denied: " + deniedMessages;
+      throw new HiveAccessControlException(errorMessage);
+    }
   }
 
 
