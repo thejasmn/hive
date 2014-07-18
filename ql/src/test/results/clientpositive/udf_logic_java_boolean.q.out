@@ -13,9 +13,11 @@ STAGE PLANS:
 PREHOOK: query: CREATE TEMPORARY FUNCTION test_udf_get_java_boolean AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFTestGetJavaBoolean'
 PREHOOK: type: CREATEFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: test_udf_get_java_boolean
 POSTHOOK: query: CREATE TEMPORARY FUNCTION test_udf_get_java_boolean AS 'org.apache.hadoop.hive.ql.udf.generic.GenericUDFTestGetJavaBoolean'
 POSTHOOK: type: CREATEFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: test_udf_get_java_boolean
 PREHOOK: query: select 1 from src where test_udf_get_java_boolean("false") and True limit 1
 PREHOOK: type: QUERY
 PREHOOK: Input: default@src
@@ -172,6 +174,8 @@ POSTHOOK: Input: default@src
 PREHOOK: query: DROP TEMPORARY FUNCTION test_udf_get_java_boolean
 PREHOOK: type: DROPFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: test_udf_get_java_boolean
 POSTHOOK: query: DROP TEMPORARY FUNCTION test_udf_get_java_boolean
 POSTHOOK: type: DROPFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: test_udf_get_java_boolean
