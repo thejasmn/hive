@@ -95,7 +95,7 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
       switch (hiveObj.getType()) {
       case LOCAL_URI:
       case DFS_URI:
-          availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(new Path(hiveObj.getObjectName()),
+        availPrivs = SQLAuthorizationUtils.getPrivilegesFromFS(new Path(hiveObj.getObjectName()),
             conf, userName);
         break;
       case PARTITION:

@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -74,7 +73,7 @@ public class HivePrivilegeObject {
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String objectName,
       HivePrivObjectActionType actionType) {
-    this(type, dbname, tableViewURI, actionType, null);
+    this(type, dbname, objectName, actionType, null);
   }
 
   /**
@@ -87,7 +86,7 @@ public class HivePrivilegeObject {
         cmdParams);
   }
 
-  public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String tableViewURI,
+  public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String objectName,
       HivePrivObjectActionType actionType, List<String> commandParams) {
     this.type = type;
     this.dbname = dbname;

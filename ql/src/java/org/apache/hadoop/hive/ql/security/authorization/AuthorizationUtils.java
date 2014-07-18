@@ -142,12 +142,8 @@ public class AuthorizationUtils {
       return HiveObjectType.TABLE;
     case PARTITION:
       return HiveObjectType.PARTITION;
-    case LOCAL_URI:
-    case DFS_URI:
-      throw new HiveException("Unsupported type " + type);
     default:
-      //should not happen as we have accounted for all types
-      throw new AssertionError("Unsupported type " + type);
+      throw new HiveException("Unsupported type " + type);
     }
   }
 

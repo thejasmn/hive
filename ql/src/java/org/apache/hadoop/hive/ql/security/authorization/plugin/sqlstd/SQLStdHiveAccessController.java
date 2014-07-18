@@ -415,7 +415,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
         }
 
         HivePrivilegeObject resPrivObj = new HivePrivilegeObject(
-            getPluginObjType(msObjRef.getObjectType()), msObjRef.getDbName(),
+            getPluginPrivilegeObjType(msObjRef.getObjectType()), msObjRef.getDbName(),
             msObjRef.getObjectName());
 
         // result grantor principal
@@ -474,8 +474,14 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     return false;
   }
 
-  private HivePrivilegeObjectType getPluginObjType(HiveObjectType objectType)
-      throws HiveAuthzPluginException {
+  /**
+   * Convert metastore object type to HivePrivilegeObjectType.
+   * Also verifies that metastore object type is of a type on which metastore privileges are
+   * supported by sql std auth.
+   * @param objectType
+   * @return corresponding HivePrivilegeObjectType
+   */
+  private HivePrivilegeObjectType getPluginPrivilegeObjType(HiveObjectType objectType) {
     switch (objectType) {
     case DATABASE:
       return HivePrivilegeObjectType.DATABASE;
