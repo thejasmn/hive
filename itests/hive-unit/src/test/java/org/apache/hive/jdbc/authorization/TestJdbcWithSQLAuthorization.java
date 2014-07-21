@@ -132,7 +132,7 @@ public class TestJdbcWithSQLAuthorization {
             + "Object [type=COMMAND_PARAMS, name=[-ls, /tmp/]]]";
         assertTrue("Checking content of error message:" + e.getMessage(),
             e.getMessage().contains(msg));
-      }    finally {
+      } finally {
         stmt.close();
         hs2Conn.close();
       }

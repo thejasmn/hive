@@ -33,10 +33,6 @@ import org.apache.hadoop.hive.ql.parse.SemanticAnalyzer;
  * query. This object may be a table, partition, dfs directory or a local
  * directory.
  */
-/**
- * @author thejas
- *
- */
 public class Entity implements Serializable {
   private static final long serialVersionUID = 1L;
 

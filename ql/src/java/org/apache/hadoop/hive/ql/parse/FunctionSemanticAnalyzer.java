@@ -175,6 +175,7 @@ public class FunctionSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     // Add the function name as a WriteEntity
-    outputs.add(new WriteEntity(database, functionName,Type.FUNCTION, WriteEntity.WriteType.DDL_NO_LOCK));
+    outputs.add(new WriteEntity(database, functionName, Type.FUNCTION,
+        WriteEntity.WriteType.DDL_NO_LOCK));
   }
 }
