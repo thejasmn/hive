@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -102,11 +101,11 @@ public class HivePrivilegeObject {
       name = dbname;
       break;
     case TABLE_OR_VIEW:
+    case FUNCTION:
       name = (dbname == null ? "" : dbname + ".") + objectName;
       break;
     case LOCAL_URI:
     case DFS_URI:
-    case FUNCTION:
       name = objectName;
       break;
     case COMMAND_PARAMS:
