@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.ResourceType;
 import org.apache.hadoop.hive.metastore.api.ResourceUri;
@@ -151,16 +150,22 @@ public class FunctionSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   /**
-   * Add write entities to the semantic analyzer to restrict function creation to priviliged users.
+   * Add write entities to the semantic analyzer to restrict function creation to privileged users.
    */
   private void addEntities(String functionName, boolean isTemporaryFunction)
       throws SemanticException {
+    // If the function is being added under a database 'namespace', then add an entity representing
+    // the database (only applicable to permanent/metastore functions).
+    // We also add a second entity representing the function name.
+    // The authorization api implementation can decide which entities it wants to use to
+    // authorize the create/drop function call.
+
     // Add the relevant database 'namespace' as a WriteEntity
     Database database = null;
-    if (isTemporaryFunction) {
-      // This means temp function creation is also restricted.
-      database = getDatabase(MetaStoreUtils.DEFAULT_DATABASE_NAME);
-    } else {
+
+    // temporary functions don't have any database 'namespace' associated with it,
+    // it matters only for permanent functions
+    if (!isTemporaryFunction) {
       try {
         String[] qualifiedNameParts = FunctionUtils.getQualifiedFunctionNameParts(functionName);
         String dbName = qualifiedNameParts[0];

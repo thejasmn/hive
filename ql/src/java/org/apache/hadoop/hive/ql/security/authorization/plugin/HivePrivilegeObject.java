@@ -1,4 +1,4 @@
-/**
+y/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -164,6 +164,7 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
       break;
     case TABLE_OR_VIEW:
     case PARTITION:
+    case FUNCTION:
       name = (dbname == null ? "" : dbname + ".") + objectName;
       if (partKeys != null) {
         name += partKeys.toString();
@@ -172,7 +173,6 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     case COLUMN:
     case LOCAL_URI:
     case DFS_URI:
-    case FUNCTION:
       name = objectName;
       break;
     case COMMAND_PARAMS:
