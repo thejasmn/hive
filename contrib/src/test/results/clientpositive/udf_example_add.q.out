@@ -1,9 +1,11 @@
 PREHOOK: query: CREATE TEMPORARY FUNCTION example_add AS 'org.apache.hadoop.hive.contrib.udf.example.UDFExampleAdd'
 PREHOOK: type: CREATEFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: example_add
 POSTHOOK: query: CREATE TEMPORARY FUNCTION example_add AS 'org.apache.hadoop.hive.contrib.udf.example.UDFExampleAdd'
 POSTHOOK: type: CREATEFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: example_add
 PREHOOK: query: EXPLAIN
 SELECT example_add(1, 2),
        example_add(1, 2, 3),
@@ -82,6 +84,8 @@ POSTHOOK: Input: default@src
 PREHOOK: query: DROP TEMPORARY FUNCTION example_add
 PREHOOK: type: DROPFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: example_add
 POSTHOOK: query: DROP TEMPORARY FUNCTION example_add
 POSTHOOK: type: DROPFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: example_add

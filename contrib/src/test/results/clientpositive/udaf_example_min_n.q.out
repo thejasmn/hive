@@ -1,9 +1,11 @@
 PREHOOK: query: CREATE TEMPORARY FUNCTION example_min_n AS 'org.apache.hadoop.hive.contrib.udaf.example.UDAFExampleMinN'
 PREHOOK: type: CREATEFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: example_min_n
 POSTHOOK: query: CREATE TEMPORARY FUNCTION example_min_n AS 'org.apache.hadoop.hive.contrib.udaf.example.UDAFExampleMinN'
 POSTHOOK: type: CREATEFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: example_min_n
 PREHOOK: query: EXPLAIN
 SELECT example_min_n(substr(value,5),10),
        example_min_n(IF(substr(value,5) < 250, NULL, substr(value,5)),10)
@@ -78,6 +80,8 @@ POSTHOOK: Input: default@src
 PREHOOK: query: DROP TEMPORARY FUNCTION example_min_n
 PREHOOK: type: DROPFUNCTION
 PREHOOK: Output: database:default
+PREHOOK: Output: example_min_n
 POSTHOOK: query: DROP TEMPORARY FUNCTION example_min_n
 POSTHOOK: type: DROPFUNCTION
 POSTHOOK: Output: database:default
+POSTHOOK: Output: example_min_n
