@@ -48,10 +48,10 @@ import org.mockito.Mockito;
 /**
  * Test HiveAuthorizer api invocation
  */
-public class TestHiveAuthorizerInvocation {
+public class TestHiveAuthorizerCheckInvocation {
   protected static HiveConf conf;
   protected static Driver driver;
-  private static final String tableName = TestHiveAuthorizerInvocation.class.getSimpleName();
+  private static final String tableName = TestHiveAuthorizerCheckInvocation.class.getSimpleName();
   static HiveAuthorizer mockedAuthorizer;
 
   /**
@@ -62,8 +62,8 @@ public class TestHiveAuthorizerInvocation {
     @Override
     public HiveAuthorizer createHiveAuthorizer(HiveMetastoreClientFactory metastoreClientFactory,
         HiveConf conf, HiveAuthenticationProvider authenticator) {
-      TestHiveAuthorizerInvocation.mockedAuthorizer = Mockito.mock(HiveAuthorizer.class);
-      return TestHiveAuthorizerInvocation.mockedAuthorizer;
+      TestHiveAuthorizerCheckInvocation.mockedAuthorizer = Mockito.mock(HiveAuthorizer.class);
+      return TestHiveAuthorizerCheckInvocation.mockedAuthorizer;
     }
 
   }
@@ -72,7 +72,7 @@ public class TestHiveAuthorizerInvocation {
   public static void beforeTest() throws Exception {
     conf = new HiveConf();
 
-    // Turn on sql standard authorization
+    // Turn on mocked authorization
     conf.setVar(ConfVars.HIVE_AUTHORIZATION_MANAGER, MockedHiveAuthorizerFactory.class.getName());
     conf.setVar(ConfVars.HIVE_AUTHENTICATOR_MANAGER, SessionStateUserAuthenticator.class.getName());
     conf.setBoolVar(ConfVars.HIVE_AUTHORIZATION_ENABLED, true);
@@ -95,7 +95,6 @@ public class TestHiveAuthorizerInvocation {
       CommandNeedRetryException {
 
     reset(mockedAuthorizer);
-
     int status = driver.compile("select i, k from " + tableName);
     assertEquals(0, status);
 
@@ -112,7 +111,6 @@ public class TestHiveAuthorizerInvocation {
       CommandNeedRetryException {
 
     reset(mockedAuthorizer);
-
     int status = driver.compile("select * from " + tableName + " order by i");
     assertEquals(0, status);
 
@@ -130,7 +128,6 @@ public class TestHiveAuthorizerInvocation {
       CommandNeedRetryException {
 
     reset(mockedAuthorizer);
-
     int status = driver.compile("describe " + tableName);
     assertEquals(0, status);
 

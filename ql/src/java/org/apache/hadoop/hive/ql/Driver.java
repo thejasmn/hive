@@ -508,7 +508,7 @@ public class Driver implements CommandProcessor {
       // get mapping of tables to columns used
       Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
       Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
-      //determine if partition level privileges should be checked for input tables
+      // partition level privileges are not checked, so leave following map empty
       Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
       getTablePartitionUsedColumns(op, sem, tab2Cols, part2Cols, tableUsePartLevelAuth);
 
