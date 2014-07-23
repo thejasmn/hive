@@ -86,7 +86,7 @@ public class TestHiveAuthorizerInvocation {
   }
 
   @AfterClass
-  public static void afterTets() throws Exception {
+  public static void afterTests() throws Exception {
     driver.close();
   }
 
