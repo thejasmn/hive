@@ -19,9 +19,10 @@
 package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
@@ -47,15 +48,15 @@ import org.mockito.Mockito;
 /**
  * Test HiveAuthorizer api invocation
  */
-public class TestHiveAuthorizerInvocation  {
+public class TestHiveAuthorizerInvocation {
   protected static HiveConf conf;
   protected static Driver driver;
-
+  private static final String tableName = TestHiveAuthorizerInvocation.class.getSimpleName();
   static HiveAuthorizer mockedAuthorizer;
 
   /**
-   * This factory creates a mocked HiveAuthorizer class.
-   * Use the mocked class to capture the argument passed to it in the test case.
+   * This factory creates a mocked HiveAuthorizer class. Use the mocked class to
+   * capture the argument passed to it in the test case.
    */
   static class MockedHiveAuthorizerFactory implements HiveAuthorizerFactory {
     @Override
@@ -80,6 +81,8 @@ public class TestHiveAuthorizerInvocation  {
 
     SessionState.start(conf);
     driver = new Driver(conf);
+    CommandProcessorResponse resp = driver.run("create table " + tableName + " (i int, j int, k string)");
+    assertEquals(0, resp.getResponseCode());
   }
 
   @AfterClass
@@ -88,37 +91,81 @@ public class TestHiveAuthorizerInvocation  {
   }
 
   @Test
-  public void testInputColumnsUsed() throws HiveAuthzPluginException, HiveAccessControlException, CommandNeedRetryException{
-    String tableName = this.getClass().getSimpleName();
-    CommandProcessorResponse resp = driver.run("create table " + tableName + " (i int, j int, k string)");
-    assertEquals(0, resp.getResponseCode());
+  public void testInputSomeColumnsUsed() throws HiveAuthzPluginException, HiveAccessControlException,
+      CommandNeedRetryException {
+
+    reset(mockedAuthorizer);
 
     int status = driver.compile("select i, k from " + tableName);
     assertEquals(0, status);
 
-    // Create argument capturer
-    // a class variable cast to this generic of generic class
-    Class<List<HivePrivilegeObject>> class_listPrivObjects =
-        (Class) List.class;
-    ArgumentCaptor<List<HivePrivilegeObject>> inputsCapturer = ArgumentCaptor
-        .forClass(class_listPrivObjects);
-
-    verify(mockedAuthorizer, times(2)).checkPrivileges(any(HiveOperationType.class),
-        inputsCapturer.capture(),
-        Matchers.anyListOf(HivePrivilegeObject.class), any(HiveAuthzContext.class));
-
-    assertEquals("number of input lists captured", 2, inputsCapturer.getAllValues().size());
-    List<HivePrivilegeObject> inputs = inputsCapturer.getAllValues().get(1);
-    assertEquals("number of inputs in second call to mocked api", 1, inputs.size());
-
+    List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
+    checkSingleTableInput(inputs);
     HivePrivilegeObject tableObj = inputs.get(0);
-    assertEquals("input type", HivePrivilegeObjectType.TABLE_OR_VIEW, tableObj.getType());
-    assertTrue("table name", tableName.equalsIgnoreCase(tableObj.getTableViewURI()));
-    assertEquals("no of columns used", 2 , tableObj.getColumns().size());
-
+    assertEquals("no of columns used", 2, tableObj.getColumns().size());
     Collections.sort(tableObj.getColumns());
     assertEquals("Columns used", Arrays.asList("i", "k"), tableObj.getColumns());
   }
 
+  @Test
+  public void testInputAllColumnsUsed() throws HiveAuthzPluginException, HiveAccessControlException,
+      CommandNeedRetryException {
+
+    reset(mockedAuthorizer);
+
+    int status = driver.compile("select * from " + tableName + " order by i");
+    assertEquals(0, status);
+
+    List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
+    checkSingleTableInput(inputs);
+    HivePrivilegeObject tableObj = inputs.get(0);
+    assertEquals("no of columns used", 3, tableObj.getColumns().size());
+
+    Collections.sort(tableObj.getColumns());
+    assertEquals("Columns used", Arrays.asList("i", "j", "k"), tableObj.getColumns());
+  }
+
+  @Test
+  public void testInputNoColumnsUsed() throws HiveAuthzPluginException, HiveAccessControlException,
+      CommandNeedRetryException {
+
+    reset(mockedAuthorizer);
+
+    int status = driver.compile("describe " + tableName);
+    assertEquals(0, status);
+
+    List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
+    checkSingleTableInput(inputs);
+    HivePrivilegeObject tableObj = inputs.get(0);
+    assertNull("columns used", tableObj.getColumns());
+  }
+
+  private void checkSingleTableInput(List<HivePrivilegeObject> inputs) {
+    assertEquals("number of inputs", 1, inputs.size());
+
+    HivePrivilegeObject tableObj = inputs.get(0);
+    assertEquals("input type", HivePrivilegeObjectType.TABLE_OR_VIEW, tableObj.getType());
+    assertTrue("table name", tableName.equalsIgnoreCase(tableObj.getTableViewURI()));
+  }
+
+  /**
+   * @return the inputs passed in current call to authorizer.checkPrivileges
+   * @throws HiveAuthzPluginException
+   * @throws HiveAccessControlException
+   */
+  private List<HivePrivilegeObject> getHivePrivilegeObjectInputs() throws HiveAuthzPluginException,
+      HiveAccessControlException {
+    // Create argument capturer
+    // a class variable cast to this generic of generic class
+    Class<List<HivePrivilegeObject>> class_listPrivObjects = (Class) List.class;
+    ArgumentCaptor<List<HivePrivilegeObject>> inputsCapturer = ArgumentCaptor
+        .forClass(class_listPrivObjects);
+
+    verify(mockedAuthorizer).checkPrivileges(any(HiveOperationType.class),
+        inputsCapturer.capture(), Matchers.anyListOf(HivePrivilegeObject.class),
+        any(HiveAuthzContext.class));
+
+    return inputsCapturer.getValue();
+  }
 
 }
