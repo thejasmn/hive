@@ -560,6 +560,8 @@ public class Driver implements CommandProcessor {
       Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
       Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
 
+
+
       //determine if partition level privileges should be checked for input tables
       Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
       for (ReadEntity read : inputs) {
@@ -583,56 +585,9 @@ public class Driver implements CommandProcessor {
         }
       }
 
-      //for a select or create-as-select query, populate the partition to column (par2Cols) or
-      // table to columns mapping (tab2Cols)
-      if (op.equals(HiveOperation.CREATETABLE_AS_SELECT)
-          || op.equals(HiveOperation.QUERY)) {
-        SemanticAnalyzer querySem = (SemanticAnalyzer) sem;
-        ParseContext parseCtx = querySem.getParseContext();
-        Map<TableScanOperator, Table> tsoTopMap = parseCtx.getTopToTable();
+      getTablePartitionUsedColumns(op, sem, tab2Cols, part2Cols, tableUsePartLevelAuth);
 
-        for (Map.Entry<String, Operator<? extends OperatorDesc>> topOpMap : querySem
-            .getParseContext().getTopOps().entrySet()) {
-          Operator<? extends OperatorDesc> topOp = topOpMap.getValue();
-          if (topOp instanceof TableScanOperator
-              && tsoTopMap.containsKey(topOp)) {
-            TableScanOperator tableScanOp = (TableScanOperator) topOp;
-            Table tbl = tsoTopMap.get(tableScanOp);
-            List<Integer> neededColumnIds = tableScanOp.getNeededColumnIDs();
-            List<FieldSchema> columns = tbl.getCols();
-            List<String> cols = new ArrayList<String>();
-            for (int i = 0; i < neededColumnIds.size(); i++) {
-              cols.add(columns.get(neededColumnIds.get(i)).getName());
-            }
-            //map may not contain all sources, since input list may have been optimized out
-            //or non-existent tho such sources may still be referenced by the TableScanOperator
-            //if it's null then the partition probably doesn't exist so let's use table permission
-            if (tbl.isPartitioned() &&
-                tableUsePartLevelAuth.get(tbl.getTableName()) == Boolean.TRUE) {
-              String alias_id = topOpMap.getKey();
 
-              PrunedPartitionList partsList = PartitionPruner.prune(tableScanOp,
-                  parseCtx, alias_id);
-              Set<Partition> parts = partsList.getPartitions();
-              for (Partition part : parts) {
-                List<String> existingCols = part2Cols.get(part);
-                if (existingCols == null) {
-                  existingCols = new ArrayList<String>();
-                }
-                existingCols.addAll(cols);
-                part2Cols.put(part, existingCols);
-              }
-            } else {
-              List<String> existingCols = tab2Cols.get(tbl);
-              if (existingCols == null) {
-                existingCols = new ArrayList<String>();
-              }
-              existingCols.addAll(cols);
-              tab2Cols.put(tbl, existingCols);
-            }
-          }
-        }
-      }
 
       // cache the results for table authorization
       Set<String> tableAuthChecked = new HashSet<String>();
@@ -681,6 +636,63 @@ public class Driver implements CommandProcessor {
       }
 
     }
+  }
+
+  private static void getTablePartitionUsedColumns(HiveOperation op, BaseSemanticAnalyzer sem,
+      Map<Table, List<String>> tab2Cols, Map<Partition, List<String>> part2Cols,
+      Map<String, Boolean> tableUsePartLevelAuth) throws HiveException {
+    // for a select or create-as-select query, populate the partition to column
+    // (par2Cols) or
+    // table to columns mapping (tab2Cols)
+    if (op.equals(HiveOperation.CREATETABLE_AS_SELECT)
+        || op.equals(HiveOperation.QUERY)) {
+      SemanticAnalyzer querySem = (SemanticAnalyzer) sem;
+      ParseContext parseCtx = querySem.getParseContext();
+      Map<TableScanOperator, Table> tsoTopMap = parseCtx.getTopToTable();
+
+      for (Map.Entry<String, Operator<? extends OperatorDesc>> topOpMap : querySem
+          .getParseContext().getTopOps().entrySet()) {
+        Operator<? extends OperatorDesc> topOp = topOpMap.getValue();
+        if (topOp instanceof TableScanOperator
+            && tsoTopMap.containsKey(topOp)) {
+          TableScanOperator tableScanOp = (TableScanOperator) topOp;
+          Table tbl = tsoTopMap.get(tableScanOp);
+          List<Integer> neededColumnIds = tableScanOp.getNeededColumnIDs();
+          List<FieldSchema> columns = tbl.getCols();
+          List<String> cols = new ArrayList<String>();
+          for (int i = 0; i < neededColumnIds.size(); i++) {
+            cols.add(columns.get(neededColumnIds.get(i)).getName());
+          }
+          //map may not contain all sources, since input list may have been optimized out
+          //or non-existent tho such sources may still be referenced by the TableScanOperator
+          //if it's null then the partition probably doesn't exist so let's use table permission
+          if (tbl.isPartitioned() &&
+              tableUsePartLevelAuth.get(tbl.getTableName()) == Boolean.TRUE) {
+            String alias_id = topOpMap.getKey();
+
+            PrunedPartitionList partsList = PartitionPruner.prune(tableScanOp,
+                parseCtx, alias_id);
+            Set<Partition> parts = partsList.getPartitions();
+            for (Partition part : parts) {
+              List<String> existingCols = part2Cols.get(part);
+              if (existingCols == null) {
+                existingCols = new ArrayList<String>();
+              }
+              existingCols.addAll(cols);
+              part2Cols.put(part, existingCols);
+            }
+          } else {
+            List<String> existingCols = tab2Cols.get(tbl);
+            if (existingCols == null) {
+              existingCols = new ArrayList<String>();
+            }
+            existingCols.addAll(cols);
+            tab2Cols.put(tbl, existingCols);
+          }
+        }
+      }
+    }
+
   }
 
   private static void doAuthorizationV2(SessionState ss, HiveOperation op, HashSet<ReadEntity> inputs,
