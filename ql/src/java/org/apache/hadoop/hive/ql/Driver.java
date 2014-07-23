@@ -28,10 +28,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -503,7 +505,14 @@ public class Driver implements CommandProcessor {
     Hive db = sem.getDb();
 
     if (ss.isAuthorizationModeV2()) {
-      doAuthorizationV2(ss, op, inputs, outputs, command);
+      // get mapping of tables to columns used
+      Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
+      Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
+      //determine if partition level privileges should be checked for input tables
+      Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
+      getTablePartitionUsedColumns(op, sem, tab2Cols, part2Cols, tableUsePartLevelAuth);
+
+      doAuthorizationV2(ss, op, inputs, outputs, command, tab2Cols);
       return;
     }
     if (op == null) {
@@ -559,8 +568,6 @@ public class Driver implements CommandProcessor {
     if (inputs != null && inputs.size() > 0) {
       Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
       Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
-
-
 
       //determine if partition level privileges should be checked for input tables
       Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
@@ -696,7 +703,7 @@ public class Driver implements CommandProcessor {
   }
 
   private static void doAuthorizationV2(SessionState ss, HiveOperation op, HashSet<ReadEntity> inputs,
-      HashSet<WriteEntity> outputs, String command) throws HiveException {
+      HashSet<WriteEntity> outputs, String command, Map<Table, List<String>> tab2Cols) throws HiveException {
 
     HiveAuthzContext.Builder authzContextBuilder = new HiveAuthzContext.Builder();
 
@@ -708,9 +715,39 @@ public class Driver implements CommandProcessor {
 
     HiveOperationType hiveOpType = getHiveOperationType(op);
     List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs);
+    updateInputColumnInfo(inputsHObjs, tab2Cols);
+
     List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs);
     ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs, authzContextBuilder.build());
     return;
+  }
+
+  /**
+   * Add column information for input table objects
+   * @param inputsHObjs input HivePrivilegeObject
+   * @param tab2Cols table to used input columns mapping
+   */
+  private static void updateInputColumnInfo(List<HivePrivilegeObject> inputsHObjs,
+      Map<Table, List<String>> tab2Cols) {
+    //create db+table name to used columns mapping
+    Map<Pair<String, String>, List<String>> tableName2Cols =
+        new HashMap<Pair<String, String>, List<String>>();
+
+    for (Entry<Table, List<String>> tab2Col : tab2Cols.entrySet()) {
+      Table tab = tab2Col.getKey();
+      tableName2Cols.put(Pair.of(tab.getDbName(), tab.getTableName()), tab2Col.getValue());
+    }
+
+    for(HivePrivilegeObject inputObj : inputsHObjs){
+      if(inputObj.getType() != HivePrivilegeObjectType.TABLE_OR_VIEW){
+        // input columns are relevant only for tables or views
+        continue;
+      }
+      List<String> cols = tableName2Cols.get(Pair.of(inputObj.getDbname(), inputObj.getTableViewURI()));
+
+    }
+
+
   }
 
   private static List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects) {
