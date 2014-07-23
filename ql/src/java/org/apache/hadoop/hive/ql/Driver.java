@@ -744,10 +744,8 @@ public class Driver implements CommandProcessor {
         continue;
       }
       List<String> cols = tableName2Cols.get(Pair.of(inputObj.getDbname(), inputObj.getTableViewURI()));
-
+      inputObj.setColumns(cols);
     }
-
-
   }
 
   private static List<HivePrivilegeObject> getHivePrivObjects(HashSet<? extends Entity> privObjects) {

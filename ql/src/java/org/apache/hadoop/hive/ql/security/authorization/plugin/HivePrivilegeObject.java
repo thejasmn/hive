@@ -79,7 +79,7 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
   private final String objectName;
   private final List<String> commandParams;
   private final List<String> partKeys;
-  private final List<String> columns;
+  private List<String> columns;
   private final HivePrivObjectActionType actionType;
 
   public HivePrivilegeObject(HivePrivilegeObjectType type, String dbname, String objectName) {
@@ -157,6 +157,7 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     return columns;
   }
 
+<<<<<<< HEAD
   @Override
   public String toString() {
     String name = null;
@@ -200,6 +201,10 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
 
   private String getDbObjectName(String dbname2, String objectName2) {
     return (dbname == null ? "" : dbname + ".") + objectName;
+  }
+
+  public void setColumns(List<String> columnms) {
+    this.columns = columnms;
   }
 
 }
