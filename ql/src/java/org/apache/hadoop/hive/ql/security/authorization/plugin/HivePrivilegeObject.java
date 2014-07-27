@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -157,7 +158,6 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     return columns;
   }
 
-<<<<<<< HEAD
   @Override
   public String toString() {
     String name = null;

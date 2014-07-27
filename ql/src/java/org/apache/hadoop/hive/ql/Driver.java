@@ -743,7 +743,7 @@ public class Driver implements CommandProcessor {
         // input columns are relevant only for tables or views
         continue;
       }
-      List<String> cols = tableName2Cols.get(Pair.of(inputObj.getDbname(), inputObj.getTableViewURI()));
+      List<String> cols = tableName2Cols.get(Pair.of(inputObj.getDbname(), inputObj.getObjectName()));
       inputObj.setColumns(cols);
     }
   }
