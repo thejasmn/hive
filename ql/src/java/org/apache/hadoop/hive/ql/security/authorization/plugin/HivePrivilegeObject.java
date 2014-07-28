@@ -20,11 +20,13 @@ package org.apache.hadoop.hive.ql.security.authorization.plugin;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -62,16 +64,15 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
   private int compare(Collection<String> o1, Collection<String> o2) {
     Iterator<String> it1 = o1.iterator();
     Iterator<String> it2 = o2.iterator();
-    while(it1.hasNext()){
-      if(!it2.hasNext()) {
+    while (it1.hasNext()) {
+      if (!it2.hasNext()) {
         break;
       }
-      int compare = it1.next().compareTo(it2.next());
-
-    }
-
-    for (int i = 0; i < Math.min(o1.size(), o2.size()); i++) {
-      int compare = o1.get(i).compareTo(o2.get(i));
+      String s1 = it1.next();
+      String s2 = it2.next();
+      int compare = s1 != null ?
+          (s2 != null ? s1.compareTo(s2) : 1) :
+            (s2 != null ? -1 : 0);
       if (compare != 0) {
         return compare;
       }
