@@ -81,7 +81,8 @@ public class TestHiveAuthorizerCheckInvocation {
 
     SessionState.start(conf);
     driver = new Driver(conf);
-    CommandProcessorResponse resp = driver.run("create table " + tableName + " (i int, j int, k string)");
+    CommandProcessorResponse resp = driver.run("create table " + tableName
+        + " (i int, j int, k string) partitioned by (city string, date string) ");
     assertEquals(0, resp.getResponseCode());
   }
 
@@ -95,7 +96,8 @@ public class TestHiveAuthorizerCheckInvocation {
       CommandNeedRetryException {
 
     reset(mockedAuthorizer);
-    int status = driver.compile("select i, k from " + tableName);
+    int status = driver.compile("select i from " + tableName
+        + " where k = 'X' and city = 'Scottsdale-AZ' ");
     assertEquals(0, status);
 
     List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
@@ -103,7 +105,7 @@ public class TestHiveAuthorizerCheckInvocation {
     HivePrivilegeObject tableObj = inputs.get(0);
     assertEquals("no of columns used", 2, tableObj.getColumns().size());
     Collections.sort(tableObj.getColumns());
-    assertEquals("Columns used", Arrays.asList("i", "k"), tableObj.getColumns());
+    assertEquals("Columns used", Arrays.asList("i", "k", "city"), tableObj.getColumns());
   }
 
   @Test
@@ -120,7 +122,7 @@ public class TestHiveAuthorizerCheckInvocation {
     assertEquals("no of columns used", 3, tableObj.getColumns().size());
 
     Collections.sort(tableObj.getColumns());
-    assertEquals("Columns used", Arrays.asList("i", "j", "k"), tableObj.getColumns());
+    assertEquals("Columns used", Arrays.asList("i", "j", "k", "city", "date"), tableObj.getColumns());
   }
 
   @Test
