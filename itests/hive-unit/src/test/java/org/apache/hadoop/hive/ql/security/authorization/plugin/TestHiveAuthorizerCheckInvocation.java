@@ -142,7 +142,7 @@ public class TestHiveAuthorizerCheckInvocation {
 
     HivePrivilegeObject tableObj = inputs.get(0);
     assertEquals("input type", HivePrivilegeObjectType.TABLE_OR_VIEW, tableObj.getType());
-    assertTrue("table name", tableName.equalsIgnoreCase(tableObj.getTableViewURI()));
+    assertTrue("table name", tableName.equalsIgnoreCase(tableObj.getObjectName()));
   }
 
   /**
