@@ -28,12 +28,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -84,6 +82,7 @@ import org.apache.hadoop.hive.ql.metadata.formatting.MetaDataFormatter;
 import org.apache.hadoop.hive.ql.optimizer.ppr.PartitionPruner;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
+import org.apache.hadoop.hive.ql.parse.ColumnAccessInfo;
 import org.apache.hadoop.hive.ql.parse.HiveSemanticAnalyzerHook;
 import org.apache.hadoop.hive.ql.parse.HiveSemanticAnalyzerHookContext;
 import org.apache.hadoop.hive.ql.parse.HiveSemanticAnalyzerHookContextImpl;
@@ -506,13 +505,16 @@ public class Driver implements CommandProcessor {
 
     if (ss.isAuthorizationModeV2()) {
       // get mapping of tables to columns used
+      ColumnAccessInfo colAccessInfo = sem.getColumnAccessInfo();
+
+
       Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
       Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
       // partition level privileges are not checked, so leave following map empty
       Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
       getTablePartitionUsedColumns(op, sem, tab2Cols, part2Cols, tableUsePartLevelAuth);
 
-      doAuthorizationV2(ss, op, inputs, outputs, command, tab2Cols);
+      doAuthorizationV2(ss, op, inputs, outputs, command, colAccessInfo.getTableToColumnAccessMap());
       return;
     }
     if (op == null) {
@@ -703,7 +705,7 @@ public class Driver implements CommandProcessor {
   }
 
   private static void doAuthorizationV2(SessionState ss, HiveOperation op, HashSet<ReadEntity> inputs,
-      HashSet<WriteEntity> outputs, String command, Map<Table, List<String>> tab2Cols) throws HiveException {
+      HashSet<WriteEntity> outputs, String command, Map<String, Set<String>> tab2cols) throws HiveException {
 
     HiveAuthzContext.Builder authzContextBuilder = new HiveAuthzContext.Builder();
 
@@ -715,7 +717,7 @@ public class Driver implements CommandProcessor {
 
     HiveOperationType hiveOpType = getHiveOperationType(op);
     List<HivePrivilegeObject> inputsHObjs = getHivePrivObjects(inputs);
-    updateInputColumnInfo(inputsHObjs, tab2Cols);
+    updateInputColumnInfo(inputsHObjs, tab2cols);
 
     List<HivePrivilegeObject> outputHObjs = getHivePrivObjects(outputs);
     ss.getAuthorizerV2().checkPrivileges(hiveOpType, inputsHObjs, outputHObjs, authzContextBuilder.build());
@@ -725,25 +727,16 @@ public class Driver implements CommandProcessor {
   /**
    * Add column information for input table objects
    * @param inputsHObjs input HivePrivilegeObject
-   * @param tab2Cols table to used input columns mapping
+   * @param map table to used input columns mapping
    */
   private static void updateInputColumnInfo(List<HivePrivilegeObject> inputsHObjs,
-      Map<Table, List<String>> tab2Cols) {
-    //create db+table name to used columns mapping
-    Map<Pair<String, String>, List<String>> tableName2Cols =
-        new HashMap<Pair<String, String>, List<String>>();
-
-    for (Entry<Table, List<String>> tab2Col : tab2Cols.entrySet()) {
-      Table tab = tab2Col.getKey();
-      tableName2Cols.put(Pair.of(tab.getDbName(), tab.getTableName()), tab2Col.getValue());
-    }
-
+      Map<String, Set<String>> tableName2Cols) {
     for(HivePrivilegeObject inputObj : inputsHObjs){
       if(inputObj.getType() != HivePrivilegeObjectType.TABLE_OR_VIEW){
         // input columns are relevant only for tables or views
         continue;
       }
-      List<String> cols = tableName2Cols.get(Pair.of(inputObj.getDbname(), inputObj.getObjectName()));
+      Set<String> cols = tableName2Cols.get(Table.getCompleteName(inputObj.getDbname(), inputObj.getObjectName()));
       inputObj.setColumns(cols);
     }
   }
