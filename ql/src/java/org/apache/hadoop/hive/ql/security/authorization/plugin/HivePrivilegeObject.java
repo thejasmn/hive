@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.hive.common.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Represents the object on which privilege is being granted/revoked
@@ -165,6 +164,12 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     return partKeys;
   }
 
+  /**
+   * Applicable columns in this object
+   * In case of DML read operations, this is the set of columns being used.
+   * Column information is not set for DDL operations and for tables being written into
+   * @return list of applicable columns
+   */
   public Set<String> getColumns() {
     return columns;
   }
