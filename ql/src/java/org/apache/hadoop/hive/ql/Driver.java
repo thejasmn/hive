@@ -506,16 +506,11 @@ public class Driver implements CommandProcessor {
     if (ss.isAuthorizationModeV2()) {
       // get mapping of tables to columns used
       ColumnAccessInfo colAccessInfo = sem.getColumnAccessInfo();
-
-
-      Map<Table, List<String>> tab2Cols = new HashMap<Table, List<String>>();
-      Map<Partition, List<String>> part2Cols = new HashMap<Partition, List<String>>();
-      // partition level privileges are not checked, so leave following map empty
-      Map<String, Boolean> tableUsePartLevelAuth = new HashMap<String, Boolean>();
-      getTablePartitionUsedColumns(op, sem, tab2Cols, part2Cols, tableUsePartLevelAuth);
-
-      doAuthorizationV2(ss, op, inputs, outputs, command, colAccessInfo.getTableToColumnAccessMap());
-      return;
+      // colAccessInfo is set only in case of SemanticAnalyzer
+      Map<String, Set<String>> tab2Cols = colAccessInfo != null ? colAccessInfo
+          .getTableToColumnAccessMap() : null;
+      doAuthorizationV2(ss, op, inputs, outputs, command, tab2Cols);
+     return;
     }
     if (op == null) {
       throw new HiveException("Operation should not be null");
@@ -731,12 +726,16 @@ public class Driver implements CommandProcessor {
    */
   private static void updateInputColumnInfo(List<HivePrivilegeObject> inputsHObjs,
       Map<String, Set<String>> tableName2Cols) {
+    if(tableName2Cols == null) {
+      return;
+    }
     for(HivePrivilegeObject inputObj : inputsHObjs){
       if(inputObj.getType() != HivePrivilegeObjectType.TABLE_OR_VIEW){
         // input columns are relevant only for tables or views
         continue;
       }
-      Set<String> cols = tableName2Cols.get(Table.getCompleteName(inputObj.getDbname(), inputObj.getObjectName()));
+      Set<String> cols = tableName2Cols.get(Table.getCompleteName(inputObj.getDbname(),
+          inputObj.getObjectName()));
       inputObj.setColumns(cols);
     }
   }

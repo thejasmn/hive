@@ -109,7 +109,6 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     this(type, dbname, objectName, partKeys,
         column == null ? null : new HashSet<String>(Arrays.asList(column)),
         HivePrivObjectActionType.OTHER, null);
-
   }
 
   /**

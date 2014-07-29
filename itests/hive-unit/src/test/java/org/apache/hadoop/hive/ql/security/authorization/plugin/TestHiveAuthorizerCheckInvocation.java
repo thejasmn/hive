@@ -25,9 +25,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
@@ -103,9 +105,15 @@ public class TestHiveAuthorizerCheckInvocation {
     List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
     checkSingleTableInput(inputs);
     HivePrivilegeObject tableObj = inputs.get(0);
-    assertEquals("no of columns used", 2, tableObj.getColumns().size());
-    Collections.sort(tableObj.getColumns());
-    assertEquals("Columns used", Arrays.asList("i", "k", "city"), tableObj.getColumns());
+    assertEquals("no of columns used", 3, tableObj.getColumns().size());
+    assertEquals("Columns used", Arrays.asList("city", "i", "k"),
+        getSortedList(tableObj.getColumns()));
+  }
+
+  private List<String> getSortedList(Set<String> columns) {
+    List<String> sortedCols = new ArrayList<String>(columns);
+    Collections.sort(sortedCols);
+    return sortedCols;
   }
 
   @Test
@@ -119,10 +127,9 @@ public class TestHiveAuthorizerCheckInvocation {
     List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs();
     checkSingleTableInput(inputs);
     HivePrivilegeObject tableObj = inputs.get(0);
-    assertEquals("no of columns used", 3, tableObj.getColumns().size());
-
-    Collections.sort(tableObj.getColumns());
-    assertEquals("Columns used", Arrays.asList("i", "j", "k", "city", "date"), tableObj.getColumns());
+    assertEquals("no of columns used", 5, tableObj.getColumns().size());
+    assertEquals("Columns used", Arrays.asList("city", "date", "i", "j", "k"),
+        getSortedList(tableObj.getColumns()));
   }
 
   @Test
