@@ -26,6 +26,8 @@ import org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransformHook;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext.Builder;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext.CLIENT_TYPE;
 import org.junit.Test;
 
 import com.google.common.base.Joiner;
@@ -44,10 +46,9 @@ public class TestSQLStdHiveAccessController {
   @Test
   public void testConfigProcessing() throws HiveAuthzPluginException {
     HiveConf processedConf = new HiveConf();
-
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
-        processedConf, new HadoopDefaultAuthenticator(),
-        (new HiveAuthzSessionContext.Builder()).build());
+        processedConf, new HadoopDefaultAuthenticator(), getHS2SessionCtx()
+        );
     accessController.applyAuthorizationConfigPolicy(processedConf);
 
     // check that hook to disable transforms has been added
@@ -56,6 +57,12 @@ public class TestSQLStdHiveAccessController {
 
     verifyParamSettability(SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth, processedConf);
 
+  }
+
+  private HiveAuthzSessionContext getHS2SessionCtx() {
+    Builder ctxBuilder = new HiveAuthzSessionContext.Builder();
+    ctxBuilder.setClientType(CLIENT_TYPE.HIVESERVER2);
+    return ctxBuilder.build();
   }
 
   /**
@@ -91,20 +98,17 @@ public class TestSQLStdHiveAccessController {
 
     HiveConf processedConf = new HiveConf();
     // add custom value, including one from the default, one new one
-    String [] settableParams = {SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth[0], "abcs.dummy.test.param"};
-    processedConf.setVar(HiveConf.ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST,
+    String[] settableParams = { SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth[0],
+        "abcs.dummy.test.param" };
+   processedConf.setVar(HiveConf.ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST,
         Joiner.on(",").join(settableParams));
 
-
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
-        processedConf, new HadoopDefaultAuthenticator(),
-        (new HiveAuthzSessionContext.Builder()).build());
+        processedConf, new HadoopDefaultAuthenticator(), getHS2SessionCtx());
     accessController.applyAuthorizationConfigPolicy(processedConf);
     verifyParamSettability(settableParams, processedConf);
 
-
   }
-
 
   private void assertConfModificationException(HiveConf processedConf, String param) {
     boolean caughtEx = false;
