@@ -599,10 +599,13 @@ public class DDLTask extends Task<DDLWork> implements Serializable {
 
     HiveAuthorizer authorizer = getSessionAuthorizer();
     try {
+      Set<String> colSet = showGrantDesc.getColumns() != null ? new HashSet<String>(
+          showGrantDesc.getColumns()) : null;
       List<HivePrivilegeInfo> privInfos = authorizer.showPrivileges(
           AuthorizationUtils.getHivePrincipal(showGrantDesc.getPrincipalDesc()),
           AuthorizationUtils.getHivePrivilegeObject(showGrantDesc.getHiveObj(),
-              new HashSet<String>(showGrantDesc.getColumns())));
+              colSet
+              ));
       boolean testMode = conf.getBoolVar(HiveConf.ConfVars.HIVE_IN_TEST);
       writeToFile(writeGrantInfo(privInfos, testMode), showGrantDesc.getResFile());
     } catch (IOException e) {
