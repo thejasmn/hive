@@ -50,6 +50,8 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransform
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessController;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext.CLIENT_TYPE;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrincipal;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilege;
@@ -81,13 +83,16 @@ public class SQLStdHiveAccessController implements HiveAccessController {
       + "have it as current role, for this action.";
   private final String HAS_ADMIN_PRIV_MSG = "grantor need to have ADMIN OPTION on role being"
       + " granted and have it as a current role for this action.";
+  private final HiveAuthzSessionContext sessionCtx;
   public static final Log LOG = LogFactory.getLog(SQLStdHiveAccessController.class);
 
   public SQLStdHiveAccessController(HiveMetastoreClientFactory metastoreClientFactory, HiveConf conf,
-      HiveAuthenticationProvider authenticator) throws HiveAuthzPluginException {
+      HiveAuthenticationProvider authenticator, HiveAuthzSessionContext ctx) throws HiveAuthzPluginException {
     this.metastoreClientFactory = metastoreClientFactory;
     this.authenticator = authenticator;
+    this.sessionCtx = ctx;
     initUserRoles();
+    LOG.info("Created SQLStdHiveAccessController for session context : " + sessionCtx);
   }
 
   /**
@@ -671,31 +676,37 @@ public class SQLStdHiveAccessController implements HiveAccessController {
 
   @Override
   public void applyAuthorizationConfigPolicy(HiveConf hiveConf) {
-    // grant all privileges for table to its owner
+    // First apply configuration applicable to both Hive Cli and HiveServer2
+    // Not adding any authorization related restrictions to hive cli
+    // grant all privileges for table to its owner - set this in cli as well so that owner
+    // has permissions via HiveServer2 as well.
     hiveConf.setVar(ConfVars.HIVE_AUTHORIZATION_TABLE_OWNER_GRANTS, "INSERT,SELECT,UPDATE,DELETE");
 
-    // Configure PREEXECHOOKS with DisallowTransformHook to disallow transform queries
-    String hooks = hiveConf.getVar(ConfVars.PREEXECHOOKS).trim();
-    if (hooks.isEmpty()) {
-      hooks = DisallowTransformHook.class.getName();
-    } else {
-      hooks = hooks + "," +DisallowTransformHook.class.getName();
-    }
-    LOG.debug("Configuring hooks : " + hooks);
-    hiveConf.setVar(ConfVars.PREEXECHOOKS, hooks);
+    // Apply rest of the configuration only to HiveServer2
+    if(sessionCtx.getClientType() == CLIENT_TYPE.HIVESERVER2) {
+      // Configure PREEXECHOOKS with DisallowTransformHook to disallow transform queries
+      String hooks = hiveConf.getVar(ConfVars.PREEXECHOOKS).trim();
+      if (hooks.isEmpty()) {
+        hooks = DisallowTransformHook.class.getName();
+      } else {
+        hooks = hooks + "," +DisallowTransformHook.class.getName();
+      }
+      LOG.debug("Configuring hooks : " + hooks);
+      hiveConf.setVar(ConfVars.PREEXECHOOKS, hooks);
 
-    // restrict the variables that can be set using set command to a list in whitelist
-    hiveConf.setIsModWhiteListEnabled(true);
-    String whiteListParamsStr = hiveConf.getVar(ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST);
-    if (whiteListParamsStr == null || whiteListParamsStr.trim().equals("")){
-      // set the default configs in whitelist
-      whiteListParamsStr = Joiner.on(",").join(defaultModWhiteListSqlStdAuth);
-      hiveConf.setVar(ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST, whiteListParamsStr);
+      // restrict the variables that can be set using set command to a list in whitelist
+      hiveConf.setIsModWhiteListEnabled(true);
+      String whiteListParamsStr = hiveConf.getVar(ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST);
+      if (whiteListParamsStr == null || whiteListParamsStr.trim().equals("")){
+        // set the default configs in whitelist
+        whiteListParamsStr = Joiner.on(",").join(defaultModWhiteListSqlStdAuth);
+        hiveConf.setVar(ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST, whiteListParamsStr);
+      }
+      for(String whiteListParam : whiteListParamsStr.split(",")){
+        hiveConf.addToModifiableWhiteList(whiteListParam);
+      }
     }
-    for(String whiteListParam : whiteListParamsStr.split(",")){
-      hiveConf.addToModifiableWhiteList(whiteListParam);
-    }
-
   }
+
 
 }

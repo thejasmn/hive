@@ -25,6 +25,7 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransformHook;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.junit.Test;
 
 import com.google.common.base.Joiner;
@@ -45,7 +46,8 @@ public class TestSQLStdHiveAccessController {
     HiveConf processedConf = new HiveConf();
 
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
-        processedConf, new HadoopDefaultAuthenticator());
+        processedConf, new HadoopDefaultAuthenticator(),
+        (new HiveAuthzSessionContext.Builder()).build());
     accessController.applyAuthorizationConfigPolicy(processedConf);
 
     // check that hook to disable transforms has been added
@@ -95,7 +97,8 @@ public class TestSQLStdHiveAccessController {
 
 
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
-        processedConf, new HadoopDefaultAuthenticator());
+        processedConf, new HadoopDefaultAuthenticator(),
+        (new HiveAuthzSessionContext.Builder()).build());
     accessController.applyAuthorizationConfigPolicy(processedConf);
     verifyParamSettability(settableParams, processedConf);
 
