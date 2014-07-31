@@ -33,9 +33,11 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
 import org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAccessControlException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizer;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthorizerFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzContext;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveMetastoreClientFactory;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
@@ -89,12 +91,21 @@ public class TestHS2AuthzContext {
   }
 
   @Test
-  public void testAuthzContextContents() throws Exception {
+  public void testAuthzContextContentsDriverCmd() throws Exception {
+    String cmd = "show tables";
+    verifyContextContents(cmd, cmd);
+  }
 
+  @Test
+  public void testAuthzContextContentsCmdProcessorCmd() throws Exception {
+    verifyContextContents("dfs -ls /", "-ls /");
+  }
+
+  private void verifyContextContents(final String cmd, String ctxCmd) throws SQLException,
+      HiveAuthzPluginException, HiveAccessControlException {
     Connection hs2Conn = getConnection("user1");
     Statement stmt = hs2Conn.createStatement();
 
-    final String cmd = "show tables";
     stmt.execute(cmd);
     stmt.close();
     hs2Conn.close();
@@ -108,7 +119,7 @@ public class TestHS2AuthzContext {
 
     HiveAuthzContext context = contextCapturer.getValue();
 
-    assertEquals("Command ", cmd, context.getCommandString());
+    assertEquals("Command ", ctxCmd, context.getCommandString());
     assertTrue("ip address pattern check", context.getIpAddress().contains("."));
     // ip address size check - check for something better than non zero
     assertTrue("ip address size check", context.getIpAddress().length() > 7);
