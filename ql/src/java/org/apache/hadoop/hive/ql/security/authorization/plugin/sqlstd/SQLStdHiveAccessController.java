@@ -104,7 +104,7 @@ public class SQLStdHiveAccessController implements HiveAccessController {
    * @return
    */
   private HiveAuthzSessionContext applyTestSettings(HiveAuthzSessionContext ctx, HiveConf conf) {
-    if(Boolean.getBoolean(conf.get("hive.test.ssquth.hs2.mode")) &&
+    if(conf.getBoolVar(ConfVars.HIVE_TEST_AUTHORIZATION_SQLSTD_HS2_MODE) &&
         ctx.getClientType() == CLIENT_TYPE.HIVECLI
         ){
       // create new session ctx object with HS2 as client type
