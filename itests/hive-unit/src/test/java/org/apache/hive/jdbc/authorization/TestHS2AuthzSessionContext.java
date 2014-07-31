@@ -44,8 +44,8 @@ public class TestHS2AuthzSessionContext {
   private static HiveAuthzSessionContext sessionCtx;
 
   /**
-   * This factory creates a mocked HiveAuthorizer class. Use the mocked class to
-   * capture the argument passed to it in the test case.
+   * This factory captures the HiveAuthzSessionContext argument and returns mocked
+   * HiveAuthorizer class
    */
   static class MockedHiveAuthorizerFactory implements HiveAuthorizerFactory {
     @Override

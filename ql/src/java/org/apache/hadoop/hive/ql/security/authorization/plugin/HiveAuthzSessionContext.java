@@ -36,6 +36,17 @@ public final class HiveAuthzSessionContext {
     private String sessionString;
     private CLIENT_TYPE clientType;
 
+    public Builder(){};
+
+    /**
+     * Builder that copies values from given instance of HiveAuthzSessionContext
+     * @param other
+     */
+    public Builder(HiveAuthzSessionContext other){
+      this.sessionString = other.getSessionString();
+      this.clientType = other.getClientType();
+    }
+
     public String getSessionString() {
       return sessionString;
     }
@@ -52,6 +63,7 @@ public final class HiveAuthzSessionContext {
       return new HiveAuthzSessionContext(this);
     }
   }
+
   private final String sessionString;
   private final CLIENT_TYPE clientType;
 

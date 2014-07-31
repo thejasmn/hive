@@ -35,7 +35,7 @@ import com.google.common.base.Joiner;
 /**
  * Test SQLStdHiveAccessController
  */
-public class TestSQLStdHiveAccessController {
+public class TestSQLStdHiveAccessControllerHS2 {
 
   /**
    * Test if SQLStdHiveAccessController is applying configuration security
