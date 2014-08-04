@@ -1331,7 +1331,8 @@ public class HiveConf extends Configuration {
 
     SEMANTIC_ANALYZER_HOOK("hive.semantic.analyzer.hook", "", ""),
     HIVE_TEST_AUTHORIZATION_SQLSTD_HS2_MODE(
-        "hive.test.authz.sstd.hs2.mode", false, "test hs2 mode from .q tests", true),    HIVE_AUTHORIZATION_ENABLED("hive.security.authorization.enabled", false,
+        "hive.test.authz.sstd.hs2.mode", false, "test hs2 mode from .q tests", true),
+    HIVE_AUTHORIZATION_ENABLED("hive.security.authorization.enabled", false,
         "enable or disable the Hive client authorization"),
     HIVE_AUTHORIZATION_MANAGER("hive.security.authorization.manager",
         "org.apache.hadoop.hive.ql.security.authorization.DefaultHiveAuthorizationProvider",
