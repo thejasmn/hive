@@ -4008,7 +4008,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       incrementCounter("drop_role");
       firePreEvent(new PreAuthorizationCallEvent(this));
       if (ADMIN.equals(roleName) || PUBLIC.equals(roleName)) {
-        throw new MetaException(PUBLIC + "," + ADMIN +" roles can't be dropped.");
+        throw new MetaException(PUBLIC + "," + ADMIN + " roles can't be dropped.");
       }
       Boolean ret = null;
       try {
