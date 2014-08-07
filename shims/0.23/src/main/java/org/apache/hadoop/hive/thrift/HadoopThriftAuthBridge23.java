@@ -82,7 +82,7 @@ public class HadoopThriftAuthBridge23 extends HadoopThriftAuthBridge20S {
       Method getInstanceMethod = SASL_PROPERTIES_RESOLVER_CLASS.getMethod("getInstance",
           Configuration.class);
       Method getDefaultPropertiesMethod = SASL_PROPERTIES_RESOLVER_CLASS.getMethod(
-          "getDefaultProperties", Configuration.class);
+          "getDefaultProperties");
       Configurable saslPropertiesResolver = (Configurable) getInstanceMethod.invoke(null, conf);
       saslPropertiesResolver.setConf(conf);
       return (Map<String, String>) getDefaultPropertiesMethod.invoke(saslPropertiesResolver);
