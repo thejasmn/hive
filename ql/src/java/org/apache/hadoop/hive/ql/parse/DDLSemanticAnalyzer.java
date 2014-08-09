@@ -745,6 +745,8 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     if (dbProps != null) {
       createDatabaseDesc.setDatabaseProperties(dbProps);
     }
+    Database database = new Database(dbName, dbComment, dbLocation, dbProps);
+    outputs.add(new WriteEntity(database, WriteEntity.WriteType.DDL_EXCLUSIVE));
 
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createDatabaseDesc), conf));
@@ -795,8 +797,12 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), dropDatabaseDesc), conf));
   }
 
-  private void analyzeSwitchDatabase(ASTNode ast) {
+  private void analyzeSwitchDatabase(ASTNode ast) throws SemanticException {
     String dbName = unescapeIdentifier(ast.getChild(0).getText());
+    Database database = getDatabase(dbName, true);
+    ReadEntity dbReadEntity = new ReadEntity(database);
+    dbReadEntity.noLockNeeded();
+    inputs.add(dbReadEntity);
     SwitchDatabaseDesc switchDatabaseDesc = new SwitchDatabaseDesc(dbName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         switchDatabaseDesc), conf));
@@ -1080,7 +1086,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     storageFormat.fillDefaultStorageFormat();
-
+    inputs.add(new ReadEntity(getTableWithQN(tableName, true)));
 
     CreateIndexDesc crtIndexDesc = new CreateIndexDesc(tableName, indexName,
         indexedCols, indexTableName, deferredRebuild, storageFormat.getInputFormat(),
@@ -1109,6 +1115,8 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         throw new SemanticException(ErrorMsg.INVALID_INDEX.getMsg(indexName));
       }
     }
+
+    inputs.add(new ReadEntity(getTableWithQN(tableName, true)));
 
     DropIndexDesc dropIdxDesc = new DropIndexDesc(indexName, tableName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
