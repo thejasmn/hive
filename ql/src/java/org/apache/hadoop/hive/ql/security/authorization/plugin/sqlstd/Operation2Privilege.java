@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivObjectActionType;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 
 /**
  * Mapping of operation to its required input and output privileges
@@ -43,6 +44,7 @@ public class Operation2Privilege {
     // The following fields specify the criteria on objects for this priv to be required
     private final IOType ioType;
     private final HivePrivObjectActionType actionType;
+    private final HivePrivilegeObjectType objectType;
 
 
     private PrivRequirement(SQLPrivTypeGrant[] privs, IOType ioType) {
@@ -51,10 +53,21 @@ public class Operation2Privilege {
 
     private PrivRequirement(SQLPrivTypeGrant[] privs, IOType ioType,
         HivePrivObjectActionType actionType) {
+      this(privs, ioType, actionType, null);
+    }
+
+    private PrivRequirement(SQLPrivTypeGrant[] privs, HivePrivilegeObjectType objectType) {
+      this(privs, null, null, objectType);
+    }
+
+    private PrivRequirement(SQLPrivTypeGrant[] privs, IOType ioType,
+        HivePrivObjectActionType actionType, HivePrivilegeObjectType objectType) {
       this.reqPrivs = privs;
       this.ioType = ioType;
       this.actionType = actionType;
+      this.objectType = objectType;
     }
+
 
     /**
      * Utility function that takes a input and output privilege objects
@@ -80,6 +93,10 @@ public class Operation2Privilege {
 
     private HivePrivObjectActionType getActionType() {
       return actionType;
+    }
+
+    public HivePrivilegeObjectType getObjectType() {
+      return objectType;
     }
 
   }
@@ -388,20 +405,17 @@ public class Operation2Privilege {
     List<PrivRequirement> opPrivs = op2Priv.get(hiveOpType);
     RequiredPrivileges reqPrivs = new RequiredPrivileges();
 
-    // Find the PrivRequirements that match on IOType and ActionType, and add
-    // the privilege
-    // required to reqPrivs
+    // Find the PrivRequirements that match on IOType, ActionType, and HivePrivilegeObjectType add
+    // the privilege required to reqPrivs
     for (PrivRequirement opPriv : opPrivs) {
-      if (opPriv.getIOType() != ioType) {
+      if (opPriv.getIOType() != null && opPriv.getIOType() != ioType) {
         continue;
       }
-      if (opPriv.getActionType() != null) {
-        // if action in PrivRequirement is null, it means that
-        // the privileges are required irrespective of hObj's action type
-        // If it is not null, action type has to match
-        if (hObj.getActionType() != opPriv.getActionType()) {
-          continue;
-        }
+      if (opPriv.getActionType() != null && opPriv.getActionType() != hObj.getActionType()) {
+        continue;
+      }
+      if (opPriv.getObjectType() != null && opPriv.getObjectType() != hObj.getType()) {
+        continue;
       }
       reqPrivs.addAll(opPriv.getReqPrivs());
     }
