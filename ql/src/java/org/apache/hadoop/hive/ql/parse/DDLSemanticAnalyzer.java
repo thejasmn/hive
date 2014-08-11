@@ -746,7 +746,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       createDatabaseDesc.setDatabaseProperties(dbProps);
     }
     Database database = new Database(dbName, dbComment, dbLocation, dbProps);
-    outputs.add(new WriteEntity(database, WriteEntity.WriteType.DDL_EXCLUSIVE));
+    outputs.add(new WriteEntity(database, WriteEntity.WriteType.DDL_NO_LOCK));
 
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createDatabaseDesc), conf));
