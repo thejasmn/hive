@@ -88,7 +88,7 @@ public class Operation2Privilege {
      * @param privs
      * @return
      */
-    static List<PrivRequirement> newIOPrivRequirement(PrivRequirement... privs) {
+    static List<PrivRequirement> newPrivRequirementList(PrivRequirement... privs) {
       return new ArrayList<PrivRequirement>(Arrays.asList(privs));
     }
 
@@ -133,9 +133,9 @@ public class Operation2Privilege {
 (SEL_NOGRANT_AR,
         SEL_NOGRANT_AR)); //??
 
-    op2Priv.put(HiveOperationType.CREATEDATABASE,
-        PrivRequirement.newIOPrivRequirement
-(ADMIN_PRIV_AR, OWNER_INS_SEL_DEL_NOGRANT_AR));
+    op2Priv.put(HiveOperationType.CREATEDATABASE, PrivRequirement.newPrivRequirementList(
+        new PrivRequirement(OWNER_INS_SEL_DEL_NOGRANT_AR, HivePrivilegeObjectType.DFS_URI),
+        new PrivRequirement(OWNER_INS_SEL_DEL_NOGRANT_AR, HivePrivilegeObjectType.LOCAL_URI)));
 
     op2Priv.put(HiveOperationType.DROPDATABASE, PrivRequirement.newIOPrivRequirement
 (null, OWNER_PRIV_AR));
@@ -326,7 +326,7 @@ public class Operation2Privilege {
 (null, null));
 
     // require db ownership, if there is a file require SELECT , INSERT, and DELETE
-    op2Priv.put(HiveOperationType.CREATETABLE, PrivRequirement.newIOPrivRequirement(
+    op2Priv.put(HiveOperationType.CREATETABLE, PrivRequirement.newPrivRequirementList(
         new PrivRequirement(OWNER_INS_SEL_DEL_NOGRANT_AR, IOType.INPUT),
         new PrivRequirement(OWNER_PRIV_AR, HivePrivilegeObjectType.DATABASE)));
 
