@@ -83,6 +83,15 @@ public class Operation2Privilege {
       return privReqs;
     }
 
+    /**
+     * Utility function that converts PrivRequirement array into list
+     * @param privs
+     * @return
+     */
+    static List<PrivRequirement> newIOPrivRequirement(PrivRequirement... privs) {
+      return new ArrayList<PrivRequirement>(Arrays.asList(privs));
+    }
+
     private SQLPrivTypeGrant[] getReqPrivs() {
       return reqPrivs;
     }
@@ -317,9 +326,9 @@ public class Operation2Privilege {
 (null, null));
 
     // require db ownership, if there is a file require SELECT , INSERT, and DELETE
-    op2Priv.put(HiveOperationType.CREATETABLE,
-        PrivRequirement.newIOPrivRequirement
-(OWNER_INS_SEL_DEL_NOGRANT_AR, OWNER_PRIV_AR));
+    op2Priv.put(HiveOperationType.CREATETABLE, PrivRequirement.newIOPrivRequirement(
+        new PrivRequirement(OWNER_INS_SEL_DEL_NOGRANT_AR, IOType.INPUT),
+        new PrivRequirement(OWNER_PRIV_AR, HivePrivilegeObjectType.DATABASE)));
 
     op2Priv.put(HiveOperationType.ALTERDATABASE, PrivRequirement.newIOPrivRequirement
 (null, ADMIN_PRIV_AR));
