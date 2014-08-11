@@ -818,7 +818,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     // configured not to fail silently
     boolean throwException =
         !ifExists && !HiveConf.getBoolVar(conf, ConfVars.DROPIGNORESNONEXISTENT);
-    Table tab = getTableWithQN(tableName, throwException);
+    Table tab = getTable(tableName, throwException);
     if (tab != null) {
       inputs.add(new ReadEntity(tab));
       outputs.add(new WriteEntity(tab, WriteEntity.WriteType.DDL_EXCLUSIVE));
@@ -1021,7 +1021,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   private void analyzeCreateIndex(ASTNode ast) throws SemanticException {
     String indexName = unescapeIdentifier(ast.getChild(0).getText());
     String typeName = unescapeSQLString(ast.getChild(1).getText());
-    String[] qualified = getQualifiedTableName((ASTNode) ast.getChild(2));
+    String[] qTabName = getQualifiedTableName((ASTNode) ast.getChild(2));
     List<String> indexedCols = getColumnNames((ASTNode) ast.getChild(3));
 
     IndexType indexType = HiveIndex.getIndexType(typeName);
@@ -1087,14 +1087,14 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
     storageFormat.fillDefaultStorageFormat();
     if (indexTableName == null) {
-      indexTableName = MetaStoreUtils.getIndexTableName(qualified[0], qualified[1], indexName);
-      indexTableName = qualified[0] + "." + indexTableName; // on same database with base table
+      indexTableName = MetaStoreUtils.getIndexTableName(qTabName[0], qTabName[1], indexName);
+      indexTableName = qTabName[0] + "." + indexTableName; // on same database with base table
     } else {
       indexTableName = getDotName(Utilities.getDbTableName(indexTableName));
     }
-    inputs.add(new ReadEntity(getTableWithQN(tableName, true)));
+    inputs.add(new ReadEntity(getTable(qTabName)));
 
-    CreateIndexDesc crtIndexDesc = new CreateIndexDesc(getDotName(qualified), indexName,
+    CreateIndexDesc crtIndexDesc = new CreateIndexDesc(getDotName(qTabName), indexName,
         indexedCols, indexTableName, deferredRebuild, storageFormat.getInputFormat(),
         storageFormat.getOutputFormat(),
         storageFormat.getStorageHandler(), typeName, location, idxProps, tblProps,
@@ -1122,7 +1122,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       }
     }
 
-    inputs.add(new ReadEntity(getTableWithQN(tableName, true)));
+    inputs.add(new ReadEntity(getTable(tableName)));
 
     DropIndexDesc dropIdxDesc = new DropIndexDesc(indexName, tableName);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
