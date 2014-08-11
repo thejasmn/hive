@@ -23,9 +23,5 @@ PREHOOK: type: SWITCHDATABASE
 PREHOOK: Input: database:default
 POSTHOOK: query: use default
 POSTHOOK: type: SWITCHDATABASE
-<<<<<<< HEAD
-FAILED: SemanticException Duplicates declaration for database name
-=======
 POSTHOOK: Input: database:default
-FAILED: SemanticException [Error 10001]: Table not found test_db.foo
->>>>>>> updated tests
+FAILED: SemanticException Duplicates declaration for database name
