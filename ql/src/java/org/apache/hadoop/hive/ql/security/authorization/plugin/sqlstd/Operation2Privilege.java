@@ -273,7 +273,7 @@ public class Operation2Privilege {
     op2Priv.put(HiveOperationType.SHOW_TBLPROPERTIES, PrivRequirement.newIOPrivRequirement
 (SEL_NOGRANT_AR, null));
     op2Priv.put(HiveOperationType.CREATETABLE_AS_SELECT, PrivRequirement.newIOPrivRequirement
-(SEL_NOGRANT_AR, null));
+(SEL_NOGRANT_AR, OWNER_PRIV_AR));
 
     // QUERY,LOAD op can contain an insert & overwrite,
     // require delete privilege if this is an insert-overwrite
