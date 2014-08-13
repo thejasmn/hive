@@ -1,0 +1,22 @@
+#### A masked pattern was here ####
+create database ctas_auth
+PREHOOK: type: CREATEDATABASE
+#### A masked pattern was here ####
+create database ctas_auth
+POSTHOOK: type: CREATEDATABASE
+PREHOOK: query: create table t1(i int)
+PREHOOK: type: CREATETABLE
+PREHOOK: Output: database:default
+POSTHOOK: query: create table t1(i int)
+POSTHOOK: type: CREATETABLE
+POSTHOOK: Output: database:default
+POSTHOOK: Output: default@t1
+PREHOOK: query: use ctas_auth
+PREHOOK: type: SWITCHDATABASE
+POSTHOOK: query: use ctas_auth
+POSTHOOK: type: SWITCHDATABASE
+PREHOOK: query: show tables
+PREHOOK: type: SHOWTABLES
+POSTHOOK: query: show tables
+POSTHOOK: type: SHOWTABLES
+FAILED: HiveAccessControlException Permission denied: Principal [name=user_unauth, type=USER] does not have following privileges for operation CREATETABLE_AS_SELECT [[OBJECT OWNERSHIP] on Object [type=DATABASE, name=ctas_auth]]
