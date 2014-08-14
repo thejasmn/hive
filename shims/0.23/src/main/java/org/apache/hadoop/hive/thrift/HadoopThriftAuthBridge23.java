@@ -39,6 +39,7 @@ public class HadoopThriftAuthBridge23 extends HadoopThriftAuthBridge20S {
   private static Method GET_DEFAULT_PROP_METHOD;
   static {
     SASL_PROPERTIES_RESOLVER_CLASS = null;
+    SASL_PROPS_FIELD = null;
     final String SASL_PROP_RES_CLASSNAME = "org.apache.hadoop.security.SaslPropertiesResolver";
     try {
       SASL_PROPERTIES_RESOLVER_CLASS = Class.forName(SASL_PROP_RES_CLASSNAME);
