@@ -230,9 +230,7 @@ public class TestHiveAuthorizerCheckInvocation {
         inputsCapturer.capture(), outputsCapturer.capture(),
         any(HiveAuthzContext.class));
 
-    // return inputsCapturer.getValue();
     return new ImmutablePair(inputsCapturer.getValue(), outputsCapturer.getValue());
-
   }
 
 }
