@@ -1,20 +1,25 @@
 #### A masked pattern was here ####
 create database ctas_auth
 PREHOOK: type: CREATEDATABASE
+PREHOOK: Output: database:ctas_auth
 #### A masked pattern was here ####
 create database ctas_auth
 POSTHOOK: type: CREATEDATABASE
+POSTHOOK: Output: database:ctas_auth
 PREHOOK: query: create table t1(i int)
 PREHOOK: type: CREATETABLE
 PREHOOK: Output: database:default
+PREHOOK: Output: default@t1
 POSTHOOK: query: create table t1(i int)
 POSTHOOK: type: CREATETABLE
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@t1
 PREHOOK: query: use ctas_auth
 PREHOOK: type: SWITCHDATABASE
+PREHOOK: Input: database:ctas_auth
 POSTHOOK: query: use ctas_auth
 POSTHOOK: type: SWITCHDATABASE
+POSTHOOK: Input: database:ctas_auth
 PREHOOK: query: show tables
 PREHOOK: type: SHOWTABLES
 POSTHOOK: query: show tables
