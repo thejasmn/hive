@@ -1203,6 +1203,10 @@ public abstract class BaseSemanticAnalyzer {
     return getTable(qualified[0], qualified[1], true);
   }
 
+  protected Table getTable(String[] qualified, boolean throwException) throws SemanticException {
+    return getTable(qualified[0], qualified[1], throwException);
+  }
+
   protected Table getTable(String tblName) throws SemanticException {
     return getTable(null, tblName, true);
   }

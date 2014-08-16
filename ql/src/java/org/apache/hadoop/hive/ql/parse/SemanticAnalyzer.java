@@ -10151,7 +10151,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     // check for existence of table
     if (ifNotExists) {
       try {
-        Table table = getTable(qualifiedTabName);
+        Table table = getTable(qualifiedTabName, false);
         if (table != null) { // table exists
           return null;
         }
