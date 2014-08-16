@@ -144,10 +144,21 @@ public class TestHiveAuthorizerCheckInvocation {
   @Test
   public void testCreateTableWithDb() throws HiveAuthzPluginException, HiveAccessControlException,
       CommandNeedRetryException {
-
-    reset(mockedAuthorizer);
     final String newTable = "ctTableWithDb";
-    int status = driver.compile("create table " + dbName + "." + newTable + "(i int)");
+    checkCreateViewOrTableWithDb(newTable, "create table " + dbName + "." + newTable + "(i int)");
+  }
+
+  @Test
+  public void testCreateViewWithDb() throws HiveAuthzPluginException, HiveAccessControlException,
+      CommandNeedRetryException {
+    final String newTable = "ctViewWithDb";
+    checkCreateViewOrTableWithDb(newTable, "create table " + dbName + "." + newTable + "(i int)");
+  }
+
+  private void checkCreateViewOrTableWithDb(String newTable, String cmd)
+      throws HiveAuthzPluginException, HiveAccessControlException {
+    reset(mockedAuthorizer);
+    int status = driver.compile(cmd);
     assertEquals(0, status);
 
     List<HivePrivilegeObject> outputs = getHivePrivilegeObjectInputs().getRight();

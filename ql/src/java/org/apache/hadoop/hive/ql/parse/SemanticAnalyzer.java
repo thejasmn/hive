@@ -10160,10 +10160,8 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         throw new IllegalStateException("Unxpected Exception thrown: " + e.getMessage(), e);
       }
     }
-    Database database  = getDatabase(qualifiedTabName[0]);
-    outputs.add(new WriteEntity(database, WriteEntity.WriteType.DDL_SHARED));
-    outputs.add(new WriteEntity(new Table(qualifiedTabName[0], qualifiedTabName[1]),
-        WriteEntity.WriteType.DDL_NO_LOCK));
+
+    addDbAndTabToOutputs(qualifiedTabName);
 
     if (isTemporary) {
       if (partCols.size() > 0) {
@@ -10264,9 +10262,17 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     return null;
   }
 
+  private void addDbAndTabToOutputs(String[] qualifiedTabName) throws SemanticException {
+    Database database  = getDatabase(qualifiedTabName[0]);
+    outputs.add(new WriteEntity(database, WriteEntity.WriteType.DDL_SHARED));
+    outputs.add(new WriteEntity(new Table(qualifiedTabName[0], qualifiedTabName[1]),
+        WriteEntity.WriteType.DDL_NO_LOCK));
+  }
+
   private ASTNode analyzeCreateView(ASTNode ast, QB qb)
       throws SemanticException {
-    String tableName = getUnescapedName((ASTNode) ast.getChild(0));
+    String[] qualTabName = getQualifiedTableName((ASTNode) ast.getChild(0));
+    String dbDotTable = getDotName(qualTabName);
     List<FieldSchema> cols = null;
     boolean ifNotExists = false;
     boolean orReplace = false;
@@ -10276,7 +10282,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     Map<String, String> tblProps = null;
     List<String> partColNames = null;
 
-    LOG.info("Creating view " + tableName + " position="
+    LOG.info("Creating view " + dbDotTable + " position="
         + ast.getCharPositionInLine());
     int numCh = ast.getChildCount();
     for (int num = 1; num < numCh; num++) {
@@ -10318,13 +10324,14 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     createVwDesc = new CreateViewDesc(
-      tableName, cols, comment, tblProps, partColNames,
+      dbDotTable, cols, comment, tblProps, partColNames,
       ifNotExists, orReplace, isAlterViewAs);
 
     unparseTranslator.enable();
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(),
         createVwDesc), conf));
 
+    addDbAndTabToOutputs(qualTabName);
     return selectStmt;
   }
 
