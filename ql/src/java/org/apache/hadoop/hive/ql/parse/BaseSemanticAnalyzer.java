@@ -48,6 +48,7 @@ import org.apache.hadoop.hive.ql.QueryProperties;
 import org.apache.hadoop.hive.ql.exec.ExprNodeEvaluatorFactory;
 import org.apache.hadoop.hive.ql.exec.FetchTask;
 import org.apache.hadoop.hive.ql.exec.Task;
+import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.hooks.LineageInfo;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity;
@@ -61,7 +62,6 @@ import org.apache.hadoop.hive.ql.optimizer.listbucketingpruner.ListBucketingPrun
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ListBucketingCtx;
 import org.apache.hadoop.hive.ql.plan.PlanUtils;
-import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.io.DateWritable;
@@ -317,7 +317,7 @@ public abstract class BaseSemanticAnalyzer {
       return new String[] {dbName, tableName};
     }
     String tableName = unescapeIdentifier(tabNameNode.getChild(0).getText());
-    return new String[]{SessionState.get().getCurrentDatabase(), tableName};
+    return Utilities.getDbTableName(tableName);
   }
 
   public static String getDotName(String[] qname) throws SemanticException {
