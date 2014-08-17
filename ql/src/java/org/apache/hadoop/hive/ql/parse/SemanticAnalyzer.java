@@ -9410,7 +9410,7 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
       }
       viewSelect = child;
       // prevent view from referencing itself
-      viewsExpanded.add(SessionState.get().getCurrentDatabase() + "." + createVwDesc.getViewName());
+      viewsExpanded.add(createVwDesc.getViewName());
     }
 
     // continue analyzing from the child ASTNode.
