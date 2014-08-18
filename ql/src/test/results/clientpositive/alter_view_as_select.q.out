@@ -5,9 +5,12 @@ POSTHOOK: type: DROPVIEW
 PREHOOK: query: CREATE VIEW testView as SELECT * FROM srcpart
 PREHOOK: type: CREATEVIEW
 PREHOOK: Input: default@srcpart
+PREHOOK: Output: database:default
+PREHOOK: Output: default@testView
 POSTHOOK: query: CREATE VIEW testView as SELECT * FROM srcpart
 POSTHOOK: type: CREATEVIEW
 POSTHOOK: Input: default@srcpart
+POSTHOOK: Output: database:default
 POSTHOOK: Output: default@testView
 PREHOOK: query: DESCRIBE FORMATTED testView
 PREHOOK: type: DESCTABLE
@@ -46,9 +49,13 @@ View Expanded Text: 	SELECT `srcpart`.`key`, `srcpart`.`value`, `srcpart`.`ds`, 
 PREHOOK: query: ALTER VIEW testView AS SELECT value FROM src WHERE key=86
 PREHOOK: type: CREATEVIEW
 PREHOOK: Input: default@src
+PREHOOK: Output: database:default
+PREHOOK: Output: default@testView
 POSTHOOK: query: ALTER VIEW testView AS SELECT value FROM src WHERE key=86
 POSTHOOK: type: CREATEVIEW
 POSTHOOK: Input: default@src
+POSTHOOK: Output: database:default
+POSTHOOK: Output: default@testView
 POSTHOOK: Output: default@testview
 PREHOOK: query: DESCRIBE FORMATTED testView
 PREHOOK: type: DESCTABLE
@@ -88,6 +95,8 @@ ORDER BY key, value
 LIMIT 10
 PREHOOK: type: CREATEVIEW
 PREHOOK: Input: default@src
+PREHOOK: Output: database:default
+PREHOOK: Output: default@testView
 POSTHOOK: query: ALTER VIEW testView AS
 SELECT * FROM src
 WHERE key > 80 AND key < 100
@@ -95,6 +104,8 @@ ORDER BY key, value
 LIMIT 10
 POSTHOOK: type: CREATEVIEW
 POSTHOOK: Input: default@src
+POSTHOOK: Output: database:default
+POSTHOOK: Output: default@testView
 POSTHOOK: Output: default@testview
 PREHOOK: query: DESCRIBE FORMATTED testView
 PREHOOK: type: DESCTABLE
