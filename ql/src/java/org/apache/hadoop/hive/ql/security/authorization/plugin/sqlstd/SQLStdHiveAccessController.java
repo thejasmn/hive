@@ -281,6 +281,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   @Override
   public void createRole(String roleName, HivePrincipal adminGrantor)
       throws HiveAuthzPluginException, HiveAccessControlException {
+    adminGrantor = SQLAuthorizationUtils.getValidatedPrincipal(adminGrantor);
+
     // only user belonging to admin role can create new roles.
     if (!isUserAdmin()) {
       throw new HiveAccessControlException("Current user : " + currentUserName+ " is not"
@@ -621,6 +623,8 @@ public class SQLStdHiveAccessController implements HiveAccessController {
   @Override
   public List<HiveRoleGrant> getRoleGrantInfoForPrincipal(HivePrincipal principal)
       throws HiveAuthzPluginException, HiveAccessControlException {
+    principal = SQLAuthorizationUtils.getValidatedPrincipal(principal);
+
     try {
       // first authorize the call
       if (!isUserAdmin()) {
