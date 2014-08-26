@@ -21,7 +21,7 @@ package org.apache.hadoop.hive.ql.security.authorization;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.AccessControlException;
-import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -34,11 +34,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.hive.common.FileUtils;
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -48,7 +44,6 @@ import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
-import org.apache.hadoop.hive.shims.ShimLoader;
 
 /**
  * StorageBasedAuthorizationProvider is an implementation of
@@ -69,6 +64,8 @@ import org.apache.hadoop.hive.shims.ShimLoader;
  */
 public class StorageBasedAuthorizationProvider extends HiveAuthorizationProviderBase
     implements HiveMetastoreAuthorizationProvider {
+
+
 
   private Warehouse wh;
   private boolean isRunFromMetaStore = false;
@@ -147,20 +144,84 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
   @Override
   public void authorize(Table table, Privilege[] readRequiredPriv, Privilege[] writeRequiredPriv)
       throws HiveException, AuthorizationException {
-
-    // To create/drop/alter a table, the owner should have WRITE permission on the database directory
-    authorize(hive_db.getDatabase(table.getDbName()), readRequiredPriv, writeRequiredPriv);
-
-    // If the user has specified a location - external or not, check if the user has the
     try {
       initWh();
-      String location = table.getTTable().getSd().getLocation();
-      if (location != null && !location.isEmpty()) {
-        authorize(new Path(location), readRequiredPriv, writeRequiredPriv);
-      }
     } catch (MetaException ex) {
       throw hiveException(ex);
     }
+    // To create/drop/alter a table, the owner should have WRITE permission on
+    // the database directory
+    authorize(hive_db.getDatabase(table.getDbName()), new Privilege[] {},
+        new Privilege[] { Privilege.ALTER_DATA });
+
+    DropPrivilegeExtractor privExtractor = new DropPrivilegeExtractor(readRequiredPriv, writeRequiredPriv);
+    readRequiredPriv = privExtractor.getReadReqPriv();
+    writeRequiredPriv = privExtractor.getWriteReqPriv();
+
+    String location = table.getTTable().getSd().getLocation();
+    if(privExtractor.hasDropPrivilege()) {
+      Path path = getPathExists(location);
+      authorizeDropPrivilege(path);
+    }
+
+
+    // If the user has specified a location - external or not, check if the user
+    // has the permissions on the table dir
+    if (location != null && !location.isEmpty()) {
+      authorize(new Path(location), readRequiredPriv, writeRequiredPriv);
+    }
+
+  }
+
+
+  /**
+   * Check if path for location string exists and return equivalent Path object
+   * @param location
+   * @return
+   * @throws HiveException
+   */
+  private Path getPathExists(String location) throws HiveException {
+    if(location == null || location.isEmpty()) {
+      String msg = String.format("Unable to authorize permissions on % location",
+          location == null ? "null" : "empty");
+      throw new HiveException(msg);
+    }
+    Path path = new Path(location);
+    FileSystem fs;
+    try {
+      fs = path.getFileSystem(getConf());
+      if (fs.exists(path)) {
+        return path;
+       } else {
+         throw new HiveException("Unable to authorization permissions on path that does not exist:"
+             + location);
+       }
+    } catch (IOException e) {
+      throw new HiveException("Caught exception checking existence of file " + path, e);
+    }
+  }
+
+  private void authorizeDropPrivilege(Path path) throws HiveException {
+    // if this is a drop table, following conditions should be satisfied
+    // 1. Write permissions on parent dir
+    // 2. If sticky bit is set on parent dir then one of following should be true
+    //    a. User is a hdfs super user
+    //    b. User is owner of the current dir/file
+    //    c. User is owner of the parent dir
+
+
+    // ensure location exists
+    final FileSystem fs = path.getFileSystem(getConf());
+
+    if (fs.exists(path)) {
+      checkPermissions(fs, path, actions, authenticator.getUserName());
+    }
+
+    checkPermissions(getConf(), path, actions);
+
+
+
+
   }
 
   @Override
@@ -371,6 +432,42 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
   @Override
   public void authorizeAuthorizationApiInvocation() throws HiveException, AuthorizationException {
     // no-op - SBA does not attempt to authorize auth api call. Allow it
+  }
+
+  public class DropPrivilegeExtractor {
+
+    private boolean hasDropPrivilege = false;
+    private final Privilege[] readReqPriv;
+    private final Privilege[] writeReqPriv;
+    public DropPrivilegeExtractor(Privilege[] readRequiredPriv, Privilege[] writeRequiredPriv) {
+      this.readReqPriv = extractDropPriv(readRequiredPriv);
+      this.writeReqPriv = extractDropPriv(writeRequiredPriv);
+    }
+    private Privilege[] extractDropPriv(Privilege[] requiredPrivs) {
+      List<Privilege> privList = new ArrayList<Privilege>();
+      for(Privilege priv : requiredPrivs) {
+        if(priv.equals(Privilege.DROP)) {
+          hasDropPrivilege = true;
+        } else {
+          privList.add(priv);
+        }
+      }
+      return privList.toArray(new Privilege[0]);
+    }
+
+    public boolean hasDropPrivilege() {
+      return hasDropPrivilege;
+    }
+    public void setHasDropPrivilege(boolean hasDropPrivilege) {
+      this.hasDropPrivilege = hasDropPrivilege;
+    }
+    public Privilege[] getReadReqPriv() {
+      return readReqPriv;
+    }
+    public Privilege[] getWriteReqPriv() {
+      return writeReqPriv;
+    }
+
   }
 
 }
