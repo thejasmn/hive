@@ -65,8 +65,6 @@ import org.apache.hadoop.hive.ql.metadata.Table;
 public class StorageBasedAuthorizationProvider extends HiveAuthorizationProviderBase
     implements HiveMetastoreAuthorizationProvider {
 
-
-
   private Warehouse wh;
   private boolean isRunFromMetaStore = false;
 
@@ -139,6 +137,7 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
       throws HiveException, AuthorizationException {
     Path path = getDbLocation(db);
 
+    // extract drop privileges
     DropPrivilegeExtractor privExtractor = new DropPrivilegeExtractor(readRequiredPriv,
         writeRequiredPriv);
     readRequiredPriv = privExtractor.getReadReqPriv();
@@ -203,13 +202,16 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
 
 
   private void authorizeDropPrivilege(Path path) throws HiveException {
-    // if this is a drop table, following 2 conditions should be satisfied
+    // This requires ability to delete the given path.
+    // The following 2 conditions should be satisfied for this-
     // 1. Write permissions on parent dir
     // 2. If sticky bit is set on parent dir then one of following should be
     // true
-    //   a. User is a hdfs super user
-    //   b. User is owner of the current dir/file
-    //   c. User is owner of the parent dir
+    //   a. User is owner of the current dir/file
+    //   b. User is owner of the parent dir
+    //   Super users are also allowed to drop the file, but there is no good way of checking
+    //   if a user is a super user. Also super users running hive queries is not a common
+    //   use case. super users can also do a chown to be able to drop the file
 
     try {
       final FileSystem fs = path.getFileSystem(getConf());
