@@ -192,6 +192,9 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
    * @return true, if set of given privileges privs contain CREATE privilege
    */
   private boolean requireCreatePrivilege(Privilege[] privs) {
+    if(privs == null) {
+      return false;
+    }
     for (Privilege priv : privs) {
       if (priv.equals(Privilege.CREATE)) {
         return true;
@@ -475,14 +478,19 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     private boolean hasDropPrivilege = false;
     private final Privilege[] readReqPriv;
     private final Privilege[] writeReqPriv;
+
     public DropPrivilegeExtractor(Privilege[] readRequiredPriv, Privilege[] writeRequiredPriv) {
       this.readReqPriv = extractDropPriv(readRequiredPriv);
       this.writeReqPriv = extractDropPriv(writeRequiredPriv);
     }
+
     private Privilege[] extractDropPriv(Privilege[] requiredPrivs) {
+      if (requiredPrivs == null) {
+        return null;
+      }
       List<Privilege> privList = new ArrayList<Privilege>();
-      for(Privilege priv : requiredPrivs) {
-        if(priv.equals(Privilege.DROP)) {
+      for (Privilege priv : requiredPrivs) {
+        if (priv.equals(Privilege.DROP)) {
           hasDropPrivilege = true;
         } else {
           privList.add(priv);
@@ -494,12 +502,15 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     public boolean hasDropPrivilege() {
       return hasDropPrivilege;
     }
+
     public void setHasDropPrivilege(boolean hasDropPrivilege) {
       this.hasDropPrivilege = hasDropPrivilege;
     }
+
     public Privilege[] getReadReqPriv() {
       return readReqPriv;
     }
+
     public Privilege[] getWriteReqPriv() {
       return writeReqPriv;
     }
