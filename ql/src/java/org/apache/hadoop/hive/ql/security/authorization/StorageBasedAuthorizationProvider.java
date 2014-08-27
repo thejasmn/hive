@@ -146,10 +146,8 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
 
     // authorize drops if there was a drop privilege requirement
     if(privExtractor.hasDropPrivilege()) {
-      Path path = getPathExists(location);
       authorizeDropPrivilege(path);
     }
-
 
     authorize(path, readRequiredPriv, writeRequiredPriv);
   }
@@ -162,7 +160,7 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     } catch (MetaException ex) {
       throw hiveException(ex);
     }
-    // To create a table, the owner should have WRITE permission on
+    // if CREATE priv requirement is there, the owner should have WRITE permission on
     // the database directory
     if(requireCreatePrivilege(readRequiredPriv) || requireCreatePrivilege(writeRequiredPriv)) {
       authorize(hive_db.getDatabase(table.getDbName()), new Privilege[] {},
@@ -175,19 +173,17 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     readRequiredPriv = privExtractor.getReadReqPriv();
     writeRequiredPriv = privExtractor.getWriteReqPriv();
 
-    String location = table.getTTable().getSd().getLocation();
+    Path path = table.getDataLocation();
     // authorize drops if there was a drop privilege requirement
     if(privExtractor.hasDropPrivilege()) {
-      Path path = getPathExists(location);
       authorizeDropPrivilege(path);
     }
 
     // If the user has specified a location - external or not, check if the user
     // has the permissions on the table dir
-    if (location != null && !location.isEmpty()) {
-      authorize(new Path(location), readRequiredPriv, writeRequiredPriv);
+    if (path != null) {
+      authorize(path, readRequiredPriv, writeRequiredPriv);
     }
-
   }
 
 
@@ -205,32 +201,6 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     return false;
   }
 
-  /**
-   * Check if path for location string exists and return equivalent Path object
-   * @param location
-   * @return
-   * @throws HiveException
-   */
-  private Path getPathExists(String location) throws HiveException {
-    if(location == null || location.isEmpty()) {
-      String msg = String.format("Unable to authorize permissions on % location",
-          location == null ? "null" : "empty");
-      throw new HiveException(msg);
-    }
-    Path path = new Path(location);
-    FileSystem fs;
-    try {
-      fs = path.getFileSystem(getConf());
-      if (fs.exists(path)) {
-        return path;
-       } else {
-         throw new HiveException("Unable to authorization permissions on path that does not exist:"
-             + location);
-       }
-    } catch (IOException e) {
-      throw new HiveException("Caught exception checking existence of file " + path, e);
-    }
-  }
 
   private void authorizeDropPrivilege(Path path) throws HiveException {
     // if this is a drop table, following 2 conditions should be satisfied
@@ -266,14 +236,14 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
       if (childStatus.getOwner().equals(user)) {
         return;
       }
-
-      // check if the user is a hdfs super user, hdfs super user will have write
-      // permissions
-      // on root dir "/"
-      checkPermissions(getConf(), new Path("/"), EnumSet.of(FsAction.WRITE));
-      // no exception thrown, user is super user. User authorized to drop.
-
-    } catch (Exception e) {
+      String msg = String.format("Permission Denied: User %s can't delete %s because sticky bit is"
+          + " set on the parent dir and user does not own this file or its parent", user, path);
+      throw new HiveException(msg);
+    }
+    catch (HiveException e) {
+      throw e;
+    }
+    catch (Exception e) {
       throw new HiveException(e);
     }
 
@@ -288,6 +258,17 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
   private void authorize(Table table, Partition part, Privilege[] readRequiredPriv,
       Privilege[] writeRequiredPriv)
       throws HiveException, AuthorizationException {
+
+    // extract drop privileges
+    DropPrivilegeExtractor privExtractor = new DropPrivilegeExtractor(readRequiredPriv,
+        writeRequiredPriv);
+    readRequiredPriv = privExtractor.getReadReqPriv();
+    writeRequiredPriv = privExtractor.getWriteReqPriv();
+
+    // authorize drops if there was a drop privilege requirement
+    if(privExtractor.hasDropPrivilege()) {
+      authorizeDropPrivilege(part.getDataLocation());
+    }
 
     // Partition path can be null in the case of a new create partition - in this case,
     // we try to default to checking the permissions of the parent table.
@@ -309,11 +290,7 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     // In a simple storage-based auth, we have no information about columns
     // living in different files, so we do simple partition-auth and ignore
     // the columns parameter.
-    if ((part != null) && (part.getTable() != null)) {
-      authorize(part.getTable(), part, readRequiredPriv, writeRequiredPriv);
-    } else {
-      authorize(table, part, readRequiredPriv, writeRequiredPriv);
-    }
+    authorize(table, part, readRequiredPriv, writeRequiredPriv);
   }
 
   @Override
