@@ -36,6 +36,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
+import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -145,7 +146,7 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
 
     // authorize drops if there was a drop privilege requirement
     if(privExtractor.hasDropPrivilege()) {
-      authorizeDropPrivilege(path);
+      checkDeletePermission(path, getConf(), authenticator.getUserName());
     }
 
     authorize(path, readRequiredPriv, writeRequiredPriv);
@@ -159,12 +160,6 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     } catch (MetaException ex) {
       throw hiveException(ex);
     }
-    // if CREATE priv requirement is there, the owner should have WRITE permission on
-    // the database directory
-    if(requireCreatePrivilege(readRequiredPriv) || requireCreatePrivilege(writeRequiredPriv)) {
-      authorize(hive_db.getDatabase(table.getDbName()), new Privilege[] {},
-          new Privilege[] { Privilege.ALTER_DATA });
-    }
 
     // extract any drop privileges out of required privileges
     DropPrivilegeExtractor privExtractor = new DropPrivilegeExtractor(readRequiredPriv,
@@ -172,10 +167,19 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
     readRequiredPriv = privExtractor.getReadReqPriv();
     writeRequiredPriv = privExtractor.getWriteReqPriv();
 
+    // if CREATE or DROP priv requirement is there, the owner should have WRITE permission on
+    // the database directory
+    if (privExtractor.hasDropPrivilege || requireCreatePrivilege(readRequiredPriv)
+        || requireCreatePrivilege(writeRequiredPriv)) {
+      authorize(hive_db.getDatabase(table.getDbName()), new Privilege[] {},
+          new Privilege[] { Privilege.ALTER_DATA });
+    }
+
     Path path = table.getDataLocation();
-    // authorize drops if there was a drop privilege requirement
-    if(privExtractor.hasDropPrivilege()) {
-      authorizeDropPrivilege(path);
+    // authorize drops if there was a drop privilege requirement, and
+    // table is not external (external table data is not dropped)
+    if (privExtractor.hasDropPrivilege() && table.getTableType() != TableType.EXTERNAL_TABLE) {
+      checkDeletePermission(path, getConf(), authenticator.getUserName());
     }
 
     // If the user has specified a location - external or not, check if the user
@@ -204,56 +208,6 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
   }
 
 
-  private void authorizeDropPrivilege(Path path) throws HiveException {
-    // This requires ability to delete the given path.
-    // The following 2 conditions should be satisfied for this-
-    // 1. Write permissions on parent dir
-    // 2. If sticky bit is set on parent dir then one of following should be
-    // true
-    //   a. User is owner of the current dir/file
-    //   b. User is owner of the parent dir
-    //   Super users are also allowed to drop the file, but there is no good way of checking
-    //   if a user is a super user. Also super users running hive queries is not a common
-    //   use case. super users can also do a chown to be able to drop the file
-
-    try {
-      final FileSystem fs = path.getFileSystem(getConf());
-      Path parPath = path.getParent();
-      // check user has write permissions on the parent dir
-      checkPermissions(getConf(), parPath, EnumSet.of(FsAction.WRITE));
-
-      // check if sticky bit is set on the parent dir
-      FileStatus parStatus = fs.getFileStatus(parPath);
-      if (!parStatus.getPermission().getStickyBit()) {
-        // no sticky bit, so write permission on parent dir is sufficient
-        // no further checks needed
-        return;
-      }
-
-      // check if user is owner of parent dir
-      String user = authenticator.getUserName();
-      if (parStatus.getOwner().equals(user)) {
-        return;
-      }
-
-      // check if user is owner of current dir/file
-      FileStatus childStatus = fs.getFileStatus(path);
-      if (childStatus.getOwner().equals(user)) {
-        return;
-      }
-      String msg = String.format("Permission Denied: User %s can't delete %s because sticky bit is"
-          + " set on the parent dir and user does not own this file or its parent", user, path);
-      throw new HiveException(msg);
-    }
-    catch (HiveException e) {
-      throw e;
-    }
-    catch (Exception e) {
-      throw new HiveException(e);
-    }
-
-  }
-
   @Override
   public void authorize(Partition part, Privilege[] readRequiredPriv, Privilege[] writeRequiredPriv)
       throws HiveException, AuthorizationException {
@@ -272,7 +226,7 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
 
     // authorize drops if there was a drop privilege requirement
     if(privExtractor.hasDropPrivilege()) {
-      authorizeDropPrivilege(part.getDataLocation());
+      checkDeletePermission(part.getDataLocation(), getConf(), authenticator.getUserName());
     }
 
     // Partition path can be null in the case of a new create partition - in this case,
@@ -285,6 +239,15 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
       authorize(table, new Privilege[]{}, new Privilege[]{Privilege.ALTER_DATA});
     } else {
       authorize(part.getDataLocation(), readRequiredPriv, writeRequiredPriv);
+    }
+  }
+
+  private void checkDeletePermission(Path dataLocation, Configuration conf, String userName)
+      throws HiveException {
+    try {
+      FileUtils.checkDeletePermission(dataLocation, conf, userName);
+    } catch (Exception e) {
+      throw new HiveException(e);
     }
   }
 
