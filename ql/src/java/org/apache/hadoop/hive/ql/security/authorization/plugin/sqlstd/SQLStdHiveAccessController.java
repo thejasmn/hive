@@ -93,7 +93,6 @@ public class SQLStdHiveAccessController implements HiveAccessController {
     this.sessionCtx = applyTestSettings(ctx, conf);
 
     assertHiveCliAuthDisabled(conf);
-    initUserRoles();
     LOG.info("Created SQLStdHiveAccessController for session context : " + sessionCtx);
   }
 
