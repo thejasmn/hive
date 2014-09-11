@@ -28,6 +28,7 @@ import org.antlr.runtime.tree.Tree;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.exec.Task;
@@ -120,6 +121,7 @@ public class ExportSemanticAnalyzer extends BaseSemanticAnalyzer {
       rootTasks.add(rTask);
       inputs.add(new ReadEntity(ts.tableHandle));
     }
-    outputs.add(new WriteEntity(parentPath, toURI.getScheme().equals("hdfs")));
+    boolean isLocal = FileUtils.isLocalFile(conf, toURI);
+    outputs.add(new WriteEntity(parentPath, isLocal));
   }
 }
