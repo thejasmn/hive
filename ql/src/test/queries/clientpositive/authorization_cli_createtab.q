@@ -1,6 +1,5 @@
-set hive.test.authz.sstd.hs2.mode=true;
 set hive.users.in.admin.role=hive_admin_user;
-set hive.security.authorization.manager=org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactoryForTest;
+set hive.security.authorization.manager=org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory;
 set hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.SessionStateConfigUserAuthenticator;
 set hive.metastore.pre.event.listeners=org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener;
 set hive.security.metastore.authorization.manager=org.apache.hadoop.hive.ql.security.MetastoreAuthzAPIDisallowAuthorizer;
