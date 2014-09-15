@@ -24,6 +24,9 @@ import org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthori
  * Authorizer that prevents any authorization api call from being made. For use in testing.
  */
 public class MetastoreAuthzAPIDisallowAuthorizer extends MetaStoreAuthzAPIAuthorizerEmbedOnly {
+  public static final String errMsg = "Metastore Authorization api invocation is disabled"
+      + " in this configuration.";
+
   @Override
   public void authorizeAuthorizationApiInvocation() throws AuthorizationException {
       throw new AuthorizationException(errMsg);
