@@ -40,6 +40,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
+import org.apache.hadoop.hive.metastore.events.PreReadTableEvent;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
@@ -136,6 +137,9 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
     case ALTER_TABLE:
       authorizeAlterTable((PreAlterTableEvent)context);
       break;
+    case READ_TABLE:
+      authorizeReadTable((PreReadTableEvent)context);
+      break;
     case ADD_PARTITION:
       authorizeAddPartition((PreAddPartitionEvent)context);
       break;
@@ -160,6 +164,19 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
       break;
     }
 
+  }
+
+  private void authorizeReadTable(PreReadTableEvent context) throws InvalidOperationException, MetaException {
+    try {
+      org.apache.hadoop.hive.ql.metadata.Table wrappedTable = new TableWrapper(context.getTable());
+      for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
+        authorizer.authorize(wrappedTable, new Privilege[] { Privilege.SELECT }, null);
+      }
+    } catch (AuthorizationException e) {
+      throw invalidOperationException(e);
+    } catch (HiveException e) {
+      throw metaException(e);
+    }
   }
 
   private void authorizeAuthorizationAPICall() throws InvalidOperationException, MetaException {
