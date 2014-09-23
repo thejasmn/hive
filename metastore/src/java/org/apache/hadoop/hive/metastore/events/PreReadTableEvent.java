@@ -21,6 +21,9 @@ package org.apache.hadoop.hive.metastore.events;
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
 import org.apache.hadoop.hive.metastore.api.Table;
 
+/**
+ * Table read event
+ */
 public class PreReadTableEvent extends PreEventContext {
 
   private final Table table;

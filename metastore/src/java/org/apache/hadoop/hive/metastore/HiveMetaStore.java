@@ -168,6 +168,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
+import org.apache.hadoop.hive.metastore.events.PreReadDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreReadTableEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
@@ -837,6 +838,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         db = getMS().getDatabase(name);
+        firePreEvent(new PreReadDatabaseEvent(db, this));
       } catch (MetaException e) {
         ex = e;
         throw e;
@@ -1631,9 +1633,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new NoSuchObjectException(dbname + "." + name
               + " table not found");
         }
-
         firePreEvent(new PreReadTableEvent(t, this));
-
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {

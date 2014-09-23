@@ -40,6 +40,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
+import org.apache.hadoop.hive.metastore.events.PreReadDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreReadTableEvent;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -140,6 +141,9 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
     case READ_TABLE:
       authorizeReadTable((PreReadTableEvent)context);
       break;
+    case READ_DATABASE:
+      authorizeReadDatabase((PreReadDatabaseEvent)context);
+      break;
     case ADD_PARTITION:
       authorizeAddPartition((PreAddPartitionEvent)context);
       break;
@@ -166,11 +170,26 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
   }
 
-  private void authorizeReadTable(PreReadTableEvent context) throws InvalidOperationException, MetaException {
+  private void authorizeReadTable(PreReadTableEvent context) throws InvalidOperationException,
+      MetaException {
     try {
       org.apache.hadoop.hive.ql.metadata.Table wrappedTable = new TableWrapper(context.getTable());
       for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
         authorizer.authorize(wrappedTable, new Privilege[] { Privilege.SELECT }, null);
+      }
+    } catch (AuthorizationException e) {
+      throw invalidOperationException(e);
+    } catch (HiveException e) {
+      throw metaException(e);
+    }
+  }
+
+  private void authorizeReadDatabase(PreReadDatabaseEvent context)
+      throws InvalidOperationException, MetaException {
+    try {
+      for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
+        authorizer.authorize(new Database(context.getDatabase()),
+            new Privilege[] { Privilege.SELECT }, null);
       }
     } catch (AuthorizationException e) {
       throw invalidOperationException(e);

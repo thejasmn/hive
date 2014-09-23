@@ -49,7 +49,6 @@ public class StorageBasedMetastoreTestBase {
   protected Driver driver;
   protected UserGroupInformation ugi;
   private static int objNum = 0;
-  private final List<String> dbsCreated = new ArrayList<String>();
 
   protected String getAuthorizationProvider(){
     return StorageBasedAuthorizationProvider.class.getName();
@@ -114,17 +113,12 @@ public class StorageBasedMetastoreTestBase {
   }
 
   protected String getTestDbName() {
-    String dbName = this.getClass().getSimpleName() + "db" + ++objNum;
-    dbsCreated.add(dbName);
-    return dbName;
+    return this.getClass().getSimpleName() + "db" + ++objNum;
   }
 
   @After
   public void tearDown() throws Exception {
     InjectableDummyAuthenticator.injectMode(false);
-    for (String dbName : dbsCreated) {
-      driver.run("DROP DATABASE IF EXISTS " + dbName + " CASCADE");
-    }
   }
 
   protected void setPermissions(String locn, String permissions) throws Exception {

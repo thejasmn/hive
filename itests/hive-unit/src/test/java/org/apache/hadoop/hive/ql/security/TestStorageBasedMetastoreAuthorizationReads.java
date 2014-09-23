@@ -57,11 +57,9 @@ public class TestStorageBasedMetastoreAuthorizationReads extends StorageBasedMet
     Database db = msc.getDatabase(dbName);
     validateCreateDb(db, dbName);
 
-    setPermissions(db.getLocationUri(), perm);
+    setPermissions(db.getLocationUri(), "-rwxrwxrwx");
 
     String dbDotTable = dbName + "." + tblName;
-    resp = driver.run("drop table if exists " + dbDotTable);
-    Assert.assertEquals(0, resp.getResponseCode());
     resp = driver.run("create table " + dbDotTable + "(i int) partitioned by (date string)");
     Assert.assertEquals(0, resp.getResponseCode());
     Table tab = msc.getTable(dbName, tblName);
@@ -73,7 +71,7 @@ public class TestStorageBasedMetastoreAuthorizationReads extends StorageBasedMet
     testCmd(driver, "DESCRIBE EXTENDED  " + dbDotTable, isSuccess);
     testCmd(driver, "SHOW PARTITIONS  " + dbDotTable, isSuccess);
     testCmd(driver, "SHOW COLUMNS IN " + tblName + " IN " + dbName, isSuccess);
-    driver.run("use " + dbName);
+    testCmd(driver, "use " + dbName, true);
     testCmd(driver, "SHOW TABLE EXTENDED LIKE " + tblName, isSuccess);
 
   }
