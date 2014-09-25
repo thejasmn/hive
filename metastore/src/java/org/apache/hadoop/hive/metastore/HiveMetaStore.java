@@ -805,7 +805,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         try {
-          if (null != get_database(db.getName())) {
+          if (null != get_database_core(db.getName())) {
             throw new AlreadyExistsException("Database " + db.getName() + " already exists");
           }
         } catch (NoSuchObjectException e) {
@@ -831,13 +831,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     }
 
     @Override
-    public Database get_database(final String name) throws NoSuchObjectException,
-        MetaException {
+    public Database get_database(final String name) throws NoSuchObjectException, MetaException {
       startFunction("get_database", ": " + name);
       Database db = null;
       Exception ex = null;
       try {
-        db = getMS().getDatabase(name);
+        db = get_database_core(name);
         firePreEvent(new PreReadDatabaseEvent(db, this));
       } catch (MetaException e) {
         ex = e;
@@ -845,17 +844,35 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       } catch (NoSuchObjectException e) {
         ex = e;
         throw e;
-      } catch (Exception e) {
-        ex = e;
-        assert (e instanceof RuntimeException);
-        throw (RuntimeException) e;
       } finally {
         endFunction("get_database", db != null, ex);
       }
       return db;
     }
 
-
+    /**
+     * Equivalent to get_database, but does not write to audit logs, or fire pre-event listners.
+     * Meant to be used for internal hive classes that don't use the thrift interface.
+     * @param name
+     * @return
+     * @throws NoSuchObjectException
+     * @throws MetaException
+     */
+    public Database get_database_core(final String name) throws NoSuchObjectException,
+        MetaException {
+      Database db = null;
+      try {
+        db = getMS().getDatabase(name);
+      } catch (MetaException e) {
+        throw e;
+      } catch (NoSuchObjectException e) {
+        throw e;
+      } catch (Exception e) {
+        assert (e instanceof RuntimeException);
+        throw (RuntimeException) e;
+      }
+      return db;
+    }
 
     @Override
     public void alter_database(final String dbName, final Database db)
@@ -1632,8 +1649,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         t = get_table_core(dbname, name);
         firePreEvent(new PreReadTableEvent(t, this));
-      } catch (Exception e) {
+      } catch (MetaException e) {
         ex = e;
+        throw e;
+      } catch (NoSuchObjectException e) {
+        ex = e;
+        throw e;
       } finally {
         endFunction("get_table", t != null, ex, name);
       }
