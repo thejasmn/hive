@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStorePreEventListener;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
@@ -56,6 +57,7 @@ import org.apache.hadoop.hive.ql.security.HiveMetastoreAuthenticationProvider;
  * metastore PreEventContexts, such as the adding/dropping and altering
  * of databases, tables and partitions.
  */
+@Private
 public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
   public static final Log LOG = LogFactory.getLog(
@@ -394,7 +396,7 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
     public PartitionWrapper(org.apache.hadoop.hive.metastore.api.Partition mapiPart,
         PreEventContext context) throws HiveException, NoSuchObjectException, MetaException {
       org.apache.hadoop.hive.metastore.api.Partition wrapperApiPart = mapiPart.deepCopy();
-      org.apache.hadoop.hive.metastore.api.Table t = context.getHandler().get_table(
+      org.apache.hadoop.hive.metastore.api.Table t = context.getHandler().get_table_core(
           mapiPart.getDbName(), mapiPart.getTableName());
       if (wrapperApiPart.getSd() == null){
         // In the cases of create partition, by the time this event fires, the partition
