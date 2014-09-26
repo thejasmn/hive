@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.common.classification.InterfaceAudience.Private;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.MetaStorePreEventListener;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.TableType;
@@ -174,6 +175,9 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
   private void authorizeReadTable(PreReadTableEvent context) throws InvalidOperationException,
       MetaException {
+    if (!isReadAuthzEnabled()) {
+      return;
+    }
     try {
       org.apache.hadoop.hive.ql.metadata.Table wrappedTable = new TableWrapper(context.getTable());
       for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
@@ -188,6 +192,9 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
   private void authorizeReadDatabase(PreReadDatabaseEvent context)
       throws InvalidOperationException, MetaException {
+    if (!isReadAuthzEnabled()) {
+      return;
+    }
     try {
       for (HiveMetastoreAuthorizationProvider authorizer : tAuthorizers.get()) {
         authorizer.authorize(new Database(context.getDatabase()),
@@ -198,6 +205,10 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
     } catch (HiveException e) {
       throw metaException(e);
     }
+  }
+
+  private boolean isReadAuthzEnabled() {
+    return tConfig.get().getBoolean(ConfVars.HIVE_METASTORE_AUTHORIZATION_AUTH_READS.varname, true);
   }
 
   private void authorizeAuthorizationAPICall() throws InvalidOperationException, MetaException {
