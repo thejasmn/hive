@@ -1041,7 +1041,7 @@ public class Hive {
       }
       return null;
     } catch (Exception e) {
-      throw new HiveException("Unable to fetch table " + tableName, e);
+      throw new HiveException("Unable to fetch table " + tableName + ". " + e.getMessage(), e);
     }
 
     // For non-views, we need to do some extra fixes
