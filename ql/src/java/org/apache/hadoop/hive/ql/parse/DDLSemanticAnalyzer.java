@@ -1884,10 +1884,12 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
         Table tab = null;
         try {
           tab = db.getTable(tableName);
-        } catch (HiveException e) {
-          // if table not valid
-          // throw semantic exception
+        }
+        catch (InvalidTableException e) {
           throw new SemanticException(ErrorMsg.INVALID_TABLE.getMsg(tableName), e);
+        }
+        catch (HiveException e) {
+          throw new SemanticException(e.getMessage(), e);
         }
 
         if (partSpec != null) {

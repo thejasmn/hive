@@ -1264,8 +1264,12 @@ public abstract class BaseSemanticAnalyzer {
     try {
       tab = database == null ? db.getTable(tblName, false)
           : db.getTable(database, tblName, false);
-    } catch (Exception e) {
+    }
+    catch (InvalidTableException e) {
       throw new SemanticException(ErrorMsg.INVALID_TABLE.getMsg(tblName), e);
+    }
+    catch (Exception e) {
+      throw new SemanticException(e.getMessage(), e);
     }
     if (tab == null && throwException) {
       throw new SemanticException(ErrorMsg.INVALID_TABLE.getMsg(tblName));
