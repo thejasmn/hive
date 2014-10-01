@@ -5713,12 +5713,12 @@ public class HiveMetaStore extends ThriftHiveMetastore {
             conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_KEYTAB_FILE),
             conf.getVar(HiveConf.ConfVars.METASTORE_KERBEROS_PRINCIPAL));
         // start delegation token manager
-        HMSHandler hmsHandler = new HMSHandler("new db based metaserver", conf);
+        IHMSHandler hmsHandler = newHMSHandler("new db based metaserver", conf);
         saslServer.startDelegationTokenSecretManager(conf, hmsHandler);
         transFactory = saslServer.createTransportFactory(
                 MetaStoreUtils.getMetaStoreSaslProperties(conf));
         processor = saslServer.wrapProcessor(
-          new ThriftHiveMetastore.Processor<HMSHandler>(hmsHandler));
+          new ThriftHiveMetastore.Processor<IHMSHandler>(hmsHandler));
         LOG.info("Starting DB backed MetaStore Server in Secure Mode");
       } else {
         // we are in unsecure mode.
