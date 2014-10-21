@@ -15,19 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd;
+package org.apache.hadoop.hive.ql.security.authorization.plugin;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.DisallowTransformHook;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzPluginException;
-import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext.Builder;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveAuthzSessionContext.CLIENT_TYPE;
+import org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAccessController;
 import org.junit.Test;
 
 import com.google.common.base.Joiner;
@@ -45,7 +47,7 @@ public class TestSQLStdHiveAccessControllerHS2 {
    */
   @Test
   public void testConfigProcessing() throws HiveAuthzPluginException {
-    HiveConf processedConf = new HiveConf();
+    HiveConf processedConf = newAuthEnabledConf();
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
         processedConf, new HadoopDefaultAuthenticator(), getHS2SessionCtx()
         );
@@ -55,8 +57,29 @@ public class TestSQLStdHiveAccessControllerHS2 {
     assertTrue("Check for transform query disabling hook",
         processedConf.getVar(ConfVars.PREEXECHOOKS).contains(DisallowTransformHook.class.getName()));
 
-    verifyParamSettability(SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth, processedConf);
+    String[] settableParams = getSettableParams();
+    verifyParamSettability(settableParams, processedConf);
 
+  }
+
+  private HiveConf newAuthEnabledConf() {
+    HiveConf conf = new HiveConf();
+    conf.setBoolVar(ConfVars.HIVE_AUTHORIZATION_ENABLED, true);
+    return conf;
+  }
+
+  /**
+   * @return list of parameters that should be possible to set
+   */
+  private String[] getSettableParams() {
+    List<String> settableParams = new ArrayList<String>(
+        Arrays.asList(SettableConfigUpdater.defaultConfVars));
+    for (String regex : SettableConfigUpdater.defaultPatterns) {
+      // create dummy param that matches regex
+      String confParam = regex.replace(".*", ".dummy");
+      settableParams.add(confParam);
+    }
+    return settableParams.toArray(new String[0]);
   }
 
   private HiveAuthzSessionContext getHS2SessionCtx() {
@@ -90,24 +113,42 @@ public class TestSQLStdHiveAccessControllerHS2 {
   }
 
   /**
-   * Test that modifying HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST config works
+   * Test that setting HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST_APPEND config works
+   * @throws HiveAuthzPluginException
+   */
+  @Test
+  public void testConfigProcessingCustomSetWhitelistAppend() throws HiveAuthzPluginException {
+    // append new config params to whitelist
+    String[] paramRegexes = { "hive.ctest.param", "hive.abc..*" };
+    String[] settableParams = { "hive.ctest.param", "hive.abc.def" };
+    verifySettability(paramRegexes, settableParams,
+        ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST_APPEND);
+  }
+
+  /**
+   * Test that setting HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST config works
    * @throws HiveAuthzPluginException
    */
   @Test
   public void testConfigProcessingCustomSetWhitelist() throws HiveAuthzPluginException {
+    // append new config params to whitelist
+    String[] paramRegexes = { "hive.ctest.param", "hive.abc..*" };
+    String[] settableParams = { "hive.ctest.param", "hive.abc.def" };
+    verifySettability(paramRegexes, settableParams,
+        ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST);
+  }
 
-    HiveConf processedConf = new HiveConf();
-    // add custom value, including one from the default, one new one
-    String[] settableParams = { SQLStdHiveAccessController.defaultModWhiteListSqlStdAuth[0],
-        "abcs.dummy.test.param" };
-   processedConf.setVar(HiveConf.ConfVars.HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST,
-        Joiner.on(",").join(settableParams));
+  private void verifySettability(String[] paramRegexes, String[] settableParams,
+      ConfVars hiveAuthorizationSqlStdAuthConfigWhitelist) throws HiveAuthzPluginException {
+    HiveConf processedConf = newAuthEnabledConf();
+    processedConf.setVar(hiveAuthorizationSqlStdAuthConfigWhitelist,
+        Joiner.on(",").join(paramRegexes));
 
     SQLStdHiveAccessController accessController = new SQLStdHiveAccessController(null,
         processedConf, new HadoopDefaultAuthenticator(), getHS2SessionCtx());
     accessController.applyAuthorizationConfigPolicy(processedConf);
-    verifyParamSettability(settableParams, processedConf);
 
+    verifyParamSettability(settableParams, processedConf);
   }
 
   private void assertConfModificationException(HiveConf processedConf, String param) {
@@ -119,5 +160,6 @@ public class TestSQLStdHiveAccessControllerHS2 {
     }
     assertTrue("Exception should be thrown while modifying the param " + param, caughtEx);
   }
+
 
 }

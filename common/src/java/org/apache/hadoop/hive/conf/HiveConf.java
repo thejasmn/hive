@@ -76,7 +76,7 @@ public class HiveConf extends Configuration {
   private final List<String> restrictList = new ArrayList<String>();
 
   private boolean isWhiteListRestrictionEnabled = false;
-  private final List<String> modWhiteList = new ArrayList<String>();
+  private Pattern modWhiteListPattern;
 
 
   static {
@@ -1401,8 +1401,16 @@ public class HiveConf extends Configuration {
     // if this is not set default value is added by sql standard authorizer.
     // Default value can't be set in this constructor as it would refer names in other ConfVars
     // whose constructor would not have been called
-    HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST("hive.security.authorization.sqlstd.confwhitelist", "",
-        "interal variable. List of modifiable configurations by user."),
+    HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST(
+        "hive.security.authorization.sqlstd.confwhitelist", "",
+        "List of comma separated java regexes. Configurations parameters that match these "
+            + "regexes can be modified by user  when sql std auth is enabled. Default value is "
+            + "defined by the authorization implementation."),
+
+    HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST_APPEND(
+        "hive.security.authorization.sqlstd.confwhitelist.append", "",
+        "List of comma separated java regexes, to be appended to list set in "
+        + "hive.security.authorization.sqlstd.confwhitelist."),
 
     HIVE_CLI_PRINT_HEADER("hive.cli.print.header", false, "Whether to print the names of the columns in query output."),
 
@@ -2033,8 +2041,9 @@ public class HiveConf extends Configuration {
   }
 
   public void verifyAndSet(String name, String value) throws IllegalArgumentException {
-    if (isWhiteListRestrictionEnabled) {
-      if (!modWhiteList.contains(name)) {
+    if (isWhiteListRestrictionEnabled && modWhiteListPattern != null) {
+      Matcher wlMatcher = modWhiteListPattern.matcher(name);
+      if (!wlMatcher.matches()) {
         throw new IllegalArgumentException("Cannot modify " + name + " at runtime. "
             + "It is not in list of params that are allowed to be modified at runtime");
       }
@@ -2527,16 +2536,16 @@ public class HiveConf extends Configuration {
   }
 
   /**
-   * Add config parameter name to whitelist of parameters that can be modified
+   * Set white list of parameters that are allowed to be modified
    *
-   * @param paramname
+   * @param paramNameRegex
    */
   @LimitedPrivate(value = { "Currently only for use by HiveAuthorizer" })
-  public void addToModifiableWhiteList(String paramname) {
-    if (paramname == null) {
+  public void setModifiableWhiteListRegex(String paramNameRegex) {
+    if (paramNameRegex == null) {
       return;
     }
-    modWhiteList.add(paramname);
+    modWhiteListPattern = Pattern.compile(paramNameRegex);
   }
 
   /**
