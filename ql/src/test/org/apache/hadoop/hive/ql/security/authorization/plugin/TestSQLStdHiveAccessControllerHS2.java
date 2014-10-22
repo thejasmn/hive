@@ -74,7 +74,7 @@ public class TestSQLStdHiveAccessControllerHS2 {
   private String[] getSettableParams() {
     List<String> settableParams = new ArrayList<String>(
         Arrays.asList(SettableConfigUpdater.defaultConfVars));
-    for (String regex : SettableConfigUpdater.defaultPatterns) {
+    for (String regex : SettableConfigUpdater.sqlStdAuthSafeVarNameRegexes) {
       // create dummy param that matches regex
       String confParam = regex.replace(".*", ".dummy");
       settableParams.add(confParam);
