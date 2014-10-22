@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.thrift;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooDefs.Perms;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.ACL;
@@ -60,9 +62,10 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   private String zkConnectString;
   private final int zkSessionTimeout = 3000;
   private long connectTimeoutMillis = -1;
-  private List<ACL> newNodeAcl = Ids.OPEN_ACL_UNSAFE;
+  private List<ACL> newNodeAcl = Arrays.asList(new ACL(Perms.ALL, Ids.AUTH_IDS));
 
   private class ZooKeeperWatcher implements Watcher {
+    @Override
     public void process(org.apache.zookeeper.WatchedEvent event) {
       LOGGER.info(event.toString());
       if (event.getState() == Watcher.Event.KeeperState.Expired) {
@@ -261,11 +264,17 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     if (conf == null) {
        throw new IllegalArgumentException("conf is null");
     }
-    this.zkConnectString = conf.get(
+    zkConnectString = conf.get(
       HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR, null);
-    this.connectTimeoutMillis = conf.getLong(
+    if(zkConnectString == null || zkConnectString.trim().isEmpty()){
+      throw new IllegalArgumentException("Configuration parameter "
+          + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR
+          + " cannot be empty, when zookeeper based delegation token storage is enabled"
+          + "(hive.cluster.delegation.token.store.class=" + this.getClass().getName() + ")");
+    }
+    connectTimeoutMillis = conf.getLong(
       HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS, -1);
-    this.rootNode = conf.get(
+    rootNode = conf.get(
       HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE,
       HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE_DEFAULT);
     String csv = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, null);

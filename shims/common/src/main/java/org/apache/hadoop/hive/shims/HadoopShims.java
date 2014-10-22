@@ -61,7 +61,6 @@ import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
 
@@ -238,6 +237,13 @@ public interface HadoopShims {
    * @throws IOException
    */
   public String getTokenStrForm(String tokenSignature) throws IOException;
+
+  /**
+   * Dynamically sets up the JAAS configuration
+   * @param principal
+   * @param keyTabFile
+   */
+  public void setZookeeperClientJaasConfig(String principal, String keyTabFile);
 
   /**
    * Add a delegation token to the given ugi
