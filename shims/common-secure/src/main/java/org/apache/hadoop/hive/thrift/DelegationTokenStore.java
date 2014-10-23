@@ -109,12 +109,10 @@ public interface DelegationTokenStore extends Configurable, Closeable {
    */
   List<DelegationTokenIdentifier> getAllDelegationTokenIdentifiers() throws TokenStoreException;
 
-  void setStore(Object hmsHandler) throws TokenStoreException;
-
   /**
-   * Indicate whether this is a metastore or hiveserver2 token store
-   * @param smode
+   * @param hmsHandler ObjectStore used by DBTokenStore
+   * @param smode Indicate whether this is a metastore or hiveserver2 token store
    */
-  void init(ServerMode smode);
+  void init(Object hmsHandler, ServerMode smode);
 
 }

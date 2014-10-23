@@ -112,7 +112,7 @@ public class DBTokenStore implements DelegationTokenStore {
   private Object rawStore;
 
   @Override
-  public void setStore(Object rawStore) throws TokenStoreException {
+  public void init(Object rawStore, ServerMode smode) throws TokenStoreException {
     this.rawStore = rawStore;
   }
 
@@ -147,11 +147,6 @@ public class DBTokenStore implements DelegationTokenStore {
   @Override
   public void close() throws IOException {
     // No-op.
-  }
-
-  @Override
-  public void init(ServerMode smode) {
-    // no-op
   }
 
 }

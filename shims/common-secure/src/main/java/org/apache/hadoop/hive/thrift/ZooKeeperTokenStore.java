@@ -284,8 +284,6 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   }
 
   private void initClientAndPaths() {
-
-
     if (this.zkSession != null) {
       try {
         this.zkSession.close();
@@ -294,7 +292,6 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
       }
     }
     ZooKeeper zk = getSession();
-
     try {
         ensurePath(zk, rootNode + NODE_KEYS, newNodeAcl);
         ensurePath(zk, rootNode + NODE_TOKENS, newNodeAcl);
@@ -497,12 +494,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   }
 
   @Override
-  public void setStore(Object hmsHandler) throws TokenStoreException {
-    // no-op.
-  }
-
-  @Override
-  public void init(ServerMode smode) {
+  public void init(Object objectStore, ServerMode smode) {
     this.serverMode = smode;
     zkConnectString = conf.get(
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR, null);

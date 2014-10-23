@@ -26,6 +26,7 @@ import junit.framework.TestCase;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.zookeeper.MiniZooKeeperCluster;
+import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge.Server.ServerMode;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager.DelegationTokenInformation;
 import org.apache.hadoop.security.token.delegation.HiveDelegationTokenSupport;
@@ -138,6 +139,7 @@ public class TestZooKeeperTokenStore extends TestCase {
     ts = new ZooKeeperTokenStore();
     try {
       ts.setConf(conf);
+      ts.init(null, ServerMode.METASTORE);
       fail("expected ACL exception");
     } catch (DelegationTokenStore.TokenStoreException e) {
       assertEquals(e.getCause().getClass(),

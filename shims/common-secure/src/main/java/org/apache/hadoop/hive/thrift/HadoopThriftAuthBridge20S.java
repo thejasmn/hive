@@ -430,8 +430,7 @@ public class HadoopThriftAuthBridge20S extends HadoopThriftAuthBridge {
               DELEGATION_TOKEN_RENEW_INTERVAL_DEFAULT);
 
       DelegationTokenStore dts = getTokenStore(conf);
-      dts.setStore(rawStore);
-      dts.init(smode);
+      dts.init(rawStore, smode);
       secretManager = new TokenStoreDelegationTokenSecretManager(secretKeyInterval,
           tokenMaxLifetime,
           tokenRenewInterval,
