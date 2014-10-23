@@ -415,7 +415,7 @@ public class HiveConf extends Configuration {
         "hive.cluster.delegation.token.store.zookeeper.connectString", "",
         "The ZooKeeper token store connect string."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ZNODE(
-        "hive.cluster.delegation.token.store.zookeeper.znode", "/hive/cluster/delegation",
+        "hive.cluster.delegation.token.store.zookeeper.znode", "/hivedelegation",
         "The root path for token store data."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ACL(
         "hive.cluster.delegation.token.store.zookeeper.acl", "",

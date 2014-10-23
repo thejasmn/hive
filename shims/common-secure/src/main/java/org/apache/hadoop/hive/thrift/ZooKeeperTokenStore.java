@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.shims.ShimLoader;
+import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge.Server.ServerMode;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager.DelegationTokenInformation;
 import org.apache.hadoop.security.token.delegation.HiveDelegationTokenSupport;
 import org.apache.zookeeper.CreateMode;
@@ -64,6 +67,13 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   private long connectTimeoutMillis = -1;
   private List<ACL> newNodeAcl = Arrays.asList(new ACL(Perms.ALL, Ids.AUTH_IDS));
 
+  private ServerMode serverMode;
+
+  private final String WHEN_ZK_DSTORE_MSG = "when zookeeper based delegation token storage is enabled"
+      + "(hive.cluster.delegation.token.store.class=" + ZooKeeperTokenStore.class.getName() + ")";
+
+  private Configuration conf;
+
   private class ZooKeeperWatcher implements Watcher {
     @Override
     public void process(org.apache.zookeeper.WatchedEvent event) {
@@ -89,7 +99,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
 
   public ZooKeeperTokenStore(String hostPort) {
     this.zkConnectString = hostPort;
-    init();
+    initClientAndPaths();
   }
 
   private ZooKeeper getSession() {
@@ -122,6 +132,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   public static ZooKeeper createConnectedClient(String connectString,
       int sessionTimeout, long connectTimeout, final Watcher... watchers)
       throws IOException {
+
     final CountDownLatch connected = new CountDownLatch(1);
     Watcher connectWatcher = new Watcher() {
       @Override
@@ -149,6 +160,41 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
       }
     }
     return zk;
+  }
+
+  private void setupJAASConfig(Configuration conf) throws IOException {
+    if (!UserGroupInformation.getLoginUser().isFromKeytab()) {
+      // The process has not logged in using keytab
+      // this should be a test mode, can't use keytab to authenticate
+      // with zookeeper.
+      LOGGER.warn("Login is not from keytab");
+      return;
+    }
+
+    String principal;
+    String keytab;
+    switch (serverMode) {
+    case METASTORE:
+      principal = getNonEmptyVar(conf, "hive.metastore.kerberos.principal");
+      keytab = getNonEmptyVar(conf, "hive.metastore.kerberos.keytab.file");
+      break;
+    case HIVESERVER2:
+      principal = getNonEmptyVar(conf, "hive.server2.authentication.kerberos.principal");
+      keytab = getNonEmptyVar(conf, "hive.server2.authentication.kerberos.keytab");
+      break;
+    default:
+      throw new AssertionError("Unexpected server mode " + serverMode);
+    }
+    ShimLoader.getHadoopShims().setZookeeperClientJaasConfig(principal, keytab);
+  }
+
+  private String getNonEmptyVar(Configuration conf, String param) throws IOException {
+    String val = conf.get(param);
+    if (val == null || val.trim().isEmpty()) {
+      throw new IOException("Configuration parameter " + param + " should be set, "
+          + WHEN_ZK_DSTORE_MSG);
+    }
+    return val;
   }
 
   /**
@@ -237,10 +283,8 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     return acl;
   }
 
-  private void init() {
-    if (this.zkConnectString == null) {
-      throw new IllegalStateException("Not initialized");
-    }
+  private void initClientAndPaths() {
+
 
     if (this.zkSession != null) {
       try {
@@ -264,24 +308,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     if (conf == null) {
        throw new IllegalArgumentException("conf is null");
     }
-    zkConnectString = conf.get(
-      HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR, null);
-    if(zkConnectString == null || zkConnectString.trim().isEmpty()){
-      throw new IllegalArgumentException("Configuration parameter "
-          + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR
-          + " cannot be empty, when zookeeper based delegation token storage is enabled"
-          + "(hive.cluster.delegation.token.store.class=" + this.getClass().getName() + ")");
-    }
-    connectTimeoutMillis = conf.getLong(
-      HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS, -1);
-    rootNode = conf.get(
-      HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE,
-      HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE_DEFAULT);
-    String csv = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, null);
-    if (StringUtils.isNotBlank(csv)) {
-       this.newNodeAcl = parseACLs(csv);
-    }
-    init();
+    this.conf = conf;
   }
 
   @Override
@@ -472,6 +499,35 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   @Override
   public void setStore(Object hmsHandler) throws TokenStoreException {
     // no-op.
+  }
+
+  @Override
+  public void init(ServerMode smode) {
+    this.serverMode = smode;
+    zkConnectString = conf.get(
+        HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR, null);
+    if (zkConnectString == null || zkConnectString.trim().isEmpty()) {
+      throw new IllegalArgumentException("Configuration parameter "
+          + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR
+          + " cannot be empty, " + WHEN_ZK_DSTORE_MSG);
+    }
+    connectTimeoutMillis = conf.getLong(
+        HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS, -1);
+    String csv = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, null);
+    if (StringUtils.isNotBlank(csv)) {
+      this.newNodeAcl = parseACLs(csv);
+    }
+    rootNode = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE,
+        HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE_DEFAULT) + serverMode;
+
+    try {
+      // Install the JAAS Configuration for the runtime
+      setupJAASConfig(conf);
+    } catch (IOException e) {
+      throw new TokenStoreException("Error setting up JAAS configuration for zookeeper client "
+          + e.getMessage(), e);
+    }
+    initClientAndPaths();
   }
 
 }

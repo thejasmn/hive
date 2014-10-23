@@ -242,8 +242,9 @@ public interface HadoopShims {
    * Dynamically sets up the JAAS configuration
    * @param principal
    * @param keyTabFile
+   * @throws IOException
    */
-  public void setZookeeperClientJaasConfig(String principal, String keyTabFile);
+  public void setZookeeperClientJaasConfig(String principal, String keyTabFile) throws IOException;
 
   /**
    * Add a delegation token to the given ugi
