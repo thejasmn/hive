@@ -177,14 +177,12 @@ public class HiveServer2 extends CompositeService {
    */
   private void setUpAuthAndAcls(HiveConf hiveConf, List<ACL> nodeAcls) throws Exception {
     if (ShimLoader.getHadoopShims().isSecurityEnabled()) {
-      String principal =
-          ShimLoader.getHadoopShims().getResolvedPrincipal(
-              hiveConf.getVar(ConfVars.HIVE_SERVER2_KERBEROS_PRINCIPAL));
-      String keyTabFile = hiveConf.getVar(ConfVars.HIVE_SERVER2_KERBEROS_KEYTAB);
+      String principal = hiveConf.getVar(ConfVars.HIVE_SERVER2_KERBEROS_PRINCIPAL);
       if (principal.isEmpty()) {
         throw new IOException(
             "HiveServer2 Kerberos principal is empty");
       }
+      String keyTabFile = hiveConf.getVar(ConfVars.HIVE_SERVER2_KERBEROS_KEYTAB);
       if (keyTabFile.isEmpty()) {
         throw new IOException(
             "HiveServer2 Kerberos keytab is empty");

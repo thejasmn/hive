@@ -24,6 +24,9 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.zookeeper.MiniZooKeeperCluster;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge.Server.ServerMode;
@@ -31,19 +34,18 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager.DelegationTokenInformation;
 import org.apache.hadoop.security.token.delegation.HiveDelegationTokenSupport;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
-import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 
 public class TestZooKeeperTokenStore extends TestCase {
 
   private MiniZooKeeperCluster zkCluster = null;
-  private ZooKeeper zkClient = null;
+  private CuratorFramework zkClient = null;
   private int zkPort = -1;
   private ZooKeeperTokenStore ts;
   // connect timeout large enough for slower test environments
   private final int connectTimeoutMillis = 30000;
+  private final int sessionTimeoutMillis = 3000;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,8 +56,10 @@ public class TestZooKeeperTokenStore extends TestCase {
     this.zkCluster = new MiniZooKeeperCluster();
     this.zkPort = this.zkCluster.startup(zkDataDir);
 
-    this.zkClient = ZooKeeperTokenStore.createConnectedClient("localhost:" + zkPort, 3000,
-        connectTimeoutMillis);
+    this.zkClient = CuratorFrameworkFactory.builder().connectString("localhost:" + zkPort)
+        .sessionTimeoutMs(sessionTimeoutMillis).connectionTimeoutMs(connectTimeoutMillis)
+        .retryPolicy(new ExponentialBackoffRetry(1000, 3)).build();
+
   }
 
   @Override
@@ -86,13 +90,11 @@ public class TestZooKeeperTokenStore extends TestCase {
     String ZK_PATH = "/zktokenstore-testTokenStorage";
     ts = new ZooKeeperTokenStore();
     ts.setConf(createConf(ZK_PATH));
+    ts.init(null, ServerMode.METASTORE);
 
     int keySeq = ts.addMasterKey("key1Data");
-    byte[] keyBytes = zkClient.getData(
-        ZK_PATH
-            + "/keys/"
-            + String.format(ZooKeeperTokenStore.ZK_SEQ_FORMAT,
-                keySeq), false, null);
+    byte[] keyBytes = zkClient.getData().forPath(
+        ZK_PATH + "/keys/" + String.format(ZooKeeperTokenStore.ZK_SEQ_FORMAT, keySeq));
     assertNotNull(keyBytes);
     assertEquals(new String(keyBytes), "key1Data");
 
@@ -161,6 +163,7 @@ public class TestZooKeeperTokenStore extends TestCase {
     ts = new ZooKeeperTokenStore();
     try {
       ts.setConf(conf);
+      ts.init(null, ServerMode.METASTORE);
       fail("expected ACL exception");
     } catch (DelegationTokenStore.TokenStoreException e) {
       assertEquals(e.getCause().getClass(),
@@ -176,7 +179,8 @@ public class TestZooKeeperTokenStore extends TestCase {
         "world:anyone:cdrwa,ip:127.0.0.1:cdrwa");
     ts = new ZooKeeperTokenStore();
     ts.setConf(conf);
-    List<ACL> acl = zkClient.getACL(ZK_PATH, new Stat());
+    ts.init(null, ServerMode.METASTORE);
+    List<ACL> acl = zkClient.getACL().forPath(ZK_PATH);
     assertEquals(2, acl.size());
   }
 

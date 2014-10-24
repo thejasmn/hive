@@ -413,7 +413,8 @@ public class HiveConf extends Configuration {
         "The delegation token store implementation. Set to org.apache.hadoop.hive.thrift.ZooKeeperTokenStore for load-balanced cluster."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_CONNECTSTR(
         "hive.cluster.delegation.token.store.zookeeper.connectString", "",
-        "The ZooKeeper token store connect string."),
+        "The ZooKeeper token store connect string. If this variable is not set, the value set\n" +
+        "in hive.zookeeper.quorum will be used."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ZNODE(
         "hive.cluster.delegation.token.store.zookeeper.znode", "/hivedelegation",
         "The root path for token store data."),
@@ -1247,10 +1248,13 @@ public class HiveConf extends Configuration {
 
      // Zookeeper related configs
     HIVE_ZOOKEEPER_QUORUM("hive.zookeeper.quorum", "",
-        "List of ZooKeeper servers to talk to. This is needed for: " +
-        "1. Read/write locks - when hive.lock.manager is set to " +
-        "org.apache.hadoop.hive.ql.lockmgr.zookeeper.ZooKeeperHiveLockManager, " +
-        "2. When HiveServer2 supports service discovery via Zookeeper."),
+        "List of ZooKeeper servers to talk to. This is needed for: \n" +
+        "1. Read/write locks - when hive.lock.manager is set to \n" +
+        "org.apache.hadoop.hive.ql.lockmgr.zookeeper.ZooKeeperHiveLockManager, \n" +
+        "2. When HiveServer2 supports service discovery via Zookeeper.\n" +
+        "3. For delegation token storage if zookeeper store is used, if\n" +
+        "hive.cluster.delegation.token.store.zookeeper.connectString is not set"),
+
     HIVE_ZOOKEEPER_CLIENT_PORT("hive.zookeeper.client.port", "2181",
         "The port of ZooKeeper servers to talk to. " +
         "If the list of Zookeeper servers specified in hive.zookeeper.quorum," +

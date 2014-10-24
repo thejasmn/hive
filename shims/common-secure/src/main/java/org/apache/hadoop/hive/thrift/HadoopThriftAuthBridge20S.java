@@ -308,6 +308,10 @@ public class HadoopThriftAuthBridge20S extends HadoopThriftAuthBridge {
         "hive.cluster.delegation.token.store.class";
     public static final String DELEGATION_TOKEN_STORE_ZK_CONNECT_STR =
         "hive.cluster.delegation.token.store.zookeeper.connectString";
+    // alternate connect string specification configuration
+    public static final String DELEGATION_TOKEN_STORE_ZK_CONNECT_STR_ALTERNATE =
+        "hive.zookeeper.quorum";
+
     public static final String DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS =
         "hive.cluster.delegation.token.store.zookeeper.connectTimeoutMillis";
     public static final String DELEGATION_TOKEN_STORE_ZK_ZNODE =

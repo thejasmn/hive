@@ -91,6 +91,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
           zkSession = CuratorFrameworkFactory.builder().connectString(zkConnectString)
               .sessionTimeoutMs(zkSessionTimeout).connectionTimeoutMs(connectTimeoutMillis)
               .retryPolicy(new ExponentialBackoffRetry(1000, 3)).build();
+          zkSession.start();
         }
       }
     }
@@ -148,6 +149,8 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
       String node = zk.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT)
           .withACL(acl).forPath(path);
       LOGGER.info("Created path: {} ", node);
+    } catch (KeeperException.NodeExistsException e) {
+      // node already exists
     } catch (Exception e) {
       throw new TokenStoreException("Error creating path " + path, e);
     }
@@ -271,6 +274,8 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     CuratorFramework zk = getSession();
     try {
       return zk.getData().forPath(nodePath);
+    } catch (KeeperException.NoNodeException ex) {
+      return null;
     } catch (Exception e) {
       throw new TokenStoreException("Error reading " + nodePath, e);
     }
@@ -284,18 +289,16 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   @Override
   public int addMasterKey(String s) {
     String keysPath = rootNode + NODE_KEYS + "/";
-    String newNode = zkCreate(CreateMode.PERSISTENT_SEQUENTIAL, keysPath, s.getBytes());
+    CuratorFramework zk = getSession();
+    String newNode;
+    try {
+      newNode = zk.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).withACL(newNodeAcl)
+          .forPath(keysPath, s.getBytes());
+    } catch (Exception e) {
+      throw new TokenStoreException("Error creating new node with path " + keysPath, e);
+    }
     LOGGER.info("Added key {}", newNode);
     return getSeq(newNode);
-  }
-
-  private String zkCreate(CreateMode createMode, String path, byte[] bytes) {
-    CuratorFramework zk = getSession();
-    try {
-      return zk.create().withMode(createMode).withACL(newNodeAcl).forPath(path, bytes);
-    } catch (Exception e) {
-      throw new TokenStoreException("Error creating new node with path " + path, e);
-    }
   }
 
   @Override
@@ -320,6 +323,8 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     CuratorFramework zk = getSession();
     try {
       zk.delete().forPath(path);
+    } catch (KeeperException.NoNodeException ex) {
+      // already deleted
     } catch (Exception e) {
       throw new TokenStoreException("Error deleting " + path, e);
     }
@@ -357,7 +362,15 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
       DelegationTokenInformation token) {
     byte[] tokenBytes = HiveDelegationTokenSupport.encodeDelegationTokenInformation(token);
     String tokenPath = getTokenPath(tokenIdentifier);
-    String newNode = zkCreate(CreateMode.PERSISTENT, tokenPath, tokenBytes);
+    CuratorFramework zk = getSession();
+    String newNode;
+    try {
+      newNode = zk.create().withMode(CreateMode.PERSISTENT).withACL(newNodeAcl)
+          .forPath(tokenPath, tokenBytes);
+    } catch (Exception e) {
+      throw new TokenStoreException("Error creating new node with path " + tokenPath, e);
+    }
+
     LOGGER.info("Added token: {}", newNode);
     return true;
   }
@@ -410,9 +423,16 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     zkConnectString = conf.get(
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR, null);
     if (zkConnectString == null || zkConnectString.trim().isEmpty()) {
-      throw new IllegalArgumentException("Configuration parameter "
-          + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR
-          + " cannot be empty, " + WHEN_ZK_DSTORE_MSG);
+      // try alternate config param
+      zkConnectString = conf.get(
+          HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR_ALTERNATE, null);
+      if (zkConnectString == null || zkConnectString.trim().isEmpty()) {
+        throw new IllegalArgumentException("Zookeeper connect string has to be specifed through "
+            + "either " + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR
+            + " or "
+            + HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_STR_ALTERNATE
+            + WHEN_ZK_DSTORE_MSG);
+      }
     }
     connectTimeoutMillis = conf.getInt(
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS, -1);
