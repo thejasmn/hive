@@ -79,11 +79,6 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   protected ZooKeeperTokenStore() {
   }
 
-  public ZooKeeperTokenStore(String hostPort) {
-    this.zkConnectString = hostPort;
-    initClientAndPaths();
-  }
-
   private CuratorFramework getSession() {
     if (zkSession == null || zkSession.getState() == CuratorFrameworkState.STOPPED) {
       synchronized (this) {
@@ -224,8 +219,8 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     try {
       ensurePath(rootNode + NODE_KEYS, newNodeAcl);
       ensurePath(rootNode + NODE_TOKENS, newNodeAcl);
-    } catch (Exception e) {
-      throw new TokenStoreException("Failed to validate token path.", e);
+    } catch (TokenStoreException e) {
+      throw e;
     }
   }
 

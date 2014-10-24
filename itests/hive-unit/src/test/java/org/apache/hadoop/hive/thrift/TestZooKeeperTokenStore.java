@@ -59,7 +59,7 @@ public class TestZooKeeperTokenStore extends TestCase {
     this.zkClient = CuratorFrameworkFactory.builder().connectString("localhost:" + zkPort)
         .sessionTimeoutMs(sessionTimeoutMillis).connectionTimeoutMs(connectTimeoutMillis)
         .retryPolicy(new ExponentialBackoffRetry(1000, 3)).build();
-
+    this.zkClient.start();
   }
 
   @Override
@@ -89,12 +89,16 @@ public class TestZooKeeperTokenStore extends TestCase {
   public void testTokenStorage() throws Exception {
     String ZK_PATH = "/zktokenstore-testTokenStorage";
     ts = new ZooKeeperTokenStore();
-    ts.setConf(createConf(ZK_PATH));
+    Configuration conf = createConf(ZK_PATH);
+    conf.set(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, "world:anyone:cdrwa");
+    ts.setConf(conf);
     ts.init(null, ServerMode.METASTORE);
 
+
+    String metastore_zk_path = ZK_PATH + ServerMode.METASTORE;
     int keySeq = ts.addMasterKey("key1Data");
     byte[] keyBytes = zkClient.getData().forPath(
-        ZK_PATH + "/keys/" + String.format(ZooKeeperTokenStore.ZK_SEQ_FORMAT, keySeq));
+        metastore_zk_path + "/keys/" + String.format(ZooKeeperTokenStore.ZK_SEQ_FORMAT, keySeq));
     assertNotNull(keyBytes);
     assertEquals(new String(keyBytes), "key1Data");
 
@@ -119,8 +123,7 @@ public class TestZooKeeperTokenStore extends TestCase {
         HiveDelegationTokenSupport
             .encodeDelegationTokenInformation(tokenInfoRead));
 
-    List<DelegationTokenIdentifier> allIds = ts
-        .getAllDelegationTokenIdentifiers();
+    List<DelegationTokenIdentifier> allIds = ts.getAllDelegationTokenIdentifiers();
     assertEquals(1, allIds.size());
     Assert.assertEquals(TokenStoreDelegationTokenSecretManager
         .encodeWritable(tokenId),
@@ -144,8 +147,7 @@ public class TestZooKeeperTokenStore extends TestCase {
       ts.init(null, ServerMode.METASTORE);
       fail("expected ACL exception");
     } catch (DelegationTokenStore.TokenStoreException e) {
-      assertEquals(e.getCause().getClass(),
-          KeeperException.NoAuthException.class);
+      assertEquals(KeeperException.NoAuthException.class, e.getCause().getClass());
     }
   }
 
@@ -166,8 +168,7 @@ public class TestZooKeeperTokenStore extends TestCase {
       ts.init(null, ServerMode.METASTORE);
       fail("expected ACL exception");
     } catch (DelegationTokenStore.TokenStoreException e) {
-      assertEquals(e.getCause().getClass(),
-          KeeperException.InvalidACLException.class);
+      assertEquals(KeeperException.InvalidACLException.class, e.getCause().getClass());
     }
   }
 
@@ -176,11 +177,11 @@ public class TestZooKeeperTokenStore extends TestCase {
     Configuration conf = createConf(ZK_PATH);
     conf.set(
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL,
-        "world:anyone:cdrwa,ip:127.0.0.1:cdrwa");
+        "ip:127.0.0.1:cdrwa,world:anyone:cdrwa");
     ts = new ZooKeeperTokenStore();
     ts.setConf(conf);
     ts.init(null, ServerMode.METASTORE);
-    List<ACL> acl = zkClient.getACL().forPath(ZK_PATH);
+    List<ACL> acl = zkClient.getACL().forPath(ZK_PATH + ServerMode.METASTORE);
     assertEquals(2, acl.size());
   }
 
