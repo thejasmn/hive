@@ -99,7 +99,7 @@ public class TestHadoop20SAuthBridge extends TestCase {
       }
 
       @Override
-          public void startDelegationTokenSecretManager(Configuration conf, Object hms, ServerMode sm)
+      public void startDelegationTokenSecretManager(Configuration conf, Object hms, ServerMode sm)
       throws IOException{
         super.startDelegationTokenSecretManager(conf, hms, sm);
         isMetastoreTokenManagerInited = true;
