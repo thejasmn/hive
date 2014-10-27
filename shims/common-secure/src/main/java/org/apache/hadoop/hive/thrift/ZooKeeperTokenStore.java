@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
@@ -65,6 +66,21 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   private int connectTimeoutMillis = -1;
   private List<ACL> newNodeAcl = Arrays.asList(new ACL(Perms.ALL, Ids.AUTH_IDS));
 
+  // ACLProvider permissions will be used in case parent dirs need to be created
+  private final ACLProvider aclDefaultProvider =  new ACLProvider() {
+
+    @Override
+    public List<ACL> getDefaultAcl() {
+      return newNodeAcl;
+    }
+
+    @Override
+    public List<ACL> getAclForPath(String path) {
+      return getDefaultAcl();
+    }
+  };
+
+
   private ServerMode serverMode;
 
   private final String WHEN_ZK_DSTORE_MSG = "when zookeeper based delegation token storage is enabled"
@@ -85,6 +101,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
         if (zkSession == null || zkSession.getState() == CuratorFrameworkState.STOPPED) {
           zkSession = CuratorFrameworkFactory.builder().connectString(zkConnectString)
               .sessionTimeoutMs(zkSessionTimeout).connectionTimeoutMs(connectTimeoutMillis)
+              .aclProvider(aclDefaultProvider)
               .retryPolicy(new ExponentialBackoffRetry(1000, 3)).build();
           zkSession.start();
         }
