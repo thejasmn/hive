@@ -66,7 +66,9 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
   private int connectTimeoutMillis = -1;
   private List<ACL> newNodeAcl = Arrays.asList(new ACL(Perms.ALL, Ids.AUTH_IDS));
 
-  // ACLProvider permissions will be used in case parent dirs need to be created
+  /**
+   * ACLProvider permissions will be used in case parent dirs need to be created
+   */
   private final ACLProvider aclDefaultProvider =  new ACLProvider() {
 
     @Override
