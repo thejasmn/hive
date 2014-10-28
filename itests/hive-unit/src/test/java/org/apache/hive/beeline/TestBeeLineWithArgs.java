@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -74,9 +75,6 @@ public class TestBeeLineWithArgs {
     HiveConf hiveConf = new HiveConf();
     // Set to non-zk lock manager to prevent HS2 from trying to connect
     hiveConf.setVar(HiveConf.ConfVars.HIVE_LOCK_MANAGER, "org.apache.hadoop.hive.ql.lockmgr.EmbeddedLockManager");
-
-    //  hiveConf.logVars(System.err);
-    // System.err.flush();
 
     hiveServer2 = new HiveServer2();
     hiveServer2.init(hiveConf);
@@ -165,7 +163,7 @@ public class TestBeeLineWithArgs {
    * in the output (stdout or stderr), fail if not found
    * Print PASSED or FAILED
    * @param testName Name of test to print
-   * @param expectedPattern Text to look for in command output/error
+   * @param expectedPattern Regex to look for in command output/error
    * @param shouldMatch true if the pattern should be found, false if it should not
    * @throws Exception on command execution error
    */
@@ -186,7 +184,10 @@ public class TestBeeLineWithArgs {
       copy.add(scriptFile.getAbsolutePath());
 
       String output = testCommandLineScript(copy, null);
-      boolean matches = output.contains(expectedPattern);
+
+      Pattern pattern = Pattern.compile(".*" + expectedPattern + ".*", Pattern.DOTALL);
+      boolean matches = pattern.matcher(output).matches();
+
       if (shouldMatch != matches) {
         //failed
         fail(testName + ": Output" + output + " should" +  (shouldMatch ? "" : " not") +
@@ -354,7 +355,8 @@ public class TestBeeLineWithArgs {
 
   /**
    * Select null from table , check if setting null to empty string works.
-   * Original beeline/sqlline used to print nulls as empty strings
+   * Original beeline/sqlline used to print nulls as empty strings.
+   * Also test csv2 output format
    * Print PASSED or FAILED
    */
   @Test
@@ -365,11 +367,104 @@ public class TestBeeLineWithArgs {
     final String EXPECTED_PATTERN = "abc,,def";
 
     List<String> argList = getBaseArgs(JDBC_URL);
-    argList.add("--outputformat=csv");
+    argList.add("--outputformat=csv2");
 
     testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
   }
 
+  /**
+   * Test writing output using TSV (new) format
+   */
+  @Test
+  public void testDSVOutput() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=dsv");
+    argList.add("--delimiterForDSV=;");
+
+    final String EXPECTED_PATTERN = "1;NULL;defg;\"ab\"\"c\";1.0";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+  /**
+   * Test writing output using TSV (new) format
+   */
+  @Test
+  public void testTSV2Output() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=tsv2");
+
+    final String EXPECTED_PATTERN = "1\tNULL\tdefg\t\"ab\"\"c\"\t1.0";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+  /**
+   * Test writing output using TSV deprecated format
+   */
+  @Test
+  public void testTSVOutput() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=tsv");
+
+    final String EXPECTED_PATTERN = "'1'\t'NULL'\t'defg'\t'ab\"c\'\t'1.0'";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+
+  /**
+   * Test writing output using TSV deprecated format
+   * Check for deprecation message
+   */
+  @Test
+  public void testTSVOutputDeprecation() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=tsv");
+
+    final String EXPECTED_PATTERN = "Format tsv is deprecated, please use tsv2";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+  /**
+   * Test writing output using CSV deprecated format
+   * Check for deprecation message
+   */
+  @Test
+  public void testCSVOutputDeprecation() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=csv");
+
+    final String EXPECTED_PATTERN = "Format csv is deprecated, please use csv2";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+  /**
+   * Test writing output using CSV deprecated format
+   * Check for deprecation message
+   */
+  @Test
+  public void testCSVOutput() throws Throwable {
+    final String TEST_NAME = "testTSVOutput";
+    String SCRIPT_TEXT = getFormatTestQuery();
+    List<String> argList = getBaseArgs(JDBC_URL);
+    argList.add("--outputformat=csv");
+    final String EXPECTED_PATTERN = "'1','NULL','defg','ab\"c\','1.0'";
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
+  }
+
+
+  private String getFormatTestQuery() {
+    return "set hive.support.concurrency = false;\n" +
+        "select 1, null, 'defg', 'ab\"c', 1.0D from " + tableName + " limit 1 ;\n";
+  }
   /**
    * Select null from table , check if setting null to empty string works - Using beeling cmd line
    *  argument.
@@ -381,8 +476,7 @@ public class TestBeeLineWithArgs {
     final String TEST_NAME = "testNullNonDefault";
     final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
                 "select 'abc',null,'def' from " + tableName + " limit 1 ;\n";
-    //final String EXPECTED_PATTERN = "| abc  |      | def  |";
-    final String EXPECTED_PATTERN = "abc,,def";
+    final String EXPECTED_PATTERN = "'abc','','def'";
 
     List<String> argList = getBaseArgs(JDBC_URL);
     argList.add("--nullemptystring=true");
@@ -412,7 +506,7 @@ public class TestBeeLineWithArgs {
     argList.add(scriptFile.getAbsolutePath());
 
     try {
-        String output = testCommandLineScript(argList, null);
+      String output = testCommandLineScript(argList, null);
       long elapsedTime = (System.currentTimeMillis() - startTime)/1000;
       String time = "(" + elapsedTime + "s)";
       if (output.contains(EXPECTED_PATTERN)) {

@@ -22,16 +22,17 @@
  */
 package org.apache.hive.beeline;
 
+
 /**
  * OutputFormat for values separated by a delimiter.
  *
- * <strong>TODO</strong>: Handle character escaping
+ * Note this does not handle escaping of the quote char.
+ * The new SeparatedValuesOutputFormat supports that. The formats supported by
+ * this class are deprecated.
  *
  */
 class DeprecatedSeparatedValuesOutputFormat implements OutputFormat {
-  /**
-   *
-   */
+
   private final BeeLine beeLine;
   private char separator;
 
@@ -40,6 +41,7 @@ class DeprecatedSeparatedValuesOutputFormat implements OutputFormat {
     setSeparator(separator);
   }
 
+  @Override
   public int print(Rows rows) {
     int count = 0;
     while (rows.hasNext()) {
