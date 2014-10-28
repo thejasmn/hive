@@ -35,7 +35,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -75,6 +74,9 @@ public class TestBeeLineWithArgs {
     HiveConf hiveConf = new HiveConf();
     // Set to non-zk lock manager to prevent HS2 from trying to connect
     hiveConf.setVar(HiveConf.ConfVars.HIVE_LOCK_MANAGER, "org.apache.hadoop.hive.ql.lockmgr.EmbeddedLockManager");
+
+    //  hiveConf.logVars(System.err);
+    // System.err.flush();
 
     hiveServer2 = new HiveServer2();
     hiveServer2.init(hiveConf);
@@ -163,7 +165,7 @@ public class TestBeeLineWithArgs {
    * in the output (stdout or stderr), fail if not found
    * Print PASSED or FAILED
    * @param testName Name of test to print
-   * @param expectedPattern Regex to look for in command output/error
+   * @param expectedPattern Text to look for in command output/error
    * @param shouldMatch true if the pattern should be found, false if it should not
    * @throws Exception on command execution error
    */
@@ -184,10 +186,7 @@ public class TestBeeLineWithArgs {
       copy.add(scriptFile.getAbsolutePath());
 
       String output = testCommandLineScript(copy, null);
-
-      Pattern pattern = Pattern.compile(".*" + expectedPattern + ".*", Pattern.DOTALL);
-      boolean matches = pattern.matcher(output).matches();
-
+      boolean matches = output.contains(expectedPattern);
       if (shouldMatch != matches) {
         //failed
         fail(testName + ": Output" + output + " should" +  (shouldMatch ? "" : " not") +
