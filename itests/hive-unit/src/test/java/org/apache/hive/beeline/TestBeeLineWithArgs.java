@@ -34,10 +34,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hive.jdbc.miniHS2.MiniHS2;
 import org.apache.hive.service.server.HiveServer2;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -50,12 +52,12 @@ import org.junit.Test;
  */
 public class TestBeeLineWithArgs {
   // Default location of HiveServer2
-  final private static String JDBC_URL = BeeLine.BEELINE_DEFAULT_JDBC_URL + "localhost:10000";
   private static final String tableName = "TestBeelineTable1";
   private static final String tableComment = "Test table comment";
 
 
   private static HiveServer2 hiveServer2;
+  private static MiniHS2 miniHS2;
 
   private List<String> getBaseArgs(String jdbcUrl) {
     List<String> argList = new ArrayList<String>(8);
@@ -73,17 +75,9 @@ public class TestBeeLineWithArgs {
     HiveConf hiveConf = new HiveConf();
     // Set to non-zk lock manager to prevent HS2 from trying to connect
     hiveConf.setVar(HiveConf.ConfVars.HIVE_LOCK_MANAGER, "org.apache.hadoop.hive.ql.lockmgr.EmbeddedLockManager");
-
-    //  hiveConf.logVars(System.err);
-    // System.err.flush();
-
-    hiveServer2 = new HiveServer2();
-    hiveServer2.init(hiveConf);
-    System.err.println("Starting HiveServer2...");
-    hiveServer2.start();
-    Thread.sleep(1000);
+    miniHS2 = new MiniHS2(hiveConf);
+    miniHS2.start(new HashMap<String,  String>());
     createTable();
-
   }
 
   /**
@@ -93,7 +87,7 @@ public class TestBeeLineWithArgs {
    */
   private static void createTable() throws ClassNotFoundException, SQLException {
     Class.forName(BeeLine.BEELINE_DEFAULT_JDBC_DRIVER);
-    Connection con = DriverManager.getConnection(JDBC_URL,"", "");
+    Connection con = DriverManager.getConnection(miniHS2.getBaseJdbcURL(),"", "");
 
     assertNotNull("Connection is null", con);
     assertFalse("Connection should not be closed", con.isClosed());
@@ -128,13 +122,8 @@ public class TestBeeLineWithArgs {
    */
   @AfterClass
   public static void postTests() {
-    try {
-      if (hiveServer2 != null) {
-        System.err.println("Stopping HiveServer2...");
-        hiveServer2.stop();
-      }
-    } catch (Throwable t) {
-      t.printStackTrace();
+    if (miniHS2.isStarted()) {
+      miniHS2.stop();
     }
   }
 
@@ -219,7 +208,7 @@ public class TestBeeLineWithArgs {
 	  final String TEST_NAME = "testWhitespaceBeforeCommentScriptFile";
 	  final String SCRIPT_TEXT = " 	 	-- comment has spaces and tabs before it\n 	 	# comment has spaces and tabs before it\n";
 	  final String EXPECTED_PATTERN = "cannot recognize input near '<EOF>'";
-	  List<String> argList = getBaseArgs(JDBC_URL);
+	  List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
 	  testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, false, argList);
   }
 
@@ -234,7 +223,7 @@ public class TestBeeLineWithArgs {
     final String TEST_NAME = "testPositiveScriptFile";
     final String SCRIPT_TEXT = "show databases;\n";
     final String EXPECTED_PATTERN = " default ";
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
   }
 
@@ -246,7 +235,7 @@ public class TestBeeLineWithArgs {
    */
   @Test
   public void testBeelineHiveVariable() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--hivevar");
     argList.add("DUMMY_TBL=dummy");
     final String TEST_NAME = "testHiveCommandLineHiveVariable";
@@ -257,7 +246,7 @@ public class TestBeeLineWithArgs {
 
   @Test
   public void testBeelineHiveConfVariable() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--hiveconf");
     argList.add("test.hive.table.name=dummy");
     final String TEST_NAME = "testBeelineHiveConfVariable";
@@ -273,7 +262,7 @@ public class TestBeeLineWithArgs {
    */
   @Test
   public void testBeelineMultiHiveVariable() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--hivevar");
     argList.add("TABLE_NAME=dummy2");
 
@@ -301,7 +290,7 @@ public class TestBeeLineWithArgs {
    */
   @Test
   public void testBreakOnErrorScriptFile() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     final String TEST_NAME = "testBreakOnErrorScriptFile";
     final String SCRIPT_TEXT = "select * from abcdefg01;\nshow databases;\n";
     final String EXPECTED_PATTERN = " default ";
@@ -310,7 +299,7 @@ public class TestBeeLineWithArgs {
 
   @Test
   public void testBeelineShellCommand() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     final String TEST_NAME = "testBeelineShellCommand";
     final String SCRIPT_TEXT = "!sh echo \"hello world.\" > hw.txt\n!sh cat hw.txt\n!rm hw.txt";
     final String EXPECTED_PATTERN = "hello world";
@@ -327,7 +316,7 @@ public class TestBeeLineWithArgs {
     final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
         "select null from " + tableName + " limit 1 ;\n";
     final String EXPECTED_PATTERN = "NULL";
-    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(JDBC_URL));
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(miniHS2.getBaseJdbcURL()));
   }
 
   /**
@@ -340,7 +329,7 @@ public class TestBeeLineWithArgs {
     final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
         "!set nullemptystring false\n select null from " + tableName + " limit 1 ;\n";
     final String EXPECTED_PATTERN = "NULL";
-    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(JDBC_URL));
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(miniHS2.getBaseJdbcURL()));
   }
 
   @Test
@@ -348,7 +337,7 @@ public class TestBeeLineWithArgs {
     final String TEST_NAME = "testGetVariableValue";
     final String SCRIPT_TEXT = "set env:TERM;";
     final String EXPECTED_PATTERN = "env:TERM";
-    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(JDBC_URL));
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(miniHS2.getBaseJdbcURL()));
   }
 
   /**
@@ -364,7 +353,7 @@ public class TestBeeLineWithArgs {
                 "!set nullemptystring true\n select 'abc',null,'def' from " + tableName + " limit 1 ;\n";
     final String EXPECTED_PATTERN = "abc,,def";
 
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=csv2");
 
     testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
@@ -377,7 +366,7 @@ public class TestBeeLineWithArgs {
   public void testDSVOutput() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=dsv");
     argList.add("--delimiterForDSV=;");
 
@@ -392,7 +381,7 @@ public class TestBeeLineWithArgs {
   public void testTSV2Output() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=tsv2");
 
     final String EXPECTED_PATTERN = "1\tNULL\tdefg\t\"ab\"\"c\"\t1.0";
@@ -406,7 +395,7 @@ public class TestBeeLineWithArgs {
   public void testTSVOutput() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=tsv");
 
     final String EXPECTED_PATTERN = "'1'\t'NULL'\t'defg'\t'ab\"c\'\t'1.0'";
@@ -422,7 +411,7 @@ public class TestBeeLineWithArgs {
   public void testTSVOutputDeprecation() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=tsv");
 
     final String EXPECTED_PATTERN = "Format tsv is deprecated, please use tsv2";
@@ -437,7 +426,7 @@ public class TestBeeLineWithArgs {
   public void testCSVOutputDeprecation() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=csv");
 
     final String EXPECTED_PATTERN = "Format csv is deprecated, please use csv2";
@@ -451,7 +440,7 @@ public class TestBeeLineWithArgs {
   public void testCSVOutput() throws Throwable {
     final String TEST_NAME = "testTSVOutput";
     String SCRIPT_TEXT = getFormatTestQuery();
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--outputformat=csv");
     final String EXPECTED_PATTERN = "'1','NULL','defg','ab\"c\','1.0'";
     testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, argList);
@@ -475,7 +464,7 @@ public class TestBeeLineWithArgs {
                 "select 'abc',null,'def' from " + tableName + " limit 1 ;\n";
     final String EXPECTED_PATTERN = "'abc','','def'";
 
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("--nullemptystring=true");
     argList.add("--outputformat=csv");
 
@@ -498,7 +487,7 @@ public class TestBeeLineWithArgs {
     File scriptFile = File.createTempFile("beelinenegative", "temp");
     scriptFile.delete();
 
-    List<String> argList = getBaseArgs(JDBC_URL);
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL());
     argList.add("-f");
     argList.add(scriptFile.getAbsolutePath());
 
@@ -547,7 +536,7 @@ public class TestBeeLineWithArgs {
 
   @Test
   public void testHiveVarSubstitution() throws Throwable {
-    List<String> argList = getBaseArgs(JDBC_URL + "#D_TBL=dummy_t");
+    List<String> argList = getBaseArgs(miniHS2.getBaseJdbcURL() + "#D_TBL=dummy_t");
     final String TEST_NAME = "testHiveVarSubstitution";
     final String SCRIPT_TEXT = "create table ${D_TBL} (d int);\nshow tables;\n";
     final String EXPECTED_PATTERN = "dummy_t";
@@ -579,7 +568,7 @@ public class TestBeeLineWithArgs {
     final String SCRIPT_TEXT = "set hive.support.concurrency = false;\n" +
         "select count(*) from " + tableName + ";\n";
     final String EXPECTED_PATTERN = "Parsing command";
-    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(JDBC_URL));
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, true, getBaseArgs(miniHS2.getBaseJdbcURL()));
   }
 
   /**
@@ -593,6 +582,6 @@ public class TestBeeLineWithArgs {
         "!set silent true\n" +
         "select count(*) from " + tableName + ";\n";
     final String EXPECTED_PATTERN = "Parsing command";
-    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, false, getBaseArgs(JDBC_URL));
+    testScriptFile(TEST_NAME, SCRIPT_TEXT, EXPECTED_PATTERN, false, getBaseArgs(miniHS2.getBaseJdbcURL()));
   }
 }
