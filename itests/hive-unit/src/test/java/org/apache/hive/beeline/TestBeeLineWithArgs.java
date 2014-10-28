@@ -48,7 +48,6 @@ import org.junit.Test;
  * TestBeeLineWithArgs - executes tests of the command-line arguments to BeeLine
  *
  */
-//public class TestBeeLineWithArgs extends TestCase {
 public class TestBeeLineWithArgs {
   // Default location of HiveServer2
   final private static String JDBC_URL = BeeLine.BEELINE_DEFAULT_JDBC_URL + "localhost:10000";
