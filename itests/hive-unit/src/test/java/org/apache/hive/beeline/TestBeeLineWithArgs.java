@@ -372,7 +372,7 @@ public class TestBeeLineWithArgs {
   }
 
   /**
-   * Test writing output using TSV (new) format
+   * Test writing output using DSV format, with custom delimiter ";"
    */
   @Test
   public void testDSVOutput() throws Throwable {
@@ -447,7 +447,6 @@ public class TestBeeLineWithArgs {
 
   /**
    * Test writing output using CSV deprecated format
-   * Check for deprecation message
    */
   @Test
   public void testCSVOutput() throws Throwable {
