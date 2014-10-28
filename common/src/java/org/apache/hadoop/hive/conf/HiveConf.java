@@ -418,9 +418,9 @@ public class HiveConf extends Configuration {
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ZNODE(
         "hive.cluster.delegation.token.store.zookeeper.znode", "/hivedelegation",
         "The root path for token store data. Note that this is used by both HiveServer2 and\n" +
-        "MetaStore to store delegation Token. One directory gets created for each of them\n" +
+        "MetaStore to store delegation Token. One directory gets created for each of them.\n" +
         "The final directory names would have the servername appended to it (HIVESERVER2,\n" +
-        "METASTORE)\n"),
+        "METASTORE)."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ACL(
         "hive.cluster.delegation.token.store.zookeeper.acl", "",
         "ACL for token store entries. List comma separated all server principals for the cluster.\n" +
