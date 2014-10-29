@@ -239,12 +239,13 @@ public interface HadoopShims {
   public String getTokenStrForm(String tokenSignature) throws IOException;
 
   /**
-   * Dynamically sets up the JAAS configuration
+   * Dynamically sets up the JAAS configuration that uses kerberos
    * @param principal
    * @param keyTabFile
    * @throws IOException
    */
-  public void setZookeeperClientJaasConfig(String principal, String keyTabFile) throws IOException;
+  public void setZookeeperClientKerberosJaasConfig(String principal, String keyTabFile)
+      throws IOException;
 
   /**
    * Add a delegation token to the given ugi

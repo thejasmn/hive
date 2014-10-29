@@ -706,7 +706,7 @@ public abstract class HadoopShimsSecure implements HadoopShims {
   }
 
   @Override
-  public void setZookeeperClientJaasConfig(String principal, String keyTabFile) throws IOException {
+  public void setZookeeperClientKerberosJaasConfig(String principal, String keyTabFile) throws IOException {
     // ZooKeeper property name to pick the correct JAAS conf section
     final String SASL_LOGIN_CONTEXT_NAME = "HiveZooKeeperClient";
     System.setProperty(ZooKeeperSaslClient.LOGIN_CONTEXT_NAME_KEY, SASL_LOGIN_CONTEXT_NAME);

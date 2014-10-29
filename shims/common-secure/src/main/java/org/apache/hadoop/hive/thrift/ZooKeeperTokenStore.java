@@ -135,7 +135,7 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     default:
       throw new AssertionError("Unexpected server mode " + serverMode);
     }
-    ShimLoader.getHadoopShims().setZookeeperClientJaasConfig(principal, keytab);
+    ShimLoader.getHadoopShims().setZookeeperClientKerberosJaasConfig(principal, keytab);
   }
 
   private String getNonEmptyConfVar(Configuration conf, String param) throws IOException {
@@ -149,12 +149,9 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
 
   /**
    * Create a path if it does not already exist ("mkdir -p")
-   * @param zk ZooKeeper session
    * @param path string with '/' separator
    * @param acl list of ACL entries
-   * @return
-   * @throws KeeperException
-   * @throws InterruptedException
+   * @throws TokenStoreException
    */
   public void ensurePath(String path, List<ACL> acl)
       throws TokenStoreException {
@@ -450,9 +447,9 @@ public class ZooKeeperTokenStore implements DelegationTokenStore {
     }
     connectTimeoutMillis = conf.getInt(
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_CONNECT_TIMEOUTMILLIS, -1);
-    String csv = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, null);
-    if (StringUtils.isNotBlank(csv)) {
-      this.newNodeAcl = parseACLs(csv);
+    String aclStr = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ACL, null);
+    if (StringUtils.isNotBlank(aclStr)) {
+      this.newNodeAcl = parseACLs(aclStr);
     }
     rootNode = conf.get(HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE,
         HadoopThriftAuthBridge20S.Server.DELEGATION_TOKEN_STORE_ZK_ZNODE_DEFAULT) + serverMode;

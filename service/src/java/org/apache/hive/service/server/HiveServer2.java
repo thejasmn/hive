@@ -189,7 +189,7 @@ public class HiveServer2 extends CompositeService {
       }
 
       // Install the JAAS Configuration for the runtime
-      ShimLoader.getHadoopShims().setZookeeperClientJaasConfig(principal, keyTabFile);
+      ShimLoader.getHadoopShims().setZookeeperClientKerberosJaasConfig(principal, keyTabFile);
       // Read all to the world
       nodeAcls.addAll(Ids.READ_ACL_UNSAFE);
       // Create/Delete/Write/Admin to the authenticated user

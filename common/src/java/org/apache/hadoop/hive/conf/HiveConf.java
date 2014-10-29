@@ -413,8 +413,8 @@ public class HiveConf extends Configuration {
         "The delegation token store implementation. Set to org.apache.hadoop.hive.thrift.ZooKeeperTokenStore for load-balanced cluster."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_CONNECTSTR(
         "hive.cluster.delegation.token.store.zookeeper.connectString", "",
-        "The ZooKeeper token store connect string. If this variable is not set, the value set\n" +
-        "in hive.zookeeper.quorum will be used."),
+        "The ZooKeeper token store connect string. You can re-use the configuration value\n" +
+        "set in hive.zookeeper.quorum, by leaving this parameter unset."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ZNODE(
         "hive.cluster.delegation.token.store.zookeeper.znode", "/hivedelegation",
         "The root path for token store data. Note that this is used by both HiveServer2 and\n" +
@@ -423,7 +423,8 @@ public class HiveConf extends Configuration {
         "METASTORE)."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ACL(
         "hive.cluster.delegation.token.store.zookeeper.acl", "",
-        "ACL for token store entries. List comma separated all server principals for the cluster.\n" +
+        "ACL for token store entries. Comma separated list of ACL entries For example: \n" +
+        "sasl:hive/host1@MY.DOMAIN:cdrwa,sasl:hive/host2@MY.DOMAIN:cdrwa\n" +
         "Defaults to all permissions for the hiveserver2/metastore process user."),
     METASTORE_CACHE_PINOBJTYPES("hive.metastore.cache.pinobjtypes", "Table,StorageDescriptor,SerDeInfo,Partition,Database,Type,FieldSchema,Order",
         "List of comma separated metastore object types that should be pinned in the cache"),
