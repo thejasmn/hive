@@ -423,7 +423,7 @@ public class HiveConf extends Configuration {
         "METASTORE)."),
     METASTORE_CLUSTER_DELEGATION_TOKEN_STORE_ZK_ACL(
         "hive.cluster.delegation.token.store.zookeeper.acl", "",
-        "ACL for token store entries. Comma separated list of ACL entries For example: \n" +
+        "ACL for token store entries. Comma separated list of ACL entries. For example:\n" +
         "sasl:hive/host1@MY.DOMAIN:cdrwa,sasl:hive/host2@MY.DOMAIN:cdrwa\n" +
         "Defaults to all permissions for the hiveserver2/metastore process user."),
     METASTORE_CACHE_PINOBJTYPES("hive.metastore.cache.pinobjtypes", "Table,StorageDescriptor,SerDeInfo,Partition,Database,Type,FieldSchema,Order",
