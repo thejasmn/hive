@@ -37,9 +37,11 @@ public class LogDivertAppender extends WriterAppender {
   private final OperationManager operationManager;
 
   /**
-   * A base class for log filter that filters messages coming from the logger with the given name.
-   * We apply exclusion filter on the Loggers used by the log diversion stuff, so that
+   * A log filter that filters messages coming from the logger with the given names.
+   * It be used as a white list filter or a black list filter.
+   * We apply black list filter on the Loggers used by the log diversion stuff, so that
    * they don't generate more logs for themselves when they process logs.
+   * White list filter is used for less verbose log collection
    */
   private static class NameFilter extends Filter {
     private final Pattern namePattern;
