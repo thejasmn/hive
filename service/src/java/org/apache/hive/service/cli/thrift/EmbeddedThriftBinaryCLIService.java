@@ -39,6 +39,7 @@ public class EmbeddedThriftBinaryCLIService extends ThriftBinaryCLIService {
   public synchronized void init(HiveConf hiveConf) {
     cliService.init(hiveConf);
     cliService.start();
+    super.init(hiveConf);
   }
 
   public ICLIService getService() {
