@@ -33,7 +33,11 @@ public class EmbeddedThriftBinaryCLIService extends ThriftBinaryCLIService {
     super(new CLIService(null));
     isEmbedded = true;
     HiveConf.setLoadHiveServer2Config(true);
-    cliService.init(new HiveConf());
+  }
+
+  @Override
+  public synchronized void init(HiveConf hiveConf) {
+    cliService.init(hiveConf);
     cliService.start();
   }
 
