@@ -79,8 +79,9 @@ public class CLIService extends CompositeService implements ICLIService {
   public synchronized void init(HiveConf hiveConf) {
     try {
       applyAuthorizationConfigPolicy(hiveConf);
-    } catch (HiveException e) {
-      throw new RuntimeException("Error applying authorization policy on hive configuration", e);
+    } catch (Exception e) {
+      throw new RuntimeException("Error applying authorization policy on hive configuration: "
+          + e.getMessage(), e);
     }
     this.hiveConf = hiveConf;
     sessionManager = new SessionManager(hiveServer2);
@@ -115,7 +116,7 @@ public class CLIService extends CompositeService implements ICLIService {
     super.init(hiveConf);
   }
 
-  private void applyAuthorizationConfigPolicy(HiveConf newHiveConf) throws HiveException {
+  private void applyAuthorizationConfigPolicy(HiveConf newHiveConf) throws HiveException, MetaException {
     // authorization setup using SessionState should be revisited eventually, as
     // authorization and authentication are not session specific settings
     SessionState ss = new SessionState(newHiveConf);

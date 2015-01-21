@@ -50,6 +50,7 @@ import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.ql.MapRedStats;
 import org.apache.hadoop.hive.ql.exec.Registry;
 import org.apache.hadoop.hive.ql.exec.Utilities;
@@ -717,13 +718,17 @@ public class SessionState {
 
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
             conf, authenticator, authzContextBuilder.build());
+        setAuthorizationConfig();
 
-        authorizerV2.applyAuthorizationConfigPolicy(conf);
       }
       // create the create table grants with new config
       createTableGrants = CreateTableAutomaticGrant.create(conf);
 
     } catch (HiveException e) {
+      LOG.error("Error setting up authorization: " + e.getMessage(), e);
+      throw new RuntimeException(e);
+    } catch (MetaException e) {
+      LOG.error("Error setting up authorization: " + e.getMessage(), e);
       throw new RuntimeException(e);
     }
 
@@ -732,6 +737,22 @@ public class SessionState {
       LOG.debug("Session is using authorization class " + authorizationClass.getClass());
     }
     return;
+  }
+
+  private void setAuthorizationConfig() throws MetaException, HiveException {
+    // avoid processing the same config multiple times, check marker
+    if (conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, "").equals(Boolean.TRUE.toString())) {
+      return;
+    }
+    conf.setVar(ConfVars.METASTORE_FILTER_HOOK,
+        "org.apache.hadoop.hive.ql.security.authorization.plugin.AuthorizationMetaStoreFilterHook");
+
+    authorizerV2.applyAuthorizationConfigPolicy(conf);
+    // update config in Hive thread local as well and init the metastore client
+    Hive.get(conf).getMSC();
+
+    // set a marker that this conf has been processed.
+    conf.set(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, Boolean.TRUE.toString());
   }
 
   public Object getActiveAuthorizer() {
@@ -1414,22 +1435,10 @@ public class SessionState {
   /**
    * If authorization mode is v2, then pass it through authorizer so that it can apply
    * any security configuration changes.
+   * @throws MetaException
    */
-  public void applyAuthorizationPolicy() throws HiveException {
-    if(!isAuthorizationModeV2()){
-      // auth v1 interface does not have this functionality
-      return;
-    }
-
-    // avoid processing the same config multiple times, check marker
-    if (conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, "").equals(Boolean.TRUE.toString())) {
-      return;
-    }
-
-    authorizerV2.applyAuthorizationConfigPolicy(conf);
-    // set a marker that this conf has been processed.
-    conf.set(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, Boolean.TRUE.toString());
-
+  public void applyAuthorizationPolicy() throws HiveException, MetaException {
+    setupAuth();
   }
 
   public Map<String, Map<String, Table>> getTempTables() {
