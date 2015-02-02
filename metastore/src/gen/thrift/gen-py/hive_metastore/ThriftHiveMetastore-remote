@@ -143,6 +143,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  NotificationEventResponse get_next_notification(NotificationEventRequest rqst)'
   print '  CurrentNotificationEventId get_current_notificationEventId()'
   print '  void fire_notification_event(FireEventRequest rqst)'
+  print '  void flushCache()'
   print ''
   sys.exit(0)
 
@@ -913,6 +914,12 @@ elif cmd == 'fire_notification_event':
     print 'fire_notification_event requires 1 args'
     sys.exit(1)
   pp.pprint(client.fire_notification_event(eval(args[0]),))
+
+elif cmd == 'flushCache':
+  if len(args) != 0:
+    print 'flushCache requires 0 args'
+    sys.exit(1)
+  pp.pprint(client.flushCache())
 
 else:
   print 'Unrecognized method %s' % cmd

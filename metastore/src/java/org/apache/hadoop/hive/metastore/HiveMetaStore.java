@@ -576,6 +576,19 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           + rawStoreClassName));
       Configuration conf = getConf();
 
+      if (hiveConf.getBoolVar(ConfVars.METASTORE_FASTPATH)) {
+        LOG.info("Fastpath, skipping raw store proxy");
+        try {
+          RawStore rs = ((Class<? extends RawStore>) MetaStoreUtils.getClass(
+              rawStoreClassName)).newInstance();
+          rs.setConf(conf);
+          return rs;
+        } catch (Exception e) {
+          LOG.fatal("Unable to instantiate raw store directly in fastpath mode");
+          throw new RuntimeException(e);
+        }
+      }
+
       return RawStoreProxy.getProxy(hiveConf, conf, rawStoreClassName, threadLocalId.get());
     }
 
@@ -5447,6 +5460,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
     @Override
     public ShowCompactResponse show_compact(ShowCompactRequest rqst) throws TException {
       return getTxnHandler().showCompact(rqst);
+    }
+
+    @Override
+    public void flushCache() throws TException {
+      getMS().flushCache();
     }
 
     @Override
