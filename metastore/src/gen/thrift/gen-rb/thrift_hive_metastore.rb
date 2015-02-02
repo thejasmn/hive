@@ -2021,6 +2021,20 @@ module ThriftHiveMetastore
       return
     end
 
+    def flushCache()
+      send_flushCache()
+      recv_flushCache()
+    end
+
+    def send_flushCache()
+      send_message('flushCache', FlushCache_args)
+    end
+
+    def recv_flushCache()
+      result = receive_message(FlushCache_result)
+      return
+    end
+
   end
 
   class Processor < ::FacebookService::Processor 
@@ -3556,6 +3570,13 @@ module ThriftHiveMetastore
       result = Fire_notification_event_result.new()
       @handler.fire_notification_event(args.rqst)
       write_result(result, oprot, 'fire_notification_event', seqid)
+    end
+
+    def process_flushCache(seqid, iprot, oprot)
+      args = read_args(iprot, FlushCache_args)
+      result = FlushCache_result.new()
+      @handler.flushCache()
+      write_result(result, oprot, 'flushCache', seqid)
     end
 
   end
@@ -8126,6 +8147,36 @@ module ThriftHiveMetastore
   end
 
   class Fire_notification_event_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FlushCache_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+
+    FIELDS = {
+
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class FlushCache_result
     include ::Thrift::Struct, ::Thrift::Struct_Union
 
     FIELDS = {

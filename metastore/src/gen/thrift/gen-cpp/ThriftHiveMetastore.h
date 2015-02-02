@@ -136,6 +136,7 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void get_next_notification(NotificationEventResponse& _return, const NotificationEventRequest& rqst) = 0;
   virtual void get_current_notificationEventId(CurrentNotificationEventId& _return) = 0;
   virtual void fire_notification_event(const FireEventRequest& rqst) = 0;
+  virtual void flushCache() = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -546,6 +547,9 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void fire_notification_event(const FireEventRequest& /* rqst */) {
+    return;
+  }
+  void flushCache() {
     return;
   }
 };
@@ -16869,6 +16873,80 @@ class ThriftHiveMetastore_fire_notification_event_presult {
 
 };
 
+
+class ThriftHiveMetastore_flushCache_args {
+ public:
+
+  ThriftHiveMetastore_flushCache_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_flushCache_args() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_flushCache_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_flushCache_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_flushCache_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_flushCache_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_flushCache_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_flushCache_result {
+ public:
+
+  ThriftHiveMetastore_flushCache_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_flushCache_result() throw() {}
+
+
+  bool operator == (const ThriftHiveMetastore_flushCache_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_flushCache_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_flushCache_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_flushCache_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_flushCache_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -17241,6 +17319,9 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void fire_notification_event(const FireEventRequest& rqst);
   void send_fire_notification_event(const FireEventRequest& rqst);
   void recv_fire_notification_event();
+  void flushCache();
+  void send_flushCache();
+  void recv_flushCache();
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -17371,6 +17452,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_get_next_notification(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_current_notificationEventId(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_fire_notification_event(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_flushCache(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -17495,6 +17577,7 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["get_next_notification"] = &ThriftHiveMetastoreProcessor::process_get_next_notification;
     processMap_["get_current_notificationEventId"] = &ThriftHiveMetastoreProcessor::process_get_current_notificationEventId;
     processMap_["fire_notification_event"] = &ThriftHiveMetastoreProcessor::process_fire_notification_event;
+    processMap_["flushCache"] = &ThriftHiveMetastoreProcessor::process_flushCache;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -18676,6 +18759,15 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
       ifaces_[i]->fire_notification_event(rqst);
     }
     ifaces_[i]->fire_notification_event(rqst);
+  }
+
+  void flushCache() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->flushCache();
+    }
+    ifaces_[i]->flushCache();
   }
 
 };
