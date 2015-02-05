@@ -706,7 +706,7 @@ public class SessionState {
           clsStr, authenticator, true);
 
       if (authorizer == null) {
-        // if it was null, the new authorization plugin must be specified in
+        // if it was null, the new (V2) authorization plugin must be specified in
         // config
         HiveAuthorizerFactory authorizerFactory = HiveUtils.getAuthorizerFactory(conf,
             HiveConf.ConfVars.HIVE_AUTHORIZATION_MANAGER);
@@ -718,7 +718,7 @@ public class SessionState {
 
         authorizerV2 = authorizerFactory.createHiveAuthorizer(new HiveMetastoreClientFactoryImpl(),
             conf, authenticator, authzContextBuilder.build());
-        setAuthorizationConfig();
+        setAuthorizerV2Config();
 
       }
       // create the create table grants with new config
@@ -739,7 +739,7 @@ public class SessionState {
     return;
   }
 
-  private void setAuthorizationConfig() throws MetaException, HiveException {
+  private void setAuthorizerV2Config() throws MetaException, HiveException {
     // avoid processing the same config multiple times, check marker
     if (conf.get(CONFIG_AUTHZ_SETTINGS_APPLIED_MARKER, "").equals(Boolean.TRUE.toString())) {
       return;
