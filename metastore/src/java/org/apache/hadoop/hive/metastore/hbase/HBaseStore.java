@@ -25,6 +25,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+import org.apache.hadoop.hive.metastore.PartFilterExprUtil;
+import org.apache.hadoop.hive.metastore.PartitionExpressionProxy;
 import org.apache.hadoop.hive.metastore.RawStore;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -58,6 +61,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
 import org.apache.thrift.TException;
 
@@ -79,6 +83,7 @@ public class HBaseStore implements RawStore {
   private HBaseReadWrite hbase = null;
   private Configuration conf;
   private int txnNestLevel = 0;
+  private PartitionExpressionProxy expressionProxy = null;
 
   public HBaseStore() {
   }
@@ -458,6 +463,7 @@ public class HBaseStore implements RawStore {
   public boolean getPartitionsByExpr(String dbName, String tblName, byte[] expr,
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
+    final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
     // TODO for now just return all partitions, need to add real expression parsing later.
     result.addAll(getPartitions(dbName, tblName, maxParts));
     return true;
@@ -1599,6 +1605,12 @@ public class HBaseStore implements RawStore {
 
   @Override
   public void setConf(Configuration configuration) {
+    // initialize expressionProxy. Also re-initialize it if
+    // setConf is being called with new configuration object (though that 
+    // is not expected to happen, doing it just for safety)
+    if(expressionProxy == null || conf != configuration) {
+      expressionProxy = PartFilterExprUtil.createExpressionProxy(conf);
+    }
     conf = configuration;
   }
 
