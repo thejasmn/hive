@@ -25,7 +25,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
-import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.PartFilterExprUtil;
 import org.apache.hadoop.hive.metastore.PartitionExpressionProxy;
 import org.apache.hadoop.hive.metastore.RawStore;
@@ -464,6 +463,7 @@ public class HBaseStore implements RawStore {
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
     final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
+
     // TODO for now just return all partitions, need to add real expression parsing later.
     result.addAll(getPartitions(dbName, tblName, maxParts));
     return true;
@@ -1606,7 +1606,7 @@ public class HBaseStore implements RawStore {
   @Override
   public void setConf(Configuration configuration) {
     // initialize expressionProxy. Also re-initialize it if
-    // setConf is being called with new configuration object (though that 
+    // setConf is being called with new configuration object (though that
     // is not expected to happen, doing it just for safety)
     if(expressionProxy == null || conf != configuration) {
       expressionProxy = PartFilterExprUtil.createExpressionProxy(conf);
