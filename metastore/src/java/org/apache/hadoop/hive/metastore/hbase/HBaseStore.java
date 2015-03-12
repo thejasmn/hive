@@ -463,6 +463,7 @@ public class HBaseStore implements RawStore {
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
     final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
+    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
 
     // TODO for now just return all partitions, need to add real expression parsing later.
     result.addAll(getPartitions(dbName, tblName, maxParts));
