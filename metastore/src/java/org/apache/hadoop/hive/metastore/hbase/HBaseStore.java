@@ -60,7 +60,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
-import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.FilterPlan;
+import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.ScanPlan;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
 import org.apache.thrift.TException;
@@ -464,7 +464,7 @@ public class HBaseStore implements RawStore {
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
     final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
-    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
+    ScanPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
 
     // TODO for now just return all partitions, need to add real expression parsing later.
     result.addAll(getPartitions(dbName, tblName, maxParts));
