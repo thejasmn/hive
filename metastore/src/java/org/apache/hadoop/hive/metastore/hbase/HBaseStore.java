@@ -60,6 +60,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
+import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.FilterPlan;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.ScanPlan;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
@@ -464,10 +465,25 @@ public class HBaseStore implements RawStore {
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
     final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
-    ScanPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
-
-    // TODO for now just return all partitions, need to add real expression parsing later.
-    result.addAll(getPartitions(dbName, tblName, maxParts));
+    // general hbase filter plan from expression tree
+    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Hbase Filter Plan generated : " + filterPlan);
+    }
+    for (ScanPlan splan : filterPlan.getPlans()) {
+      try {
+        List<Partition> parts = getHBase().scanPartitions(dbName, tblName,
+            splan.getStartRowSuffix(), splan.getEndRowSuffix(), null, -1);
+        result.addAll(parts);
+      } catch (IOException e) {
+        LOG.error("Unable to get partitions", e);
+        throw new MetaException("Error scanning partitions" + tableNameForErrorMsg(dbName, tblName)
+            + ": " + e);
+      }
+    }
+    // TODO: return false if we know that only partitions that match filter expression
+    // are being returned (ie no additional partitions are there).
+    // once the implementation of filter on all expressions is done, this should return false
     return true;
   }
 

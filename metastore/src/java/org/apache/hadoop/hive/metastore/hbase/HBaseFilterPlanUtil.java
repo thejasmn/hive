@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.LeafNode;
@@ -84,16 +85,21 @@ class HBaseFilterPlanUtil {
     return -1;
   }
 
-  public interface FilterPlan {
-    FilterPlan and(FilterPlan other);
-    FilterPlan or(FilterPlan other);
-    List<ScanPlan> getPlans();
+  public static abstract class FilterPlan {
+    abstract FilterPlan and(FilterPlan other);
+    abstract FilterPlan or(FilterPlan other);
+    abstract List<ScanPlan> getPlans();
+    @Override
+    public String toString() {
+      return getPlans().toString();
+    }
+
   }
 
   /**
    * Represents a union/OR of single scan plans (ScanPlan).
    */
-  public static class MultiScanPlan implements FilterPlan {
+  public static class MultiScanPlan extends FilterPlan {
     final ImmutableList<ScanPlan> scanPlans;
 
     public MultiScanPlan(List<ScanPlan> scanPlans){
@@ -102,14 +108,28 @@ class HBaseFilterPlanUtil {
 
     @Override
     public FilterPlan and(FilterPlan other) {
-      // TODO Auto-generated method stub
-      return null;
+      // Convert to disjunctive normal form (DNF), ie OR of ANDs
+      // First get a new set of FilterPlans by doing an AND
+      // on each ScanPlan in this one with the other FilterPlan
+      List<FilterPlan> newFPlans = new ArrayList<FilterPlan>();
+      for (ScanPlan splan : getPlans()) {
+        newFPlans.add(splan.and(other));
+      }
+      //now combine scanPlans in multiple new FilterPlans into one
+      // MultiScanPlan
+      List<ScanPlan> newScanPlans = new ArrayList<ScanPlan>();
+      for (FilterPlan fp : newFPlans) {
+        newScanPlans.addAll(fp.getPlans());
+      }
+      return new MultiScanPlan(newScanPlans);
     }
 
     @Override
     public FilterPlan or(FilterPlan other) {
-      // TODO Auto-generated method stub
-      return null;
+      // just combine the ScanPlans
+      List<ScanPlan> newScanPlans = new ArrayList<ScanPlan>(this.getPlans());
+      newScanPlans.addAll(other.getPlans());
+      return new MultiScanPlan(newScanPlans);
     }
 
     @Override
@@ -118,7 +138,7 @@ class HBaseFilterPlanUtil {
     }
   }
 
-  public static class ScanPlan implements FilterPlan {
+  public static class ScanPlan extends FilterPlan {
 
     public static class ScanMarker {
       final byte[] bytes;
@@ -134,7 +154,6 @@ class HBaseFilterPlanUtil {
     private ScanMarker endMarker = new ScanMarker(null, false);
 
     private ScanFilter filter;
-
 
     public ScanFilter getFilter() {
       return filter;
@@ -236,17 +255,57 @@ class HBaseFilterPlanUtil {
     public List<ScanPlan> getPlans() {
       return Arrays.asList(this);
     }
+
+
+    /**
+     * @return row suffix - This is appended to db + table, to generate start row for the Scan
+     */
+    public byte[] getStartRowSuffix() {
+      if (startMarker.isInclusive) {
+        return startMarker.bytes;
+      } else {
+        // append a 0 byte to make it start-exclusive
+        return ArrayUtils.add(startMarker.bytes, (byte) 0);
+      }
+    }
+
+    /**
+     * @return row suffix - This is appended to db + table, to generate end row for the Scan
+     */
+    public byte[] getEndRowSuffix() {
+      if (endMarker.isInclusive) {
+        // append a 0 byte to make end row inclusive
+        return ArrayUtils.add(endMarker.bytes, (byte) 0);
+      } else {
+        return endMarker.bytes;
+      }
+    }
+
+    @Override
+    public String toString() {
+      return "ScanPlan [startMarker=" + startMarker + ", endMarker=" + endMarker + ", filter="
+          + filter + "]";
+    }
+
   }
 
+  /**
+   * represent a plan that can be used to create a hbase filter and then set in
+   * Scan.setFilter()
+   */
   public static class ScanFilter {
-
+    // TODO: implement this
   }
 
   private static class PartitionFilterGenerator extends TreeVisitor {
-    ScanPlan curPlan;
+    FilterPlan curPlan;
 
     // temporary params for current left and right side plans, for AND, OR
-    ScanPlan lPlan, rPlan;
+    FilterPlan lPlan, rPlan;
+
+    FilterPlan getPlan() {
+      return curPlan;
+    }
 
     @Override
     protected void beginTreeNode(TreeNode node) throws MetaException {
@@ -262,15 +321,12 @@ class HBaseFilterPlanUtil {
     @Override
     protected void endTreeNode(TreeNode node) throws MetaException {
       rPlan = curPlan;
-      curPlan = new ScanPlan();
       switch (node.getAndOr()) {
       case AND:
-
-
+        curPlan = lPlan.and(rPlan);
         break;
       case OR:
-
-
+        curPlan = lPlan.or(rPlan);
         break;
       default:
         throw new AssertionError("Unexpected logical operation " + node.getAndOr());
@@ -336,10 +392,10 @@ class HBaseFilterPlanUtil {
 
   }
 
-  public static ScanPlan getFilterPlan(ExpressionTree exprTree) {
-
-    // TODO Auto-generated method stub
-    return null;
+  public static FilterPlan getFilterPlan(ExpressionTree exprTree) throws MetaException {
+    PartitionFilterGenerator pGenerator = new PartitionFilterGenerator();
+    exprTree.accept(pGenerator);
+    return pGenerator.getPlan();
   }
 
 }
