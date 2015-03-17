@@ -478,8 +478,13 @@ public class HBaseStore implements RawStore {
       ExpressionTree exprTree, short maxParts, List<Partition> result) throws MetaException,
       NoSuchObjectException {
 
+    Table table = getTable(dbName, tblName);
+    if (table == null) {
+      throw new NoSuchObjectException("Unable to find table " + dbName + "." + tblName);
+    }
+    String firstPartitionColumn = table.getPartitionKeys().get(0).getName();
     // general hbase filter plan from expression tree
-    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
+    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree, firstPartitionColumn);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Hbase Filter Plan generated : " + filterPlan);
     }

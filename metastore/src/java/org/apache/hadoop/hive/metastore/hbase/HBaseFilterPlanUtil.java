@@ -20,7 +20,9 @@ package org.apache.hadoop.hive.metastore.hbase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -29,18 +31,19 @@ import org.apache.hadoop.hive.metastore.parser.ExpressionTree.LeafNode;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.TreeNode;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.TreeVisitor;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 
 /**
  * Utility function for generating hbase partition filtering plan representation
  * from ExpressionTree.
- * Correctness issues to be addressed
- *  - handle case where table has more than one partition column (assumes single partition column
- *  in this iteration)
  * Optimizations to be done -
  *  - Case where all partition keys are specified. Should use a get
  *
+ * {@link PartitionFilterGenerator} is a visitor on the given filter expression tree. After
+ * walking it it produces the HBase execution plan represented by {@link FilterPlan}. See
+ * their javadocs for more details.
  */
 class HBaseFilterPlanUtil {
 
@@ -85,6 +88,16 @@ class HBaseFilterPlanUtil {
     return -1;
   }
 
+  /**
+   * Represents the execution plan for hbase to find the set of partitions that
+   * match given filter expression.
+   * If you have an AND or OR of two expressions, you can determine FilterPlan for each
+   * children and then call lhs.and(rhs) or lhs.or(rhs) respectively
+   * to generate a new plan for the expression.
+   *
+   * The execution plan has one or more ScanPlan objects. To get the results the set union of all
+   * ScanPlan objects needs to be done.
+   */
   public static abstract class FilterPlan {
     abstract FilterPlan and(FilterPlan other);
     abstract FilterPlan or(FilterPlan other);
@@ -301,11 +314,27 @@ class HBaseFilterPlanUtil {
     // TODO: implement this
   }
 
-  private static class PartitionFilterGenerator extends TreeVisitor {
-    FilterPlan curPlan;
+  /**
+   * Visitor for ExpressionTree.
+   * It first generates the ScanPlan for the leaf nodes. The higher level nodes are
+   * either AND or OR operations. It then calls FilterPlan.and and FilterPlan.or with
+   * the child nodes to generate the plans for higher level nodes.
+   */
+  @VisibleForTesting
+  static class PartitionFilterGenerator extends TreeVisitor {
+    private FilterPlan curPlan;
+
+    //Need to cache the left plans for the TreeNode. Use IdentityHashMap here
+    // as we don't want to dedupe on two TreeNode that are otherwise considered equal
+    Map<TreeNode, FilterPlan> leftPlans = new IdentityHashMap<TreeNode, FilterPlan>();
 
     // temporary params for current left and right side plans, for AND, OR
-    FilterPlan lPlan, rPlan;
+    private FilterPlan rPlan;
+
+    private final String firstPartcolumn;
+    public PartitionFilterGenerator(String firstPartitionColumn) {
+      this.firstPartcolumn = firstPartitionColumn;
+    }
 
     FilterPlan getPlan() {
       return curPlan;
@@ -313,18 +342,22 @@ class HBaseFilterPlanUtil {
 
     @Override
     protected void beginTreeNode(TreeNode node) throws MetaException {
-      curPlan = lPlan = rPlan = null;
+      // reset the params
+      curPlan = rPlan = null;
     }
 
     @Override
     protected void midTreeNode(TreeNode node) throws MetaException {
-      lPlan = curPlan;
+      leftPlans.put(node, curPlan);
       curPlan = null;
     }
 
     @Override
     protected void endTreeNode(TreeNode node) throws MetaException {
       rPlan = curPlan;
+      FilterPlan lPlan = leftPlans.get(node);
+      leftPlans.remove(node);
+
       switch (node.getAndOr()) {
       case AND:
         curPlan = lPlan.and(rPlan);
@@ -357,13 +390,13 @@ class HBaseFilterPlanUtil {
         leafPlan.setEndMarker(toBytes(node.value), INCLUSIVE);
         break;
       case GREATERTHAN:
-        leafPlan.setStartMarker(toBytes(node.value), INCLUSIVE);
+        leafPlan.setStartMarker(toBytes(node.value), !INCLUSIVE);
         break;
       case GREATERTHANOREQUALTO:
         leafPlan.setStartMarker(toBytes(node.value), INCLUSIVE);
         break;
       case LESSTHAN:
-        leafPlan.setEndMarker(toBytes(node.value), INCLUSIVE);
+        leafPlan.setEndMarker(toBytes(node.value), !INCLUSIVE);
         break;
       case LESSTHANOREQUALTO:
         leafPlan.setEndMarker(toBytes(node.value), INCLUSIVE);
@@ -389,14 +422,13 @@ class HBaseFilterPlanUtil {
     }
 
     private boolean isFirstParitionColumn(String keyName) {
-      // TODO: actually do the check!
-      return true;
+      return keyName.equalsIgnoreCase(firstPartcolumn);
     }
 
   }
 
-  public static FilterPlan getFilterPlan(ExpressionTree exprTree) throws MetaException {
-    PartitionFilterGenerator pGenerator = new PartitionFilterGenerator();
+  public static FilterPlan getFilterPlan(ExpressionTree exprTree, String firstPartitionColumn) throws MetaException {
+    PartitionFilterGenerator pGenerator = new PartitionFilterGenerator(firstPartitionColumn);
     exprTree.accept(pGenerator);
     return pGenerator.getPlan();
   }
