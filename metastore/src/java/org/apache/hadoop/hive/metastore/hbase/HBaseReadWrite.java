@@ -686,13 +686,25 @@ class HBaseReadWrite {
     byte[] keyPrefix =
         HBaseUtils.buildKeyWithTrailingSeparator(keyElements.toArray(new String[keyElements.size()]));
     byte[] startRow = ArrayUtils.addAll(keyPrefix, keyStart);
-    byte[] endRow = ArrayUtils.addAll(keyPrefix, keyEnd);
+    byte[] endRow;
+    if (keyEnd == null || keyEnd.length == 0) {
+      // stop when current db+table entries are over
+      endRow = incrementLastByte(keyPrefix);
+    } else {
+      endRow = ArrayUtils.addAll(keyPrefix, keyEnd);
+    }
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Scanning partitions with start row <" + new String(startRow) + "> and end row <"
-          + new String(endRow));
+          + new String(endRow) + ">");
     }
     return scanPartitionsWithFilter(startRow, endRow, maxPartitions, filter);
+  }
+
+  private byte[] incrementLastByte(byte[] keyStart) {
+    byte[] stop = Arrays.copyOf(keyStart, keyStart.length);
+    stop[stop.length - 1]++;
+    return stop;
   }
 
   /**
@@ -1702,9 +1714,7 @@ class HBaseReadWrite {
     if (keyEnd != null) {
       s.setStopRow(keyEnd);
     } else {
-      byte[] stop = Arrays.copyOf(keyStart, keyStart.length);
-      stop[stop.length - 1]++;
-      s.setStopRow(stop);
+      s.setStopRow(incrementLastByte(keyStart));
     }
     s.addColumn(colFam, colName);
     if (filter != null)

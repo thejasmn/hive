@@ -147,6 +147,10 @@ class HBaseFilterPlanUtil {
         this.bytes = b;
         this.isInclusive = i;
       }
+      @Override
+      public String toString() {
+        return "ScanMarker [bytes=" + Arrays.toString(bytes) + ", isInclusive=" + isInclusive + "]";
+      }
     }
     // represent Scan start
     private ScanMarker startMarker = new ScanMarker(null, false);
@@ -338,10 +342,9 @@ class HBaseFilterPlanUtil {
     @Override
     public void visit(LeafNode node) throws MetaException {
       ScanPlan leafPlan = new ScanPlan();
-
+      curPlan = leafPlan;
       if (!isFirstParitionColumn(node.keyName)) {
         leafPlan.setFilter(generateScanFilter(node));
-        curPlan = leafPlan;
         return;
       }
 

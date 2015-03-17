@@ -456,8 +456,11 @@ public class HBaseStore implements RawStore {
   public List<Partition> getPartitionsByFilter(String dbName, String tblName, String filter,
                                                short maxParts) throws MetaException,
       NoSuchObjectException {
-    // TODO - Needs to wait for ability to push filters into HBase
-    throw new UnsupportedOperationException();
+    final ExpressionTree exprTree = (filter != null && !filter.isEmpty()) ? PartFilterExprUtil
+        .getFilterParser(filter).tree : ExpressionTree.EMPTY_TREE;
+    List<Partition> result = new ArrayList<Partition>();
+    getPartitionsByExprInternal(dbName, tblName, exprTree, maxParts, result);
+    return result;
   }
 
   @Override
@@ -465,6 +468,16 @@ public class HBaseStore implements RawStore {
                                      String defaultPartitionName, short maxParts,
                                      List<Partition> result) throws TException {
     final ExpressionTree exprTree = PartFilterExprUtil.makeExpressionTree(expressionProxy, expr);
+    // TODO: investigate if there should be any role for defaultPartitionName in this
+    // implementation. direct sql code path in ObjectStore does not use it.
+
+    return getPartitionsByExprInternal(dbName, tblName, exprTree, maxParts, result);
+  }
+
+  private boolean getPartitionsByExprInternal(String dbName, String tblName,
+      ExpressionTree exprTree, short maxParts, List<Partition> result) throws MetaException,
+      NoSuchObjectException {
+
     // general hbase filter plan from expression tree
     FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree);
     if (LOG.isDebugEnabled()) {
@@ -481,6 +494,10 @@ public class HBaseStore implements RawStore {
             + ": " + e);
       }
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Matched partitions " + result);
+    }
+
     // TODO: return false if we know that only partitions that match filter expression
     // are being returned (ie no additional partitions are there).
     // once the implementation of filter on all expressions is done, this should return false
@@ -1627,7 +1644,7 @@ public class HBaseStore implements RawStore {
     // setConf is being called with new configuration object (though that
     // is not expected to happen, doing it just for safety)
     if(expressionProxy == null || conf != configuration) {
-      expressionProxy = PartFilterExprUtil.createExpressionProxy(conf);
+      expressionProxy = PartFilterExprUtil.createExpressionProxy(configuration);
     }
     conf = configuration;
   }

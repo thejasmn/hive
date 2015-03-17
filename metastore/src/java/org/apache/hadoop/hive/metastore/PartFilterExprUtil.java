@@ -39,7 +39,8 @@ public class PartFilterExprUtil {
   private static final Log LOG = LogFactory.getLog(PartFilterExprUtil.class.getName());
 
 
-  public static ExpressionTree makeExpressionTree(PartitionExpressionProxy expressionProxy, byte[] expr) throws MetaException {
+  public static ExpressionTree makeExpressionTree(PartitionExpressionProxy expressionProxy,
+      byte[] expr) throws MetaException {
     // We will try pushdown first, so make the filter. This will also validate the expression,
     // if serialization fails we will throw incompatible metastore error to the client.
     String filter = null;
