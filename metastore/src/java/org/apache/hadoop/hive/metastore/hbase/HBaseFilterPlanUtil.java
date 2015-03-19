@@ -57,16 +57,7 @@ class HBaseFilterPlanUtil {
    * @return -1 if ar1 < ar2, 0 if == , 1 if >
    */
   static int compare(byte[] ar1, byte[] ar2) {
-    if (ar1 == null) {
-      if (ar2 == null) {
-        return 0;
-      }
-      return -1;
-    }
-    if (ar2 == null) {
-      return 1;
-    }
-
+    // null check is not needed, nulls are not passed here
     for (int i = 0; i < ar1.length; i++) {
       if (i == ar2.length) {
         return 1;
@@ -268,6 +259,13 @@ class HBaseFilterPlanUtil {
     @VisibleForTesting
     static ScanMarker getComparedMarker(ScanMarker lStartMarker, ScanMarker rStartMarker,
         boolean getGreater) {
+      // if one of them has null bytes, just return other
+      if(lStartMarker.bytes == null) {
+        return rStartMarker;
+      } else if (rStartMarker.bytes == null) {
+        return lStartMarker;
+      }
+
       int compareRes = compare(lStartMarker.bytes, rStartMarker.bytes);
       if (compareRes == 0) {
         // bytes are equal, now compare the isInclusive flags
