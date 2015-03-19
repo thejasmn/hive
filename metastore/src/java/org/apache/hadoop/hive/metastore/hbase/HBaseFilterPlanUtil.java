@@ -48,7 +48,7 @@ import com.google.common.collect.ImmutableList;
 class HBaseFilterPlanUtil {
 
   /**
-   * Compare two byte arrays
+   * Compare two byte arrays. null array is considered smaller than non-null array
    *
    * @param ar1
    *          first byte array
@@ -68,7 +68,7 @@ class HBaseFilterPlanUtil {
     }
 
     for (int i = 0; i < ar1.length; i++) {
-      if (i > ar2.length) {
+      if (i == ar2.length) {
         return 1;
       } else {
         if (ar1[i] == ar2[i]) {
@@ -164,6 +164,29 @@ class HBaseFilterPlanUtil {
       public String toString() {
         return "ScanMarker [bytes=" + Arrays.toString(bytes) + ", isInclusive=" + isInclusive + "]";
       }
+      @Override
+      public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(bytes);
+        result = prime * result + (isInclusive ? 1231 : 1237);
+        return result;
+      }
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (obj == null)
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        ScanMarker other = (ScanMarker) obj;
+        if (!Arrays.equals(bytes, other.bytes))
+          return false;
+        if (isInclusive != other.isInclusive)
+          return false;
+        return true;
+      }
     }
     // represent Scan start
     private ScanMarker startMarker = new ScanMarker(null, false);
@@ -205,7 +228,7 @@ class HBaseFilterPlanUtil {
     @Override
     public FilterPlan and(FilterPlan other) {
       List<ScanPlan> newSPlans = new ArrayList<ScanPlan>();
-      for(ScanPlan otherSPlan : other.getPlans()) {
+      for (ScanPlan otherSPlan : other.getPlans()) {
         newSPlans.add(this.and(otherSPlan));
       }
       return new MultiScanPlan(newSPlans);
@@ -236,7 +259,14 @@ class HBaseFilterPlanUtil {
       return null;
     }
 
-    private ScanMarker getComparedMarker(ScanMarker lStartMarker, ScanMarker rStartMarker,
+    /**
+     * @param lStartMarker
+     * @param rStartMarker
+     * @param getGreater if true return greater startmarker, else return smaller one
+     * @return greater/lesser marker depending on value of getGreater
+     */
+    @VisibleForTesting
+    static ScanMarker getComparedMarker(ScanMarker lStartMarker, ScanMarker rStartMarker,
         boolean getGreater) {
       int compareRes = compare(lStartMarker.bytes, rStartMarker.bytes);
       if (compareRes == 0) {
