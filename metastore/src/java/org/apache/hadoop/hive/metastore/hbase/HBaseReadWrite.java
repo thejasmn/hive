@@ -378,7 +378,7 @@ class HBaseReadWrite {
       filter = new RowFilter(CompareFilter.CompareOp.EQUAL, new RegexStringComparator(regex));
     }
     Iterator<Result> iter =
-        scanWithFilter(FUNC_TABLE, keyPrefix, CATALOG_CF, CATALOG_COL, filter);
+        scan(FUNC_TABLE, keyPrefix, CATALOG_CF, CATALOG_COL, filter);
     List<Function> functions = new ArrayList<Function>();
     while (iter.hasNext()) {
       Result result = iter.next();
