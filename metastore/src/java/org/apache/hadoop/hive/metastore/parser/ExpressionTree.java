@@ -34,6 +34,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.serde.serdeConstants;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
 /**
@@ -532,6 +533,12 @@ public class ExpressionTree {
   public TreeNode getRoot() {
     return this.root;
   }
+
+  @VisibleForTesting
+  public void setRootForTest(TreeNode tn) {
+    this.root = tn;
+  }
+
 
   /**
    * Adds a intermediate node of either type(AND/OR). Pops last two nodes from

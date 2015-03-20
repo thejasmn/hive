@@ -146,6 +146,12 @@ class HBaseFilterPlanUtil {
 
     public static class ScanMarker {
       final byte[] bytes;
+      /**
+       * If inclusive = true, it means that the
+       * marker includes those bytes.
+       * If it is false, it means the marker starts at the next possible byte array
+       * or ends at the next possible byte array
+       */
       final boolean isInclusive;
       ScanMarker(byte [] b, boolean i){
         this.bytes = b;
@@ -437,7 +443,8 @@ class HBaseFilterPlanUtil {
       }
     }
 
-    private byte[] toBytes(Object value) {
+    @VisibleForTesting
+    static byte[] toBytes(Object value) {
       // TODO: actually implement this
       // We need to determine the actual type and use appropriate
       // serialization format for that type

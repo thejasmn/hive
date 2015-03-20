@@ -689,7 +689,7 @@ class HBaseReadWrite {
     byte[] endRow;
     if (keyEnd == null || keyEnd.length == 0) {
       // stop when current db+table entries are over
-      endRow = incrementLastByte(keyPrefix);
+      endRow = HBaseUtils.getNextLargerByteArray(keyPrefix);
     } else {
       endRow = ArrayUtils.addAll(keyPrefix, keyEnd);
     }
@@ -701,11 +701,7 @@ class HBaseReadWrite {
     return scanPartitionsWithFilter(startRow, endRow, maxPartitions, filter);
   }
 
-  private byte[] incrementLastByte(byte[] keyStart) {
-    byte[] stop = Arrays.copyOf(keyStart, keyStart.length);
-    stop[stop.length - 1]++;
-    return stop;
-  }
+
 
   /**
    * Delete a partition
@@ -1714,7 +1710,7 @@ class HBaseReadWrite {
     if (keyEnd != null) {
       s.setStopRow(keyEnd);
     } else {
-      s.setStopRow(incrementLastByte(keyStart));
+      s.setStopRow(HBaseUtils.getNextLargerByteArray(keyStart));
     }
     s.addColumn(colFam, colName);
     if (filter != null)

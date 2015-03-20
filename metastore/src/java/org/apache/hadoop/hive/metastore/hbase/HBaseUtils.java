@@ -20,7 +20,6 @@ package org.apache.hadoop.hive.metastore.hbase;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1063,5 +1062,15 @@ class HBaseUtils {
 
     obj.setStatsData(colData);
     return obj;
+  }
+
+  /**
+   * @param keyStart
+   * @return an array that that is the next one to given array in sort order. Created by
+   * appending a byte with value 0
+   */
+  static byte[] getNextLargerByteArray(byte[] keyStart) {
+    // Since the length is greater than given array length by one byte, a 0 byte is padded at end
+    return Arrays.copyOf(keyStart, keyStart.length + 1);
   }
 }
