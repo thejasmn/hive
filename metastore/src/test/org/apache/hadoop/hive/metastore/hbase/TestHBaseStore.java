@@ -23,8 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
-import org.apache.hadoop.hive.metastore.PartitionExpressionProxy;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -39,7 +37,6 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.FunctionType;
 import org.apache.hadoop.hive.metastore.api.LongColumnStatsData;
-import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
@@ -52,7 +49,6 @@ import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.StringColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -83,31 +79,13 @@ public class TestHBaseStore {
   SortedMap<String, Cell> rows = new TreeMap<String, Cell>();
   HBaseStore store;
 
-  /**
-   * The default impl is in ql package and is not available in unit tests.
-   */
-  public static class NOOPProxy implements PartitionExpressionProxy {
 
-    @Override
-    public String convertExprToFilter(byte[] expr) throws MetaException {
-      return null;
-    }
-
-    @Override
-    public boolean filterPartitionsByExpr(List<String> partColumnNames,
-        List<PrimitiveTypeInfo> partColumnTypeInfos, byte[] expr, String defaultPartitionName,
-        List<String> partitionNames) throws MetaException {
-      return false;
-    }
-
-  }
 
   @Before
   public void init() throws IOException {
     MockitoAnnotations.initMocks(this);
     HiveConf conf = new HiveConf();
     conf.setBoolean(HBaseReadWrite.NO_CACHE_CONF, true);
-    conf.setVar(ConfVars.METASTORE_EXPRESSION_PROXY_CLASS, NOOPProxy.class.getName());
     store = MockUtils.init(conf, htable, rows);
   }
 

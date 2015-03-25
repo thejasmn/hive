@@ -672,7 +672,7 @@ class HBaseReadWrite {
           regex + ">");
     }
 
-    List<Partition> parts = scanPartitionsWithFilter(keyPrefix, null, maxPartitions, filter);
+    List<Partition> parts = scanPartitionsWithFilter(keyPrefix, HBaseUtils.getEndPrefix(keyPrefix), maxPartitions, filter);
     partCache.put(dbName, tableName, parts, false);
     return parts;
   }
