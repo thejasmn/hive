@@ -24,7 +24,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree.LeafNode;
@@ -318,8 +317,7 @@ class HBaseFilterPlanUtil {
       if (startMarker.isInclusive) {
         return startMarker.bytes;
       } else {
-        // append a 0 byte to make it start-exclusive
-        return ArrayUtils.add(startMarker.bytes, (byte) 0);
+        return HBaseUtils.getEndPrefix(startMarker.bytes);
       }
     }
 
@@ -328,8 +326,7 @@ class HBaseFilterPlanUtil {
      */
     public byte[] getEndRowSuffix() {
       if (endMarker.isInclusive) {
-        // append a 0 byte to make end row inclusive
-        return ArrayUtils.add(endMarker.bytes, (byte) 0);
+        return HBaseUtils.getEndPrefix(endMarker.bytes);
       } else {
         return endMarker.bytes;
       }

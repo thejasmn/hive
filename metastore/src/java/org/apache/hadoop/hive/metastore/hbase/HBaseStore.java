@@ -496,7 +496,7 @@ public class HBaseStore implements RawStore {
       try {
         List<Partition> parts = getHBase().scanPartitions(dbName, tblName,
             splan.getStartRowSuffix(), splan.getEndRowSuffix(), null, -1);
-        boolean reachedMax = true;
+        boolean reachedMax = false;
         for (Partition part : parts) {
           mergedParts.put(part.getValues(), part);
           if (mergedParts.size() == maxParts) {
