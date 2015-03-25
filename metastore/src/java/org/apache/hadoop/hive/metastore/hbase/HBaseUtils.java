@@ -1065,12 +1065,18 @@ class HBaseUtils {
   }
 
   /**
-   * @param keyStart
-   * @return an array that that is the next one to given array in sort order. Created by
-   * appending a byte with value 0
+   * @param keyStart byte array representing the start prefix
+   * @return byte array corresponding to the next possible prefix
    */
-  static byte[] getNextLargerByteArray(byte[] keyStart) {
-    // Since the length is greater than given array length by one byte, a 0 byte is padded at end
-    return Arrays.copyOf(keyStart, keyStart.length + 1);
+  static byte[] getEndPrefix(byte[] keyStart) {
+    if (keyStart == null) {
+      return null;
+    }
+    // Since this is a prefix and not full key, the usual hbase technique of
+    // appending 0 byte does not work. Instead of that, increment the last byte.
+    byte[] keyEnd = Arrays.copyOf(keyStart, keyStart.length);
+    keyEnd[keyEnd.length - 1]++;
+    return keyEnd;
   }
+
 }

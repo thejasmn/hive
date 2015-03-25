@@ -54,7 +54,6 @@ import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
 import org.apache.hadoop.hive.metastore.api.PrivilegeGrantInfo;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.RolePrincipalGrant;
-import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
@@ -72,6 +71,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -488,16 +488,33 @@ public class HBaseStore implements RawStore {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Hbase Filter Plan generated : " + filterPlan);
     }
+
+    // results from scans need to be merged as there can be overlapping results between
+    // the scans. Use a map of list of partition values to partition for this.
+    Map<List<String>, Partition> mergedParts = new HashMap<List<String>, Partition>();
     for (ScanPlan splan : filterPlan.getPlans()) {
       try {
         List<Partition> parts = getHBase().scanPartitions(dbName, tblName,
             splan.getStartRowSuffix(), splan.getEndRowSuffix(), null, -1);
-        result.addAll(parts);
+        boolean reachedMax = true;
+        for (Partition part : parts) {
+          mergedParts.put(part.getValues(), part);
+          if (mergedParts.size() == maxParts) {
+            reachedMax = true;
+            break;
+          }
+        }
+        if (reachedMax) {
+          break;
+        }
       } catch (IOException e) {
         LOG.error("Unable to get partitions", e);
         throw new MetaException("Error scanning partitions" + tableNameForErrorMsg(dbName, tblName)
             + ": " + e);
       }
+    }
+    for (Entry<List<String>, Partition> mp : mergedParts.entrySet()) {
+      result.add(mp.getValue());
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Matched partitions " + result);
