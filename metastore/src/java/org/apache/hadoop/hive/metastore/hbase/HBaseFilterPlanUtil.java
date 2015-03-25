@@ -48,7 +48,7 @@ import com.google.common.collect.ImmutableList;
 class HBaseFilterPlanUtil {
 
   /**
-   * Compare two byte arrays. null array is considered smaller than non-null array
+   * Compare two byte arrays.
    *
    * @param ar1
    *          first byte array
@@ -142,6 +142,9 @@ class HBaseFilterPlanUtil {
     }
   }
 
+  /**
+   * Represents a single Hbase Scan api call
+   */
   public static class ScanPlan extends FilterPlan {
 
     public static class ScanMarker {
