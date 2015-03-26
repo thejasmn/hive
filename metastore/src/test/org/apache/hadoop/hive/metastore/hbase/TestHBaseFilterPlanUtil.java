@@ -24,6 +24,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.FilterPlan;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.MultiScanPlan;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.PartitionFilterGenerator;
+import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.PlanResult;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.ScanPlan;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.ScanPlan.ScanMarker;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
@@ -243,13 +244,40 @@ public class TestHBaseFilterPlanUtil {
     l.operator = Operator.LESSTHANOREQUALTO;
     verifyPlan(l, KEY, DEFAULT_SCANMARKER, new ScanMarker(VAL_BYTES, INCLUSIVE));
 
+    // following leaf node plans should currently have true for 'has unsupported condition',
+    // because of the unsupported operator
+    l.operator = Operator.NOTEQUALS;
+    verifyPlan(l, KEY, DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
+    l.operator = Operator.NOTEQUALS2;
+    verifyPlan(l, KEY, DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
+    l.operator = Operator.LIKE;
+    verifyPlan(l, KEY, DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
+    // following leaf node plans should currently have true for 'has unsupported condition',
+    // because of the condition is not on first key
+    l.operator = Operator.EQUALS;
+    verifyPlan(l, "NOT_FIRST_PART", DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
+    l.operator = Operator.NOTEQUALS;
+    verifyPlan(l, "NOT_FIRST_PART", DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
   }
 
   private void verifyPlan(TreeNode l, String keyName, ScanMarker startMarker, ScanMarker endMarker)
       throws MetaException {
+    verifyPlan(l, keyName, startMarker, endMarker, false);
+  }
+
+  private void verifyPlan(TreeNode l, String keyName, ScanMarker startMarker, ScanMarker endMarker,
+      boolean hasUnsupportedCondition) throws MetaException {
     ExpressionTree e = new ExpressionTree();
     e.setRootForTest(l);
-    FilterPlan plan = HBaseFilterPlanUtil.getFilterPlan(e, keyName);
+    PlanResult planRes = HBaseFilterPlanUtil.getFilterPlan(e, keyName);
+    FilterPlan plan = planRes.plan;
+    Assert.assertEquals("Has unsupported condition", hasUnsupportedCondition,
+        planRes.hasUnsupportedCondition);
     Assert.assertEquals(1, plan.getPlans().size());
     ScanPlan splan = plan.getPlans().get(0);
     Assert.assertEquals(startMarker, splan.getStartMarker());
@@ -280,26 +308,46 @@ public class TestHBaseFilterPlanUtil {
 
     TreeNode tn = new TreeNode(l, LogicalOperator.AND, r);
 
+    // verify plan for - k1 >= '10' and k1 < '11'
     l.operator = Operator.GREATERTHANOREQUALTO;
     r.operator = Operator.LESSTHAN;
     verifyPlan(tn, KEY, new ScanMarker(VAL1_BYTES, INCLUSIVE), new ScanMarker(VAL2_BYTES,
         !INCLUSIVE));
 
+    // verify plan for - k1 >= '10' and k1 > '11'
     l.operator = Operator.GREATERTHANOREQUALTO;
     r.operator = Operator.GREATERTHAN;
     verifyPlan(tn, KEY, new ScanMarker(VAL2_BYTES, !INCLUSIVE), DEFAULT_SCANMARKER);
 
+    // verify plan for - k1 >= '10' or k1 > '11'
     tn = new TreeNode(l, LogicalOperator.OR, r);
     ExpressionTree e = new ExpressionTree();
     e.setRootForTest(tn);
-    FilterPlan plan = HBaseFilterPlanUtil.getFilterPlan(e, KEY);
-    Assert.assertEquals(2, plan.getPlans().size());
+    PlanResult planRes = HBaseFilterPlanUtil.getFilterPlan(e, KEY);
+    Assert.assertEquals(2, planRes.plan.getPlans().size());
+    Assert.assertEquals(false, planRes.hasUnsupportedCondition);
 
+    // verify plan for - k1 >= '10' and (k1 >= '10' or k1 > '11')
     TreeNode tn2 = new TreeNode(l, LogicalOperator.AND, tn);
     e = new ExpressionTree();
     e.setRootForTest(tn2);
-    plan = HBaseFilterPlanUtil.getFilterPlan(e, KEY);
-    Assert.assertEquals(2, plan.getPlans().size());
+    planRes = HBaseFilterPlanUtil.getFilterPlan(e, KEY);
+    Assert.assertEquals(2, planRes.plan.getPlans().size());
+    Assert.assertEquals(false, planRes.hasUnsupportedCondition);
+
+    // verify plan for  (k1 >= '10' and (k1 >= '10' or k1 > '11')) or k1 LIKE '2'
+    // plan should return true for hasUnsupportedCondition
+    LeafNode klike = new LeafNode();
+    klike.keyName = KEY;
+    klike.value = VAL1;
+    klike.operator = Operator.LIKE;
+    TreeNode tn3 = new TreeNode(tn2, LogicalOperator.OR, klike);
+    e = new ExpressionTree();
+    e.setRootForTest(tn3);
+    planRes = HBaseFilterPlanUtil.getFilterPlan(e, KEY);
+    Assert.assertEquals(3, planRes.plan.getPlans().size());
+    Assert.assertEquals(true, planRes.hasUnsupportedCondition);
+
 
   }
 

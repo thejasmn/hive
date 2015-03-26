@@ -358,6 +358,10 @@ class HBaseFilterPlanUtil {
   static class PartitionFilterGenerator extends TreeVisitor {
     private FilterPlan curPlan;
 
+    // this tells us if there is a condition that did not get included in the plan
+    // such condition would be treated as getting evaluated to TRUE
+    private boolean hasUnsupportedCondition = false;
+
     //Need to cache the left plans for the TreeNode. Use IdentityHashMap here
     // as we don't want to dedupe on two TreeNode that are otherwise considered equal
     Map<TreeNode, FilterPlan> leftPlans = new IdentityHashMap<TreeNode, FilterPlan>();
@@ -439,6 +443,7 @@ class HBaseFilterPlanUtil {
       case NOTEQUALS:
       case NOTEQUALS2:
         // TODO: create filter plan for these
+        hasUnsupportedCondition = true;
         break;
       }
     }
@@ -453,6 +458,7 @@ class HBaseFilterPlanUtil {
 
     private ScanFilter generateScanFilter(LeafNode node) {
       // TODO Auto-generated method stub
+      hasUnsupportedCondition = true;
       return null;
     }
 
@@ -460,12 +466,25 @@ class HBaseFilterPlanUtil {
       return keyName.equalsIgnoreCase(firstPartcolumn);
     }
 
+    private boolean hasUnsupportedCondition() {
+      return hasUnsupportedCondition;
+    }
+
   }
 
-  public static FilterPlan getFilterPlan(ExpressionTree exprTree, String firstPartitionColumn) throws MetaException {
+  public static class PlanResult {
+    public final FilterPlan plan;
+    public final boolean hasUnsupportedCondition;
+    PlanResult(FilterPlan plan, boolean hasUnsupportedCondition) {
+      this.plan = plan;
+      this.hasUnsupportedCondition = hasUnsupportedCondition;
+    }
+  }
+
+  public static PlanResult getFilterPlan(ExpressionTree exprTree, String firstPartitionColumn) throws MetaException {
     PartitionFilterGenerator pGenerator = new PartitionFilterGenerator(firstPartitionColumn);
     exprTree.accept(pGenerator);
-    return pGenerator.getPlan();
+    return new PlanResult(pGenerator.getPlan(), pGenerator.hasUnsupportedCondition());
   }
 
 }

@@ -59,7 +59,7 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
-import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.FilterPlan;
+import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.PlanResult;
 import org.apache.hadoop.hive.metastore.hbase.HBaseFilterPlanUtil.ScanPlan;
 import org.apache.hadoop.hive.metastore.parser.ExpressionTree;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
@@ -484,15 +484,16 @@ public class HBaseStore implements RawStore {
     }
     String firstPartitionColumn = table.getPartitionKeys().get(0).getName();
     // general hbase filter plan from expression tree
-    FilterPlan filterPlan = HBaseFilterPlanUtil.getFilterPlan(exprTree, firstPartitionColumn);
+    PlanResult planRes = HBaseFilterPlanUtil.getFilterPlan(exprTree, firstPartitionColumn);
+
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Hbase Filter Plan generated : " + filterPlan);
+      LOG.debug("Hbase Filter Plan generated : " + planRes.plan);
     }
 
     // results from scans need to be merged as there can be overlapping results between
     // the scans. Use a map of list of partition values to partition for this.
     Map<List<String>, Partition> mergedParts = new HashMap<List<String>, Partition>();
-    for (ScanPlan splan : filterPlan.getPlans()) {
+    for (ScanPlan splan : planRes.plan.getPlans()) {
       try {
         List<Partition> parts = getHBase().scanPartitions(dbName, tblName,
             splan.getStartRowSuffix(), splan.getEndRowSuffix(), null, -1);
@@ -520,10 +521,9 @@ public class HBaseStore implements RawStore {
       LOG.debug("Matched partitions " + result);
     }
 
-    // TODO: return false if we know that only partitions that match filter expression
-    // are being returned (ie no additional partitions are there).
-    // once the implementation of filter on all expressions is done, this should return false
-    return true;
+    // return true if there might be some additional partitions that don't match filter conditions
+    // being returned
+    return !planRes.hasUnsupportedCondition;
   }
 
   @Override
