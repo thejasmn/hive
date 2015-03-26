@@ -522,7 +522,7 @@ public class TestHBaseStoreIntegration extends IMockUtils {
   @Test
   public void listPartitionsWithPs() throws Exception {
     String dbName = "default";
-    String tableName = "getPartitionsByFilter";
+    String tableName = "listPartitionsWithPs";
     int startTime = (int)(System.currentTimeMillis() / 1000);
     List<FieldSchema> cols = new ArrayList<FieldSchema>();
     cols.add(new FieldSchema("col1", "int", "nocomment"));
@@ -587,7 +587,7 @@ public class TestHBaseStoreIntegration extends IMockUtils {
   @Test
   public void getPartitionsByFilter() throws Exception {
     String dbName = "default";
-    String tableName = "listPartsPs";
+    String tableName = "getPartitionsByFilter";
     int startTime = (int)(System.currentTimeMillis() / 1000);
     List<FieldSchema> cols = new ArrayList<FieldSchema>();
     cols.add(new FieldSchema("col1", "int", "nocomment"));
@@ -651,7 +651,6 @@ public class TestHBaseStoreIntegration extends IMockUtils {
     // filtering on first partition is only implemented as of now, so it will not filter on region
     checkPartVals(parts, "[20010101, north america]", "[20010101, europe]",
         "[20010102, north america]", "[20010102, europe]", "[20010103, north america]");
-
 
   }
 

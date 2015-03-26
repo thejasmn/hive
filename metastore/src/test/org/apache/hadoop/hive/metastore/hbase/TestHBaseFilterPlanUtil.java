@@ -263,6 +263,10 @@ public class TestHBaseFilterPlanUtil {
     l.operator = Operator.NOTEQUALS;
     verifyPlan(l, "NOT_FIRST_PART", DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
 
+    // if tree is null, it should return equivalent of full scan, and true
+    // for 'has unsupported condition'
+    verifyPlan(null, KEY, DEFAULT_SCANMARKER, DEFAULT_SCANMARKER, true);
+
   }
 
   private void verifyPlan(TreeNode l, String keyName, ScanMarker startMarker, ScanMarker endMarker)
@@ -272,8 +276,11 @@ public class TestHBaseFilterPlanUtil {
 
   private void verifyPlan(TreeNode l, String keyName, ScanMarker startMarker, ScanMarker endMarker,
       boolean hasUnsupportedCondition) throws MetaException {
-    ExpressionTree e = new ExpressionTree();
-    e.setRootForTest(l);
+    ExpressionTree e = null;
+    if (l != null) {
+      e = new ExpressionTree();
+      e.setRootForTest(l);
+    }
     PlanResult planRes = HBaseFilterPlanUtil.getFilterPlan(e, keyName);
     FilterPlan plan = planRes.plan;
     Assert.assertEquals("Has unsupported condition", hasUnsupportedCondition,

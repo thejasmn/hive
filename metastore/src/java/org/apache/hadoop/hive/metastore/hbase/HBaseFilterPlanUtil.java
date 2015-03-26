@@ -482,6 +482,10 @@ class HBaseFilterPlanUtil {
   }
 
   public static PlanResult getFilterPlan(ExpressionTree exprTree, String firstPartitionColumn) throws MetaException {
+    if (exprTree == null) {
+      // TODO: if exprTree is null, we should do what ObjectStore does. See HIVE-10102
+      return new PlanResult(new ScanPlan(), true);
+    }
     PartitionFilterGenerator pGenerator = new PartitionFilterGenerator(firstPartitionColumn);
     exprTree.accept(pGenerator);
     return new PlanResult(pGenerator.getPlan(), pGenerator.hasUnsupportedCondition());
