@@ -418,6 +418,11 @@ class HBaseFilterPlanUtil {
         leafPlan.setFilter(generateScanFilter(node));
         return;
       }
+      if (!(node.value instanceof String)) {
+        // only string type is supported currently
+        // treat conditions on other types as true
+        return;
+      }
 
       // this is a condition on first partition column, so might influence the
       // start and end of the scan
