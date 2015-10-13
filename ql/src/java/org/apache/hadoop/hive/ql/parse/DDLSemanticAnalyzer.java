@@ -879,11 +879,13 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       if (!table.isPartitioned()) {
         outputs.add(new WriteEntity(table, WriteEntity.WriteType.DDL_EXCLUSIVE));
       } else {
+        addTableOutputForAuth(outputs, table);
         for (Partition partition : getPartitions(table, null, false)) {
           outputs.add(new WriteEntity(partition, WriteEntity.WriteType.DDL_EXCLUSIVE));
         }
       }
     } else {
+      addTableOutputForAuth(outputs, table);
       if (isFullSpec(table, partSpec)) {
         validatePartSpec(table, partSpec, (ASTNode) root.getChild(1), conf, true);
         Partition partition = getPartition(table, partSpec, true);
@@ -1038,6 +1040,15 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     }
 
     rootTasks.add(truncateTask);
+  }
+
+  /**
+   * Adds table to outputs for purpose of authorization only, not used for locking
+   * @param outputs
+   * @param table
+   */
+  private void addTableOutputForAuth(HashSet<WriteEntity> outputs, Table table) {
+    outputs.add(new WriteEntity(table, WriteEntity.WriteType.DDL_NO_LOCK));
   }
 
   public static boolean isFullSpec(Table table, Map<String, String> partSpec) {
