@@ -104,7 +104,6 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
     if (hiveObjects == null) {
       return;
     }
-
     // Compare required privileges and available privileges for each hive object
     for (HivePrivilegeObject hiveObj : hiveObjects) {
 
@@ -137,6 +136,8 @@ public class SQLStdHiveAuthorizationValidator implements HiveAuthorizationValida
           availPrivs.addPrivilege(SQLPrivTypeGrant.ADMIN_PRIV);
         }
         break;
+      case TABLE_OR_VIEW:
+        
       default:
         availPrivs = SQLAuthorizationUtils.getPrivilegesFromMetaStore(metastoreClient, userName,
             hiveObj, privController.getCurrentRoleNames(), privController.isUserAdmin());

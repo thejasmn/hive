@@ -469,6 +469,10 @@ public class Driver implements CommandProcessor {
         plan.getFetchTask().initialize(conf, plan, null);
       }
 
+      if (HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_IN_TEST)) {
+        validateInputsForAuth(sem.getInputs());
+        validateOutputsForAuth(sem.getOutputs());
+      }
       //do the authorization check
       if (!sem.skipAuthorization() &&
           HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED)) {
@@ -520,6 +524,11 @@ public class Driver implements CommandProcessor {
       dumpMetaCallTimingWithoutEx("compilation");
       restoreSession(queryState);
     }
+  }
+
+  private void validateInputsForAuth(HashSet<ReadEntity> inputs) {
+    // TODO Auto-generated method stub
+    
   }
 
   private void dumpMetaCallTimingWithoutEx(String phase) {
