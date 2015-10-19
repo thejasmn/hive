@@ -423,6 +423,8 @@ public enum ErrorMsg {
       "Alter table partition type {0} does not allow partial partition spec", true),
   ALTER_TABLE_PARTITION_CASCADE_NOT_SUPPORTED(10300,
       "Alter table partition type {0} does not support cascade", true),
+  COMPILE_ENTITY_LIST_VALIDATION_FAILED(10301,
+      "Internal error. Table(s) : {0}  not found in {1}", true),
 
   DROP_NATIVE_FUNCTION(10301, "Cannot drop native function"),
   UPDATE_CANNOT_UPDATE_BUCKET_VALUE(10302, "Updating values of bucketing columns is not supported.  Column {0}.", true),

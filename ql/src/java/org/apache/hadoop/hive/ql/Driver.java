@@ -470,8 +470,8 @@ public class Driver implements CommandProcessor {
       }
 
       if (HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_IN_TEST)) {
-        validateInputsForAuth(sem.getInputs());
-        validateOutputsForAuth(sem.getOutputs());
+        validateEnitiesForAuth(sem.getInputs());
+        validateEnitiesForAuth(sem.getOutputs());
       }
       //do the authorization check
       if (!sem.skipAuthorization() &&
@@ -526,9 +526,43 @@ public class Driver implements CommandProcessor {
     }
   }
 
-  private void validateInputsForAuth(HashSet<ReadEntity> inputs) {
-    // TODO Auto-generated method stub
-    
+  /**
+   * Verify that authorization entries are setup the way authorization rules
+   * expect them
+   * 
+   * @param entities
+   * @throws HiveException
+   */
+  private void validateEnitiesForAuth(Set<? extends Entity> entities) throws HiveException {
+    // ensure that for every partition that is present in the input set,
+    // it has a table object in the set as well
+    Set<Table> expectedTables = new HashSet<Table>();
+    Set<Table> foundTables = new HashSet<Table>();
+
+    for (Entity e : entities) {
+      switch (e.getType()) {
+      case PARTITION:
+        expectedTables.add(e.getTable());
+        break;
+      case TABLE:
+        foundTables.add(e.getTable());
+        break;
+      default:
+        // don't care about other types for this validation
+        break;
+      }
+    }
+    List<Table> tablesNotFound = new ArrayList<Table>();
+    for (Table expectedTable : expectedTables) {
+      if (!foundTables.contains(expectedTable)) {
+        tablesNotFound.add(expectedTable);
+      }
+    }
+    if (!tablesNotFound.isEmpty()) {
+      throw new HiveException(ErrorMsg.COMPILE_ENTITY_LIST_VALIDATION_FAILED, "" + tablesNotFound,
+          "" + entities);
+    }
+
   }
 
   private void dumpMetaCallTimingWithoutEx(String phase) {
