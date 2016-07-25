@@ -38,8 +38,12 @@
         <value>com.mysql.jdbc.Driver</value>
     </property>
     <property>
-        <name>datanucleus.schema.autoCreateAll</name>
+        <name>datanucleus.autoCreateSchema</name>
         <value>false</value>
+    </property>
+    <property>
+      <name>datanucleus.fixedDatastore</name>
+        <value>true</value>
     </property>
     <!--start ACID related properties-->
     <property>

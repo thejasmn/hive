@@ -232,7 +232,7 @@ public class HiveConf extends Configuration {
       HiveConf.ConfVars.METASTORE_VALIDATE_COLUMNS,
       HiveConf.ConfVars.METASTORE_VALIDATE_CONSTRAINTS,
       HiveConf.ConfVars.METASTORE_STORE_MANAGER_TYPE,
-      HiveConf.ConfVars.METASTORE_AUTO_CREATE_ALL,
+      HiveConf.ConfVars.METASTORE_AUTO_CREATE_SCHEMA,
       HiveConf.ConfVars.METASTORE_TRANSACTION_ISOLATION,
       HiveConf.ConfVars.METASTORE_CACHE_LEVEL2,
       HiveConf.ConfVars.METASTORE_CACHE_LEVEL2_TYPE,
@@ -705,17 +705,18 @@ public class HiveConf extends Configuration {
         "List of comma separated metastore object types that should be pinned in the cache"),
     METASTORE_CONNECTION_POOLING_TYPE("datanucleus.connectionPoolingType", "BONECP",
         "Specify connection pool library for datanucleus"),
-    METASTORE_VALIDATE_TABLES("datanucleus.schema.validateTables", false,
+    METASTORE_VALIDATE_TABLES("datanucleus.validateTables", false,
         "validates existing schema against code. turn this on if you want to verify existing schema"),
-    METASTORE_VALIDATE_COLUMNS("datanucleus.schema.validateColumns", false,
+    METASTORE_VALIDATE_COLUMNS("datanucleus.validateColumns", false,
         "validates existing schema against code. turn this on if you want to verify existing schema"),
-    METASTORE_VALIDATE_CONSTRAINTS("datanucleus.schema.validateConstraints", false,
+    METASTORE_VALIDATE_CONSTRAINTS("datanucleus.validateConstraints", false,
         "validates existing schema against code. turn this on if you want to verify existing schema"),
     METASTORE_STORE_MANAGER_TYPE("datanucleus.storeManagerType", "rdbms", "metadata store type"),
-    METASTORE_AUTO_CREATE_ALL("datanucleus.schema.autoCreateAll", false,
-        "Auto creates necessary schema on a startup if one doesn't exist. Set this to false, after creating it once."
+    METASTORE_AUTO_CREATE_SCHEMA("datanucleus.autoCreateSchema", false,
+        "creates necessary schema on a startup if one doesn't exist. set this to false, after creating it once"
         + "To enable auto create also set hive.metastore.schema.verification=false. Auto creation is not "
         + "recommended for production use cases, run schematool command instead." ),
+    METASTORE_FIXED_DATASTORE("datanucleus.fixedDatastore", true, "Dictates whether to allow updates to schema or not."),
     METASTORE_SCHEMA_VERIFICATION("hive.metastore.schema.verification", true,
         "Enforce metastore schema version consistency.\n" +
         "True: Verify that version information stored in is compatible with one from Hive jars.  Also disable automatic\n" +
@@ -3775,7 +3776,8 @@ public class HiveConf extends Configuration {
     }
 
     if (getBoolVar(ConfVars.METASTORE_SCHEMA_VERIFICATION)) {
-      setBoolVar(ConfVars.METASTORE_AUTO_CREATE_ALL, false);
+      setBoolVar(ConfVars.METASTORE_AUTO_CREATE_SCHEMA, false);
+      setBoolVar(ConfVars.METASTORE_FIXED_DATASTORE, true);
     }
 
     if (getBoolVar(HiveConf.ConfVars.HIVECONFVALIDATION)) {

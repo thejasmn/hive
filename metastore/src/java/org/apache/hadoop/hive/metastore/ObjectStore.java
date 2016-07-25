@@ -8359,8 +8359,8 @@ public class ObjectStore implements RawStore, Configurable {
       JDOPersistenceManagerFactory jdoPmf = (JDOPersistenceManagerFactory) pmf;
       NucleusContext nc = jdoPmf.getNucleusContext();
       try {
-        Field classLoaderResolverMap = AbstractNucleusContext.class.getDeclaredField(
-            "classLoaderResolverMap");
+        Field classLoaderResolverMap =
+            NucleusContext.class.getDeclaredField("classLoaderResolverMap");
         classLoaderResolverMap.setAccessible(true);
         classLoaderResolverMap.set(nc, new HashMap<String, ClassLoaderResolver>());
         LOG.debug("Removed cached classloaders from DataNucleus NucleusContext");
