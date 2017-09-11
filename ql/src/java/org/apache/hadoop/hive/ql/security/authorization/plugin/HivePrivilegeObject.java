@@ -90,7 +90,11 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
    * used.
    */
   public enum HivePrivilegeObjectType {
-    GLOBAL, DATABASE, TABLE_OR_VIEW, PARTITION, COLUMN, LOCAL_URI, DFS_URI, COMMAND_PARAMS, FUNCTION
+    GLOBAL, DATABASE, TABLE_OR_VIEW, PARTITION, COLUMN, LOCAL_URI, DFS_URI, COMMAND_PARAMS, FUNCTION,
+    // HIVE_SERVICE refers to a logical service name. For now hiveserver2 hostname will be
+    // used to give service actions a name. This is used by kill query command so it can
+    // be authorized specifically to a service if necessary.
+    HIVE_SERVICE
   };
 
   /**
