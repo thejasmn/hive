@@ -286,6 +286,8 @@ public class SessionState {
 
   private String atsDomainId;
 
+  private String hiveServer2HostName;
+
   /**
    * Get the lineage state stored in this session.
    *
@@ -1903,6 +1905,13 @@ public class SessionState {
     return progressMonitor;
   }
 
+  public void setHiveServer2Host(String hiveServer2HostName) {
+    this.hiveServer2HostName = hiveServer2HostName;
+  }
+
+  public String getHiveServer2Host() {
+    return hiveServer2HostName;
+  }
 }
 
 class ResourceMaps {

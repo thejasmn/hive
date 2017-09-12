@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.ql.hooks.Entity.Type;
 import org.apache.hadoop.hive.ql.metadata.DummyPartition;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
@@ -137,6 +138,10 @@ public class WriteEntity extends Entity implements Serializable {
     super(d, islocal, true);
     this.isTempURI = isTemp;
     this.writeType = WriteType.PATH_WRITE;
+  }
+
+  public WriteEntity(String name, Type t) {
+    super(name, t);
   }
 
   /**

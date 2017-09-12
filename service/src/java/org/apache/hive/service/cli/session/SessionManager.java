@@ -571,5 +571,9 @@ public class SessionManager extends CompositeService {
   public int getOpenSessionCount() {
     return handleToSession.size();
   }
+
+  public String getHiveServer2HostName() throws Exception {
+    return hiveServer2.getServerHost();
+  }
 }
 

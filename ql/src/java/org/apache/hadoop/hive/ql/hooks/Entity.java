@@ -41,7 +41,7 @@ public class Entity implements Serializable {
    * The type of the entity.
    */
   public static enum Type {
-    DATABASE, TABLE, PARTITION, DUMMYPARTITION, DFS_DIR, LOCAL_DIR, FUNCTION
+    DATABASE, TABLE, PARTITION, DUMMYPARTITION, DFS_DIR, LOCAL_DIR, FUNCTION, SERVICE_NAME
   }
 
   /**
@@ -71,7 +71,7 @@ public class Entity implements Serializable {
 
   /**
    * An object that is represented as a String
-   * Currently used for functions
+   * Currently used for functions and service name
    */
   private String stringObject;
 
@@ -174,6 +174,21 @@ public class Entity implements Serializable {
     this.typ = Type.DATABASE;
     this.name = computeName();
     this.complete = complete;
+  }
+
+  /**
+   * Constructor for a entity with string object representation (eg SERVICE_NAME)
+   *
+   * @param name
+   *          Used for service that action is being authorized on.
+   *          Currently hostname is used for service name.
+   * @param t
+   *         Type of entity
+   */
+  public Entity(String name, Type t) {
+    this.stringObject = name;
+    this.typ = t;
+    this.name = computeName();
   }
 
   /**
@@ -344,6 +359,8 @@ public class Entity implements Serializable {
       if (database != null) {
         return database.getName() + "." + stringObject;
       }
+      return stringObject;
+    case SERVICE_NAME:
       return stringObject;
     default:
       return d.toString();

@@ -58,6 +58,7 @@ import org.apache.hadoop.hive.ql.exec.TaskFactory;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity;
+import org.apache.hadoop.hive.ql.hooks.Entity.Type;
 import org.apache.hadoop.hive.ql.hooks.WriteEntity.WriteType;
 import org.apache.hadoop.hive.ql.index.HiveIndex;
 import org.apache.hadoop.hive.ql.index.HiveIndex.IndexType;
@@ -2564,7 +2565,11 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     for (int i = 0; i < numChildren; i++) {
       queryIds.add(ast.getChild(i).getText());
     }
+    if(!SessionState.get().isHiveServerQuery()) {
+      throw new SemanticException("Kill query is only supported in HiveServer2 (not hive cli)");
+    }
     KillQueryDesc desc = new KillQueryDesc(queryIds);
+    outputs.add(new WriteEntity(SessionState.get().getHiveServer2Host(), Type.SERVICE_NAME));
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), desc), conf));
   }
 
