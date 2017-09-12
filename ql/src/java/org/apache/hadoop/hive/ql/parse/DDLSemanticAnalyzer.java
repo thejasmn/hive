@@ -105,6 +105,7 @@ import org.apache.hadoop.hive.ql.plan.ExprNodeConstantDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeGenericFuncDesc;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
+import org.apache.hadoop.hive.ql.plan.KillQueryDesc;
 import org.apache.hadoop.hive.ql.plan.ListBucketingCtx;
 import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
 import org.apache.hadoop.hive.ql.plan.LockDatabaseDesc;
@@ -400,6 +401,9 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       break;
     case HiveParser.TOK_ABORT_TRANSACTIONS:
       analyzeAbortTxns(ast);
+      break;
+    case HiveParser.TOK_KILL_QUERY:
+      analyzeKillQuery(ast);
       break;
     case HiveParser.TOK_SHOWCONF:
       ctx.setResFile(ctx.getLocalTmpPath());
@@ -2546,6 +2550,21 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       txnids.add(Long.parseLong(ast.getChild(i).getText()));
     }
     AbortTxnsDesc desc = new AbortTxnsDesc(txnids);
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), desc), conf));
+  }
+
+  /**
+   * Add a task to execute "Kill query"
+   * @param ast The parsed command tree
+   * @throws SemanticException Parsing failed
+   */
+  private void analyzeKillQuery(ASTNode ast) throws SemanticException {
+    List<String> queryIds = new ArrayList<String>();
+    int numChildren = ast.getChildCount();
+    for (int i = 0; i < numChildren; i++) {
+      queryIds.add(ast.getChild(i).getText());
+    }
+    KillQueryDesc desc = new KillQueryDesc(queryIds);
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), desc), conf));
   }
 

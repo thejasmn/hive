@@ -4041,6 +4041,10 @@ private void constructOneLBLocationMap(FileStatus fSta,
     }
   }
 
+  public void killQueries(List<String> queryIds) throws HiveException {
+    LOG.info("kill query called ({})", queryIds);
+  }
+
   public void abortTransactions(List<Long> txnids) throws HiveException {
     try {
       getMSC().abortTxns(txnids);

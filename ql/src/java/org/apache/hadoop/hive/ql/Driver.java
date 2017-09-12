@@ -715,6 +715,7 @@ public class Driver implements CommandProcessor {
       case SHOW_COMPACTIONS:
       case SHOW_TRANSACTIONS:
       case ABORT_TRANSACTIONS:
+      case KILL_QUERY:
         shouldOpenImplicitTxn = false;
         //this implies that no locks are needed for such a command
     }
