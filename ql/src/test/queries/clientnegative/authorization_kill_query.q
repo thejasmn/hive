@@ -5,10 +5,11 @@ set hive.security.authenticator.manager=org.apache.hadoop.hive.ql.security.Sessi
 
 set user.name=hive_admin_user;
 set role ADMIN;
-
+explain authorization kill query 'dummyqueryid';
 kill query 'dummyqueryid';
 
 set user.name=ruser1;
 
 -- kill query as non-admin should fail
+explain authorization kill query 'dummyqueryid';
 kill query 'dummyqueryid';

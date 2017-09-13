@@ -2565,15 +2565,24 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     for (int i = 0; i < numChildren; i++) {
       queryIds.add(ast.getChild(i).getText());
     }
-    if(!SessionState.get().isHiveServerQuery()) {
-      throw new SemanticException("Kill query is only supported in HiveServer2 (not hive cli)");
-    }
     KillQueryDesc desc = new KillQueryDesc(queryIds);
-    outputs.add(new WriteEntity(SessionState.get().getHiveServer2Host(), Type.SERVICE_NAME));
+    String hs2Hostname = getHS2Host();
+    outputs.add(new WriteEntity(hs2Hostname, Type.SERVICE_NAME));
     rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), desc), conf));
   }
 
-   /**
+  private String getHS2Host() throws SemanticException {
+    if (SessionState.get().isHiveServerQuery()) {
+      return SessionState.get().getHiveServer2Host();
+    }
+    if (conf.getBoolVar(ConfVars.HIVE_TEST_AUTHORIZATION_SQLSTD_HS2_MODE)) {
+      // dummy value for use in tests
+      return "dummyHostnameForTest";
+    }
+    throw new SemanticException("Kill query is only supported in HiveServer2 (not hive cli)");
+  }
+
+  /**
    * Add the task according to the parsed command tree. This is used for the CLI
    * command "UNLOCK TABLE ..;".
    *

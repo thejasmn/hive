@@ -242,6 +242,8 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     case COMMAND_PARAMS:
       name = commandParams.toString();
       break;
+    case HIVE_SERVICE:
+      name = objectName;
     }
 
     // get the string representing action type if its non default action type
