@@ -154,6 +154,13 @@ public class Entity implements Serializable {
     this.stringObject = funcName;
   }
 
+  public String getServiceName() {
+    if (typ == Type.SERVICE_NAME) {
+      return stringObject;
+    }
+    return null;
+  }
+
   /**
    * Only used by serialization.
    */

@@ -1102,7 +1102,10 @@ public class Driver implements CommandProcessor {
       case PARTITION:
         // not currently handled
         continue;
-        default:
+      case SERVICE_NAME:
+        objName = privObject.getServiceName();
+        break;
+      default:
           throw new AssertionError("Unexpected object type");
       }
       HivePrivObjectActionType actionType = AuthorizationUtils.getActionType(privObject);
