@@ -142,6 +142,7 @@ public class WriteEntity extends Entity implements Serializable {
 
   public WriteEntity(String name, Type t) {
     super(name, t);
+    this.writeType = WriteType.DDL_NO_LOCK;
   }
 
   /**
