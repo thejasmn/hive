@@ -100,7 +100,7 @@ public class AuthorizationUtils {
     case FUNCTION:
       return HivePrivilegeObjectType.FUNCTION;
     case SERVICE_NAME:
-      return HivePrivilegeObjectType.HIVE_SERVICE;
+      return HivePrivilegeObjectType.SERVICE_NAME;
     default:
       return null;
     }

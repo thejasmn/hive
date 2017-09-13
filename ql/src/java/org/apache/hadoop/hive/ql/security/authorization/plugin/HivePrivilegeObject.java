@@ -94,7 +94,7 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     // HIVE_SERVICE refers to a logical service name. For now hiveserver2 hostname will be
     // used to give service actions a name. This is used by kill query command so it can
     // be authorized specifically to a service if necessary.
-    HIVE_SERVICE
+    SERVICE_NAME
   };
 
   /**
@@ -242,7 +242,7 @@ public class HivePrivilegeObject implements Comparable<HivePrivilegeObject> {
     case COMMAND_PARAMS:
       name = commandParams.toString();
       break;
-    case HIVE_SERVICE:
+    case SERVICE_NAME:
       name = objectName;
     }
 
