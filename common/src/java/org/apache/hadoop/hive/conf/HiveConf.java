@@ -4497,7 +4497,7 @@ public class HiveConf extends Configuration {
     "mapred\\.map\\..*",
     "mapred\\.reduce\\..*",
     "mapred\\.output\\.compression\\.codec",
-    "mapred\\.job\\.queuename",
+    "mapred\\.job\\.queue\\.name",
     "mapred\\.output\\.compression\\.type",
     "mapred\\.min\\.split\\.size",
     "mapreduce\\.job\\.reduce\\.slowstart\\.completedmaps",
