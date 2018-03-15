@@ -21,6 +21,7 @@ package org.apache.hadoop.hive.ql.plan;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.hadoop.hive.ql.exec.ColumnInfo;
 import org.apache.hadoop.hive.ql.exec.ExprNodeEvaluator;
@@ -248,6 +249,26 @@ public class ExprNodeDescUtils {
       }
     }
     return true;
+  }
+  
+  /**
+   * @param node
+   * @return Stream of Expressions representing UDFs which are part of the node
+   *         expression hierarchy
+   */
+  public static Stream<ExprNodeGenericFuncDesc> getGenericFuncDescs(ExprNodeDesc node) {
+    return getFlattenedStream(node)
+        .filter(n -> n instanceof ExprNodeGenericFuncDesc)
+        .map(n -> (ExprNodeGenericFuncDesc) n);
+  }
+
+  /**
+   * @param node
+   * @return Stream of entire hierarchy of expressions under node
+   */
+  public static Stream<ExprNodeDesc> getFlattenedStream(ExprNodeDesc node) {
+    return Stream.concat(Stream.of(node),
+        node.getChildren().stream().flatMap(ExprNodeDescUtils::getFlattenedStream));
   }
 
   public static ArrayList<ExprNodeDesc> clone(List<ExprNodeDesc> sources) {
