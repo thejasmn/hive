@@ -27,6 +27,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -383,6 +384,32 @@ public class TestHiveAuthorizerCheckInvocation {
     assertEquals("input type", HivePrivilegeObjectType.FUNCTION, funcObj.getType());
     assertTrue("function name", funcName.equalsIgnoreCase(funcObj.getObjectName()));
     assertEquals("db name", null, funcObj.getDbname());
+  }
+  
+  @Test
+  public void testTempTable() throws Exception {
+    reset(mockedAuthorizer);
+    String tmpTableDir = getDefaultTmp() + File.separator + "THSAC_testTableTable";
+    
+    final String tableName = "testTempTable";
+    int status = driver.compile("create temporary table " + tableName
+        + "(i int) location '" + tmpTableDir + "'");
+    assertEquals(0, status);
+
+    List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs().getLeft();
+    List<HivePrivilegeObject> outputs = getHivePrivilegeObjectInputs().getRight();
+    
+    assertEquals("input count", 1, inputs.size());
+//    
+//    HivePrivilegeObject funcObj = outputs.get(0);
+//    assertEquals("input type", HivePrivilegeObjectType.FUNCTION, funcObj.getType());
+//    assertTrue("function name", funcName.equalsIgnoreCase(funcObj.getObjectName()));
+//    assertEquals("db name", null, funcObj.getDbname());
+  }
+
+  private String getDefaultTmp() {
+    return System.getProperty("test.tmp.dir",
+        "target" + File.separator + "test" + File.separator + "tmp");
   }
 
   @Test
