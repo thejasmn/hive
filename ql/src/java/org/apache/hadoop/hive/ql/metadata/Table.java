@@ -1010,6 +1010,10 @@ public class Table implements Serializable {
     return tTable.isTemporary();
   }
 
+  public void setTemporary(boolean isTemporary) {
+    tTable.setTemporary(true);
+  }
+  
   public static boolean hasMetastoreBasedSchema(HiveConf conf, String serdeLib) {
     return StringUtils.isEmpty(serdeLib) ||
         conf.getStringCollection(ConfVars.SERDESUSINGMETASTOREFORSCHEMA.varname).contains(serdeLib);
