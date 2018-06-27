@@ -407,10 +407,15 @@ public class TestHiveAuthorizerCheckInvocation {
       // only the dbname should be passed authorization check
       assertEquals("output count", 1, outputs.size());
       assertEquals("output type", HivePrivilegeObjectType.DATABASE, outputs.get(0).getType());
+
+      status = driver.compile("select * from " + tableName);
+      assertEquals(0, status);
     }
     { // select from the temp table
       reset(mockedAuthorizer);
       int status = driver.compile("select * from " + tableName);
+      assertEquals(0, status);
+      
       // temp tables should be skipped from authorization
       List<HivePrivilegeObject> inputs = getHivePrivilegeObjectInputs().getLeft();
       List<HivePrivilegeObject> outputs = getHivePrivilegeObjectInputs().getRight();
