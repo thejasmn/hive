@@ -18,6 +18,9 @@
 
 package org.apache.hadoop.hive;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 
@@ -36,6 +39,14 @@ public class UtilsForTest {
 
     conf.setVar(ConfVars.METASTORECONNECTURLKEY, "jdbc:derby:;databaseName=" + newDbLoc
         + ";create=true");
+  }
+
+  public static void expandHiveConfParams(HiveConf hiveConf) {
+    Iterator<Map.Entry<String, String>> iter = hiveConf.iterator();
+    while (iter.hasNext()) {
+      String key = iter.next().getKey();
+      hiveConf.set(key, hiveConf.get(key));
+    }
   }
 
 }
