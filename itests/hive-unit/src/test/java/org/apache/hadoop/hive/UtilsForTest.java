@@ -41,6 +41,14 @@ public class UtilsForTest {
         + ";create=true");
   }
 
+  /**
+   * Do the variable expansion by calling "set" on each variable.
+   * When MR jobs are run, under some circumstances they fail because
+   * the variable expansion fails after changes in Hadoop to prevent
+   * variable expansion for JobHistoryServer. So expanding them ahead
+   * so that variables like {test.tmp.dir} get expanded.
+   * @param hiveConf
+   */
   public static void expandHiveConfParams(HiveConf hiveConf) {
     Iterator<Map.Entry<String, String>> iter = hiveConf.iterator();
     while (iter.hasNext()) {
